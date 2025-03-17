@@ -29,6 +29,15 @@ Cypress.Commands.add('base_db_seed', () => {
                 cy.visit(line[0])
             })
 
+        } else if (decodeURIComponent(location.href).includes('Continue Last Run.feature')) {
+            cy.readFile('test_db/latest_url.info').then((url) => {
+                /**
+                 * Simply load the previous URL to pick up where we left off.
+                 * Leave the session & DB as-is.
+                 */
+                cy.visit(url)
+            })
+
         } else {
 
             // We can skip populating the base db seed on successive runs by adding a false value to the mysql['initial_db_seed'] key in cypress.env.json

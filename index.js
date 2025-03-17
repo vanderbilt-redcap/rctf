@@ -119,6 +119,19 @@ function rctf_initialize(preprocessor) {
 
     beforeEach(abortEarly);
     afterEach(abortEarly);
+
+    after(() => {
+        if (Cypress.config('isInteractive')) {
+            /**
+             * We are a developer likely running a single feature at a time via the Cypress UI.
+             * Automatically save the user & page in case the developer wants to load "Continue Last Run.feature"
+             * and pick up where they left off.
+             */
+            cy.url().then((url) => {
+                cy.task('saveCurrentURL', ({ url: url }))
+            })
+        }
+    })
 }
 
 // // This is what makes these functions available to outside scripts

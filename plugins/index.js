@@ -97,6 +97,12 @@ module.exports = (cypressOn, config) => {
             })
         },
 
+        saveCurrentURL({ url }) {
+            let path = shell.pwd() + '/test_db/latest_url.info'
+            shell.ShellString(`${url}`).to(path)
+            return fs.existsSync(path)
+        },
+
         currentSnapshotInfo({url, user, pass}){
             let snapshot_url_path = shell.pwd() + '/test_db/latest_snapshot.info'
             shell.ShellString(`${url}\n${user}\n${pass}`).to(snapshot_url_path);
