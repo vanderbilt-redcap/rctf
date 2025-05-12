@@ -315,11 +315,7 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
                 }
 
                 cy.top_layer(sel, element_selector).then(($elm) => {
-                    cy.wrap($elm).find(sel).last().then(($element) => {
-                        if($element[0].id === 'center'){
-                            throw "The #center div was matched.  Historically we've mainly seen this when unexpectedly matching langauge strings in script tags (maybe a ':visible' bug in Cypress).  You might be able to avoid this error by adding 'in the dialog box' to this step."
-                        }
-
+                    cy.wrap($elm).find(sel).then(($element) => {
                         if(el === 'button' && !$element.is('button')) {
                             cy.wrap($element).invoke('attr', 'value').should('include', text)
                         } else if (window.icons.hasOwnProperty(online_buttons)) {
