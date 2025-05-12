@@ -892,12 +892,11 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
                     } else {
                         if(enter_type === "enter"){
                             cy.wrap($parent).parent().find(element).then((elementObject) => {
-                                const onFocus = elementObject.attr('onfocus') ?? ''
-                                if(onFocus.startsWith('openLogicEditor')){
+                                if(elementObject.attr('onfocus').startsWith('openLogicEditor')){
                                     typeIntoLogicEditor(elementObject)
                                 }
                                 else{
-                                    cy.wrap(elementObject).eq(ord).type(text)
+                                    elementObject.eq(ord).type(text)
                                 }
                             })
                         } else if (enter_type === "clear field and enter") {
