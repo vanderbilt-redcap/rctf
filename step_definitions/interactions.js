@@ -594,7 +594,7 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
                         if(text.includes("Open public survey")){ //Handle the "Open public survey" and "Open public survey + Logout" cases
                             cy.open_survey_in_same_tab($button, !(button_type !== undefined && button_type === " and will leave the tab open when I return to the REDCap project"), (text === 'Log out+ Open survey'))
                         } else {
-                            cy.wrap($button).click(force)
+                            cy.wrap($button).click()
                         }
                     })
                 })
