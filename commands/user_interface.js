@@ -132,8 +132,13 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
         let table = Cypress.$("#table-report_list")
         if(table.length === 1){
             table = cy.wrap(table)
-        } else { 
-            table = cy.get(selector).first()
+        } else{
+            table = Cypress.$("#table-user_rights_roles_table")
+            if(table.length === 1){
+                table = cy.wrap(table)
+            } else { 
+                table = cy.get(selector).first()
+            }
         }
 
         table.within(() => {

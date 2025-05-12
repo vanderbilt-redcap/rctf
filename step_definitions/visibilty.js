@@ -412,10 +412,6 @@ Given("I (should )see (a )(an ){string} within the {string} row of the column la
         table_selector = window.tableMappings['participant list'][0]
         table_body = window.tableMappings['participant list'][1]
         no_col_match = true
-    } else if (table === ' of the User Rights table'){
-        table_selector = 'table:visible'
-        table_body = 'table#table-user_rights_roles_table:visible'
-        no_col_match = true
     } else if (table === ' of the Reports table'){
         table_selector = window.tableMappings['report data'][0]
         table_body = window.tableMappings['report data'][1]
