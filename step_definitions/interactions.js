@@ -353,6 +353,8 @@ function getLabeledElement(type, text, ordinal, selectOption) {
 
             for (let i = 0; i < matches.length; i++){
                 const match = matches[i]
+                match.scrollIntoView() // Matches must be in view for the ':visible' selector to work
+                
                 let current = match
                 const childrenToIgnore = []
                 do {
