@@ -1526,6 +1526,7 @@ Given("I click on the icon in the column labeled {string} and the row labeled {s
                     $td.click()
                 }
                 else{
+                    console.log('Icons Found', results)
                     throw 'Expected to find a single icon in the table cell, but found ' + results.length + ' icons'
                 }
             })
