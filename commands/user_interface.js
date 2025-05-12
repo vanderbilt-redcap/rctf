@@ -129,19 +129,14 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
             }
         }
 
-        let table = Cypress.$("#table-report_list")
-        if(table.length === 1){
-            table = cy.wrap(table)
-        } else{
-            table = Cypress.$("#table-user_rights_roles_table")
-            if(table.length === 1){
-                table = cy.wrap(table)
-            } else { 
-                table = cy.get(selector).first()
-            }
+        let table = Cypress.$(selector)[0]
+        const flexigrid = table.closest('.flexigrid')
+        if(flexigrid && table.querySelector('td') === null){
+            // We've matched the header table.  Switch to the content table instead
+            table = flexigrid.querySelectorAll('table')[1]
         }
 
-        table.within(() => {
+        cy.wrap(table).within(() => {
             row = cy.get(td_selector).eq(row_number)
             if(no_col_match_body){
                 return row

@@ -1521,7 +1521,7 @@ Given("I click on the icon in the column labeled {string} and the row labeled {s
     cy.table_cell_by_column_and_row_label(column_label, row_label).then(($td) => {
         $td = cy.wrap($td)
         $td.within(() => {
-            cy.get('i').then(results =>{
+            cy.get('i, img').then(results =>{
                 if(results.length === 1){
                     $td.click()
                 }
