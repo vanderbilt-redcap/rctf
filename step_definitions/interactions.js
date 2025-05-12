@@ -841,17 +841,10 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
         cy.contains(label).should('be.visible').then(($label) => {
             cy.wrap($label).parent().then(($parent) =>{
                 const typeIntoLogicEditor = (element) => {
-                    element = cy.wrap(element)
-
-                    element.click({force: true}).
-                    invoke('attr', 'contenteditable', 'true')
-
-                    // This line ensures the logic editor is fully rendered before we try to type into it
-                    cy.contains('Use the text box below to compose your logic')
-
-                    element.type(`{selectall} {backspace} {backspace} ${text}`, {force: true})
-
-                    cy.get('button:contains("Update & Close Editor")').click()
+                    cy.wrap(element).
+                    click({force: true}).
+                    invoke('attr', 'contenteditable', 'true').
+                    type(`{selectall} {backspace} {backspace} ${text}`, {force: true})
                 }
 
                 if($parent.find(element).eq(ord).length){
@@ -891,14 +884,7 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
                     //All other cases
                     } else {
                         if(enter_type === "enter"){
-                            cy.wrap($parent).parent().find(element).then((elementObject) => {
-                                if(elementObject.attr('onfocus').startsWith('openLogicEditor')){
-                                    typeIntoLogicEditor(elementObject)
-                                }
-                                else{
-                                    elementObject.eq(ord).type(text)
-                                }
-                            })
+                            cy.wrap($parent).parent().find(element).eq(ord).type(text)
                         } else if (enter_type === "clear field and enter") {
 
                             //Logic editor does not use an actual textarea; we need to invoke the text instead!
