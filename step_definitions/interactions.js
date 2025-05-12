@@ -594,7 +594,7 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
                         if(text.includes("Open public survey")){ //Handle the "Open public survey" and "Open public survey + Logout" cases
                             cy.open_survey_in_same_tab($button, !(button_type !== undefined && button_type === " and will leave the tab open when I return to the REDCap project"), (text === 'Log out+ Open survey'))
                         } else {
-                            cy.wrap($button).click(force)
+                            cy.wrap($button).click()
                         }
                     })
                 })
@@ -822,11 +822,10 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
     if(ordinal !== undefined) ord = window.ordinalChoices[ordinal]
 
     let element = `textarea`
-    const aceEditorSelector = `div#rc-ace-editor div.ace_line`
 
     //Turns out the logic editor uses a DIV with an "Ace Editor" somehow /shrug
     if(label === "Logic Editor") {
-        element = aceEditorSelector
+        element = `div#rc-ace-editor div.ace_line`
         enter_type = 'clear field and enter'
     }
 
@@ -840,20 +839,6 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
 
         cy.contains(label).should('be.visible').then(($label) => {
             cy.wrap($label).parent().then(($parent) =>{
-                const typeIntoLogicEditor = (element) => {
-                    element = cy.wrap(element)
-
-                    element.click({force: true}).
-                    invoke('attr', 'contenteditable', 'true')
-
-                    // This line ensures the logic editor is fully rendered before we try to type into it
-                    cy.contains('Use the text box below to compose your logic')
-
-                    element.type(`{selectall} {backspace} {backspace} ${text}`, {force: true})
-
-                    cy.get('button:contains("Update & Close Editor")').click()
-                }
-
                 if($parent.find(element).eq(ord).length){
 
                     //If the textarea has a TinyMCE editor applied to it
@@ -865,15 +850,7 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
                         elm = cy.wrap($parent).find(element).eq(ord)
 
                         if(enter_type === "enter"){
-                            if(label.startsWith('When the following logic becomes true')){
-                                elm.click()
-                                cy.document().within((document) => {
-                                    cy.wrap(document).get(aceEditorSelector).then(typeIntoLogicEditor)
-                                })
-                            }
-                            else{
-                                elm.type(text)
-                            }
+                            elm.type(text)
                         } else if (enter_type === "clear field and enter") {
                             elm.clear().type(text)
                         } else if(enter_type === "click on"){
@@ -891,20 +868,15 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
                     //All other cases
                     } else {
                         if(enter_type === "enter"){
-                            cy.wrap($parent).parent().find(element).then((elementObject) => {
-                                const onFocus = elementObject.attr('onfocus') ?? ''
-                                if(onFocus.startsWith('openLogicEditor')){
-                                    typeIntoLogicEditor(elementObject)
-                                }
-                                else{
-                                    cy.wrap(elementObject).eq(ord).type(text)
-                                }
-                            })
+                            cy.wrap($parent).parent().find(element).eq(ord).type(text)
                         } else if (enter_type === "clear field and enter") {
 
                             //Logic editor does not use an actual textarea; we need to invoke the text instead!
                             if(label === "Logic Editor"){
-                              cy.wrap($parent).parent().find(element).eq(ord).then(typeIntoLogicEditor)
+                              cy.wrap($parent).parent().find(element).eq(ord).
+                                click({force: true}).
+                                invoke('attr', 'contenteditable', 'true').
+                                type(`{selectall} {backspace} {backspace} ${text}`, {force: true})
                             } else {
                                 cy.wrap($parent).parent().find(element).eq(ord).clear().type(text)
                             }

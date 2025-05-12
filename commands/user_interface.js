@@ -137,11 +137,17 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
         }
 
         table.within(() => {
-            cy.get(td_selector).eq(row_number).each(($tr, $tri) => {
+            row = cy.get(td_selector).eq(row_number)
+            if(no_col_match_body){
+                return row
+            }
+
+            row.each(($tr, $tri) => {
                 cy.wrap($tr).find(row_cell_type).each((td, tdi) => {
                     // cy.log(`COL: ${column_num}`)
                     // cy.log(`ROW: ${row_number}`)
                     if (tdi === column_num){
+                        // We can't return directly because we're inside a within() call.
                         table_cell = td
                     }
                 })
