@@ -133,7 +133,7 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
         const flexigrid = table.closest('.flexigrid')
         if(flexigrid && table.querySelector('td') === null){
             // We've matched the header table.  Switch to the content table instead
-            table = flexigrid.querySelectorAll('table')[1]
+            table = flexigrid.querySelector('.bDiv table')
         }
 
         cy.wrap(table).within(() => {
