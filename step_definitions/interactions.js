@@ -303,7 +303,7 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
 
     let children = Array.from(Cypress.$(searchParent).find(childSelector)).filter(child => {
         if(
-            !childSelector.startsWith('input[type')
+            childSelector.replace(':visible', '') === 'input'
             &&
             // The following will be false even if type is not defined in the DOM, since 'text' is the default type
             child.type !== 'text' 
