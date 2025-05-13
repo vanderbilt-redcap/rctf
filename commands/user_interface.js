@@ -161,7 +161,7 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
             })
 
         }).then(() => {
-            console.log('table_cell_by_column_and_row_label:Returning', table_cell)
+            console.log('table_cell_by_column_and_row_label: Returning', table_cell)
             cy.wrap(table_cell)
         })
     })
