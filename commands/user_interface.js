@@ -136,8 +136,15 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
             table = flexigrid.querySelector('.bDiv table')
         }
 
+        console.log('table_cell_by_column_and_row_label: Looking in table', table)
+
         cy.wrap(table).within(() => {
+            console.log('table_cell_by_column_and_row_label: Looking for selector', td_selector)
             row = cy.get(td_selector).eq(row_number)
+            row.then(rowElement => {
+                console.log('table_cell_by_column_and_row_label: Looking in row', rowElement)
+            })
+
             if(no_col_match_body && table_selector === 'table'){
                 return row
             }
@@ -154,6 +161,7 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
             })
 
         }).then(() => {
+            console.log('table_cell_by_column_and_row_label:Returning', table_cell)
             cy.wrap(table_cell)
         })
     })
