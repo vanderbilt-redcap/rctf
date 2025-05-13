@@ -152,8 +152,7 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
                     // cy.log(`COL: ${column_num}`)
                     // cy.log(`ROW: ${row_number}`)
                     if (tdi === column_num){
-                        // We can't return directly because we're inside a within() call.
-                        table_cell = cy.wrap(td)
+                        table_cell = td
                     }
                 })
             })
@@ -163,7 +162,7 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
                 console.log('table_cell_by_column_and_row_label() - Returning: ', value)
             })
 
-            return table_cell
+            return cy.wrap(table_cell)
         })
     })
 })
