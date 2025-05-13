@@ -136,33 +136,34 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
             table = flexigrid.querySelector('.bDiv table')
         }
 
-        console.log('table_cell_by_column_and_row_label: Looking in table', table)
+        console.log(`table_cell_by_column_and_row_label() - Looking for the \`${td_selector}\` selector in this table: `, table)
 
         cy.wrap(table).within(() => {
-            console.log('table_cell_by_column_and_row_label: Looking for selector', td_selector)
             row = cy.get(td_selector).eq(row_number)
-            row.then(rowElement => {
-                console.log('table_cell_by_column_and_row_label: Looking in row', rowElement)
-            })
 
             if(no_col_match_body && table_selector === 'table'){
-                return row
+                table_cell = row
+                return
             }
 
             row.each(($tr, $tri) => {
+                console.log(`table_cell_by_column_and_row_label() - Looking for the \`${row_cell_type}\` selector in this row: `, $tr)
                 cy.wrap($tr).find(row_cell_type).each((td, tdi) => {
                     // cy.log(`COL: ${column_num}`)
                     // cy.log(`ROW: ${row_number}`)
                     if (tdi === column_num){
                         // We can't return directly because we're inside a within() call.
-                        table_cell = td
+                        table_cell = cy.wrap(td)
                     }
                 })
             })
 
         }).then(() => {
-            console.log('table_cell_by_column_and_row_label: Returning', table_cell)
-            cy.wrap(table_cell)
+            table_cell.each(value =>{
+                console.log('table_cell_by_column_and_row_label() - Returning: ', value)
+            })
+
+            return table_cell
         })
     })
 })
