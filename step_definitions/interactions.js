@@ -302,6 +302,18 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
     selectOption = normalizeString(selectOption)
 
     let children = Array.from(Cypress.$(searchParent).find(childSelector)).filter(child => {
+        if(
+            !childSelector.startsWith('input[type')
+            &&
+            // The following will be false even if type is not defined in the DOM, since 'text' is the default type
+            child.type !== 'text' 
+        ){
+            /**
+             * We're looking for a non-text type (like checkbox), but found a text type.  Ignore this element.
+             */
+            return false
+        }
+
         return !childrenToIgnore.includes(child)
             // B.3.14.0900.
             && child.closest('.ui-helper-hidden-accessible') === null
