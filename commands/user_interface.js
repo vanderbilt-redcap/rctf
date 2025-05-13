@@ -107,7 +107,7 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
     }
 
     cy.get(selector).first().within(() => {
-        if(no_col_match_body === false || table_selector !== 'table'){
+        if(no_col_match_body === false || body_table !== 'table'){
             cy.get(`${header_row_type}:contains('${column_label}'):visible`).parent('tr').then(($tr) => {
                 cy.wrap($tr).find(header_row_type).each((thi, th) => {
                     // console.log(Cypress.$(th).text().trim().includes(orig_column_label))
@@ -141,7 +141,7 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
         cy.wrap(table).within(() => {
             row = cy.get(td_selector).eq(row_number)
 
-            if(no_col_match_body && table_selector === 'table'){
+            if(no_col_match_body && body_table === 'table'){
                 table_cell = row
                 return
             }
