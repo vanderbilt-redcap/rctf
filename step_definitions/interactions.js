@@ -1,14 +1,5 @@
 const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 
-function normalizeString(s){
-    if(s === undefined){
-        return undefined
-    }
-
-    // Replace '&nbsp;' so that normal spaces in steps will match that character
-    return s.trim().replaceAll('\u00a0', ' ')
-}
-
 function performAction(action, element){
     element = cy.wrap(element)
     if(action === 'click on the'){
@@ -30,13 +21,13 @@ function performAction(action, element){
  *      I select "gender (Do you describe yourself as a man, a woman, or in some other way?)..."...
  */
 Cypress.$.expr[':'].containsCustom = Cypress.$.expr.createPseudo(function(arg) {
-    arg = normalizeString(arg)
+    arg = Cypress.custom.normalizeString(arg)
 
     // Remove any double quote escaping added by JSON.stringify()
     arg = JSON.parse('"' + arg + '"')
 
     return function( elem ) {
-        return normalizeString(Cypress.$(elem).text()).includes(arg)
+        return Cypress.custom.normalizeString(Cypress.$(elem).text()).includes(arg)
     };
 });
 
@@ -114,340 +105,6 @@ function after_click_monitor(type){
             return true //subsequent windows go back to default behavior
         })
     }
-}
-
-function retryUntilTimeout(action, start, lastRun) {
-    if (start === undefined) {
-        start = Date.now()
-    }
-
-    if(lastRun === undefined){
-        lastRun = false
-    }
-
-    const isAfterTimeout = () => {
-        const elapsed = Date.now() - start
-        return elapsed > 3000
-    }
-
-    return action(lastRun).then((result) => {
-        if (result || (isAfterTimeout() && lastRun)) {
-            return result
-        }
-        else {
-            cy.wait(250).then(() => {
-                retryUntilTimeout(action, start, isAfterTimeout())
-            })
-        }
-    })
-}
-
-function getShortestMatchingNodeLength(textToFind, element) {
-    let text = null
-    if (element.tagName === 'INPUT') {
-        text = element.placeholder
-    }
-    else if(element.childNodes.length > 0) {
-        // This is required for 'on the dropdown field labeled "to"' syntax
-        element.childNodes.forEach(child => {
-            if(child.constructor.name === 'Text' && child.textContent.includes(textToFind)){
-                text = child.textContent
-            }
-        })
-    }
-
-    if(text === null){
-        text = element.textContent
-    }
-
-    return text.trim().length
-}
-
-function filterMatches(text, matches) {
-    matches = matches.toArray()
-
-    let topElement = null
-    let matchesWithoutParents = [...matches]
-    matches.forEach(current => {
-        if (
-            topElement === null // This will default to "body" by default, which is fine
-            ||
-            topElement.style.zIndex < current.style.zIndex
-        ) {
-            topElement = current
-        }
-        
-        if(current.tagName === 'SELECT'){
-            const option = Cypress.$(current).find(`:contains(${JSON.stringify(text)})`)[0]
-            if(!option.selected){
-                // Exclude matches for options that are not currently selected, as they are not visible and should not be considered labels
-                matchesWithoutParents = matchesWithoutParents.filter(match => match !== current)
-            }
-        }
-        
-        while (current = current.parentElement) {
-            // Remove parents so only leaf node matches are included
-            matchesWithoutParents = matchesWithoutParents.filter(match => match !== current)
-        }
-    })
-
-    let minChars = null
-    matchesWithoutParents.forEach(element => {
-        const chars = getShortestMatchingNodeLength(text, element)
-        if (
-            minChars === null
-            ||
-            chars < minChars
-        ) {
-            minChars = chars
-        }
-    })
-
-    return matchesWithoutParents.filter(element =>
-        // Only include elements withint the top most element (likely a dialog)
-        topElement.contains(element)
-        &&
-        /**
-         * Only include the closest matches as determined by minChars.
-         * If we intend to be match longer strings, we should specify them explicitly.
-         */
-        getShortestMatchingNodeLength(text, element) === minChars
-    )
-}
-
-/**
- * This is required to support steps containing the following:
- *      the dropdown field labeled "Assign user"
- *      the radio labeled "Use Data Access Groups"
- */
-function getPreferredSibling(text, originalMatch, one, two){
-    if(originalMatch === one.parentElement){
-        const nodeMatches = Array.from(originalMatch.childNodes).filter(child => {
-            return child.textContent.includes(text)
-        })
-
-        if(nodeMatches.length !== 1){
-            throw 'Found an unexpexcted number of node matches'
-        }
-
-        originalMatch = nodeMatches[0]
-    }
-
-    if(
-        originalMatch.parentElement === one.parentElement
-        &&
-        originalMatch.parentElement === two.parentElement
-    ){
-        // All three have the same parent, so the logic in this method is useful
-    }
-    else{
-        // This method is not useful in its current form since the three are not siblings
-        return undefined
-    }
-
-    const siblings = Array.from(originalMatch.parentElement.childNodes)
-    const matchIndex = siblings.indexOf(originalMatch)
-    if(matchIndex === -1){
-        throw 'Could not determine match index'
-    }
-
-    const indexOne = siblings.indexOf(one)
-    const indexTwo = siblings.indexOf(two)
-    const distanceOne = Math.abs(matchIndex - indexOne)
-    const distanceTwo = Math.abs(matchIndex - indexTwo)
-    if(distanceOne === distanceTwo){
-        if(text === 'to'){
-            // Support the special case for 'dropdown field labeled "to"' language
-            // Alternatively, we could replaces such steps with 'dropdown field labeled "[No Assignment]"' to resolve this.
-            return two
-        }
-
-        throw 'Two sibling matches were found the same distance away.  We should consider implementing a way to definitively determine which to match.'
-    }
-    else if(distanceOne < distanceTwo){
-        return one
-    }
-    else{
-        return two
-    }
-}
-
-function removeUnpreferredSiblings(text, originalMatch, children){
-    for(let i=0; i<children.length-1; i++){
-        const current = children[i]
-        const next = children[i+1]
-
-        const preferredSibling = getPreferredSibling(text, originalMatch, current, next)
-        let indexToRemove
-        if(preferredSibling === current){
-            indexToRemove = i+1
-        }
-        else if(preferredSibling === next){
-            indexToRemove = i
-        }
-        else{
-            // Neither was preferred
-            indexToRemove = null
-        }
-
-        if(indexToRemove !== null){
-            children.splice(indexToRemove, 1)
-            i--
-        }
-    }
-}
-
-function findMatchingChildren(text, selectOption, originalMatch, searchParent, childSelector, childrenToIgnore) {
-    selectOption = normalizeString(selectOption)
-
-    let children = Array.from(Cypress.$(searchParent).find(childSelector)).filter(child => {
-        if(
-            childSelector.replace(':visible', '') === 'input'
-            &&
-            // Remember, child.type will be 'text' even when type is not set in the DOM.
-            !['text', 'password'].includes(child.type) 
-        ){
-            /**
-             * We're looking for a text type (like checkbox), but found a non-text type.  Ignore this element.
-             */
-            return false
-        }
-
-        return !childrenToIgnore.includes(child)
-            // B.3.14.0900.
-            && child.closest('.ui-helper-hidden-accessible') === null
-    })
-
-    removeUnpreferredSiblings(text, originalMatch, children)
-
-    const exactMatches = children.filter(child =>{
-        return normalizeString(child.textContent) === selectOption // B.6.7.1900.
-    })
-
-    if(exactMatches.length > 0){
-        children = exactMatches
-    }
-
-    return children
-}
-
-/**
- * This logic is meant to eventually replace get_labeled_element() and other label matching logic duplicated in multiple places.
- * Is it specifically designed to help us evolve toward normalizing & simplify association of labels with their clickable elements.
- * The main differences is that it does not require the tagName to be determined up front,
- * allowing for significant logic simplification (incrementally over time).
- * We may want to introduce bahmutov/cypress-if at some point as well,
- * as the root of some of our existing duplicate logic is the lack of built-in "if" support.
- */
-function getLabeledElement(type, text, ordinal, selectOption) {
-    return retryUntilTimeout((lastRun) => {
-        /**
-         * We tried using "window().then(win => win.$(`:contains..." to combine the following two cases,
-         * but it could not find iframe content like cy.get() can.
-         * We also tried Cypress.$, but it seems to return similar results to cy.get().
-         * Example from A.6.4.0200.: I click on the radio labeled "Keep ALL data saved so far." in the dialog box in the iframe
-        */
-        let selector = `input[placeholder=${JSON.stringify(text)}],:contains(${JSON.stringify(text)})`
-        if(!lastRun){
-            // Favor visible items until the lastRun.  Keep in mind items that must be scrolled into view aren't considered visible.
-            selector += ':visible'
-        }
-
-        return cy.get(selector).then(matches => {
-            console.log('getLabeledElement() unfiltered matches', matches)
-            matches = filterMatches(text, matches)
-            console.log('getLabeledElement() filtered matches', matches)
-
-            if (ordinal !== undefined) {
-                matches = [matches[window.ordinalChoices[ordinal]]]
-            }
-
-            for (let i = 0; i < matches.length; i++){
-                const match = matches[i]
-                match.scrollIntoView() // Matches must be in view for the ':visible' selector to work
-                
-                let current = match
-                const childrenToIgnore = []
-                do {
-                    console.log('getLabeledElement() current', current)
-
-                    if(current.clientHeight > 500){
-                        /**
-                         * We've reached a parent that is large enough that our scope is now too large for a valid match
-                         */
-                        break
-                    }
-
-                    let childSelector = null
-                    if (type === 'icon') {
-                        childSelector = 'img'
-                    }
-                    else if (['checkbox', 'radio'].includes(type)) {
-                        childSelector = 'input[type=' + type + ']'
-                    }
-                    else if (type === 'dropdown' && selectOption !== undefined) {
-                        childSelector = `option:containsCustom(${JSON.stringify(selectOption)})`
-                    }
-                    else if (['input', 'textbox', 'button'].includes(type)){
-                        childSelector = type // Covers input, textbox, button, etc.
-                    }
-                    else {
-                        // Leave childSelector blank.  Catch all for 'link', 'tab', 'instrument', etc.
-                    }
-
-                    if(childSelector !== null && type !== 'dropdown'){
-                        // Required for the 'input field labeled "Search"' step in C.3.24.2100
-                        childSelector += ':visible'
-                    }
-
-                    if (childSelector) {
-                        const children = findMatchingChildren(text, selectOption, match, current, childSelector, childrenToIgnore)
-                        console.log('getLabeledElement() children', children)
-                        if (children.length === 1) {
-                            /**
-                             * Example Steps:
-                             *  I uncheck the first checkbox labeled "Participant Consent"
-                             *  I click on the icon labeled "[All instruments]"
-                             */
-                            return children[0]
-                        }
-                        else if (
-                            /**
-                             * We're likely matching an unrelated group of elements.
-                             * They could be children or distant siblings of the desired match
-                             * Regardles, ignore this grouping and start the search again from the next parent.
-                             */
-                            children.length > 1
-                        ) {
-                            childrenToIgnore.push(...children)
-                        }
-                    } else if (
-                        // Default to the first matching "a" tag, if no other cases apply.
-                        current.tagName === 'A'
-                     ){
-                        return current
-                    }
-
-                    /**
-                     * Some label elements in REDCap contain mulitple fields.
-                     * Only use 'for' for matching as a last resort if none of the logic above matched the field.
-                     */
-                    if (current.tagName === 'LABEL' && current.htmlFor !== '') {
-                        // This label has the 'for' attribute set.  Use it.
-                        return cy.get('#' + current.htmlFor)
-                    }
-                } while (current = current.parentElement)
-            }
-
-            return null
-        })
-    }).then((match) => {
-        if (!match) {
-            throw 'The specified element could not be found'
-        }
-
-        return match
-    })
 }
 
 /**
@@ -719,7 +376,7 @@ Given("I click on the( ){ordinal}( ){onlineDesignerFieldIcons}( ){fileRepoIcons}
         })
 
     } else {
-        getLabeledElement(link_name, text, ordinal).then(($elm) => {
+        cy.getLabeledElement(link_name, text, ordinal).then(($elm) => {
             $elm = cy.wrap($elm)
             $elm.click()
         })
@@ -796,7 +453,7 @@ Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} fi
         })
 
     } else {
-        const elm = getLabeledElement('input', label, ordinal).eq(ord)
+        const elm = cy.getLabeledElement('input', label, ordinal).eq(ord)
 
         if(enter_type === "enter"){
             if(text === ''){
@@ -980,7 +637,7 @@ Given('I {enterType} {string} (is within)(into) the data entry form field labele
  * @description Clears the text from an input field based upon its label
  */
 Given('I clear the field labeled {string}', (label) => {
-    getLabeledElement('input', label).then(element =>{
+    cy.getLabeledElement('input', label).then(element =>{
         cy.wrap(element).clear()
     })
 })
@@ -1047,7 +704,7 @@ Given("(for the Event Name \")(the Column Name \")(for the Column Name \"){optio
 
     function findAndClickElement(label_selector, outer_element, element_selector, label, labeled_exactly){
         cy.top_layer(label_selector, outer_element).within(() => {
-            getLabeledElement(type, label, ordinal).then(element => {
+            cy.getLabeledElement(type, label, ordinal).then(element => {
                 clickElement(cy.wrap(element))
             })
         })
@@ -1274,7 +931,7 @@ Given('I select {string} (in)(on) the{ordinal} {dropdownType} (field labeled)(of
                 cy.get(`#ui-datepicker-div option:contains(${JSON.stringify(option)})`).closest('select').then(action)
             }
             else{
-                getLabeledElement(type, label, ordinal, option).then(optionElement =>{
+                cy.getLabeledElement(type, label, ordinal, option).then(optionElement =>{
                     /**
                      * getLabeledElement() returns an <option> element when the 'option' argument is specified
                      * It's text may be slightly different than what is specified in the step.
@@ -1564,7 +1221,7 @@ Given("I {action} {labeledElement} labeled {string} in the column labeled {strin
         }
         else{
             $td.within(() => {
-                getLabeledElement(type, text).then(element =>{
+                cy.getLabeledElement(type, text).then(element =>{
                     performAction(action, element)
                 })
             })
@@ -1593,7 +1250,7 @@ Given("I {action} {labeledElement} labeled {string} in the row labeled {string}"
         }
 
         cy.wrap(results[0]).within(() => {
-            getLabeledElement(type, text).then(element =>{
+            cy.getLabeledElement(type, text).then(element =>{
                 performAction(action, element)
             })
         })
