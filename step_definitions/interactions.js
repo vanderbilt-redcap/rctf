@@ -850,7 +850,7 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
     outer_element.within(() => {
         let elm = null
 
-        cy.contains(label).should('be.visible').then(($label) => {
+        cy.get(sel).last().then(($label) => {
             cy.wrap($label).parent().then(($parent) =>{
                 if($parent.find(element).eq(ord).length){
 
