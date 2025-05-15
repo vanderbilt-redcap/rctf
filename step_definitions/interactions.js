@@ -248,7 +248,6 @@ function getPreferredSibling(text, originalMatch, one, two){
     const siblings = Array.from(originalMatch.parentElement.childNodes)
     const matchIndex = siblings.indexOf(originalMatch)
     if(matchIndex === -1){
-        console.log(1, originalMatch, siblings)
         throw 'Could not determine match index'
     }
 
