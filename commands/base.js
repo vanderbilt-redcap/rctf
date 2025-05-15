@@ -568,8 +568,6 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
  * as the root of some of our existing duplicate logic is the lack of built-in "if" support.
  */
 Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectOption) {
-    cy.not_loading()
-
     return retryUntilTimeout((lastRun) => {
         /**
          * We tried using "window().then(win => win.$(`:contains..." to combine the following two cases,
@@ -615,13 +613,8 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
                     else if (['checkbox', 'radio'].includes(type)) {
                         childSelector = 'input[type=' + type + ']'
                     }
-                    else if (type === 'dropdown') {
-                        if(selectOption !== undefined){
-                            childSelector = `option:containsCustom(${JSON.stringify(selectOption)})`
-                        }
-                        else{
-                            childSelector = 'select'
-                        }
+                    else if (type === 'dropdown' && selectOption !== undefined) {
+                        childSelector = `option:containsCustom(${JSON.stringify(selectOption)})`
                     }
                     else if (['input', 'textbox', 'button'].includes(type)){
                         childSelector = type // Covers input, textbox, button, etc.
