@@ -233,6 +233,7 @@ window.recordStatusIcons = {
     'Incomplete (no data saved)' : `img[src*=circle_gray]`,
     'Partial Survey Response' : `img[src*=circle_orange_tick]`,
     'Completed Survey Response' : `img[src*=circle_green_tick]`,
+    'Many Completed Survey Responses' : `img[src*=circle_green_tick_stack]`,
     'Many statuses (all same)' : `img[src*=_stack]`
 }
 
