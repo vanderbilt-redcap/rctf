@@ -1585,8 +1585,7 @@ Given("I {action} {labeledElement} labeled {string} in the column labeled {strin
 Given("I {action} {labeledElement} labeled {string} in the row labeled {string}", (action, type, text, row_label) => {
     cy.get(`tr:contains("${row_label}")`).then(results => {
         results = results.filter((i, row) => {
-            return row.textContent.trim().startsWith(row_label)
-                && !(row.closest('table').classList.contains('form-label-table'))
+            return !(row.closest('table').classList.contains('form-label-table'))
         })
 
         if(results.length !== 1){
