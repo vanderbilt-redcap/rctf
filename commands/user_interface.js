@@ -231,5 +231,6 @@ Cypress.Commands.add('customSetTinyMceContent', (fieldId, content) => {
     }).then(editor => {
         // Set the content in the editor
         editor.setContent(content, { format: 'text' })
+        editor.save() // Required to fully simulate user behavior, update the associated textarea, fire events, etc.
     })
 })
