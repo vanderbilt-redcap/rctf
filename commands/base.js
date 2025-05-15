@@ -568,8 +568,6 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
  * as the root of some of our existing duplicate logic is the lack of built-in "if" support.
  */
 Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectOption) {
-    cy.not_loading()
-
     return retryUntilTimeout((lastRun) => {
         /**
          * We tried using "window().then(win => win.$(`:contains..." to combine the following two cases,
