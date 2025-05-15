@@ -142,7 +142,10 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
             row = cy.get(td_selector).eq(row_number)
 
             if(no_col_match_body && body_table === 'table'){
-                table_cell = row
+                row.then(result =>{
+                    table_cell = result
+                })
+                
                 return
             }
 
@@ -152,19 +155,17 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
                     // cy.log(`COL: ${column_num}`)
                     // cy.log(`ROW: ${row_number}`)
                     if (tdi === column_num){
-                        table_cell = cy.wrap(td)
+                        table_cell = td
                     }
                 })
             })
 
         }).then(() => {
-            table_cell.then(result => {
-                result.each((index, value) =>{
-                    console.log('table_cell_by_column_and_row_label() - Returning: ', value)
-                })  
-            })
+            table_cell.each((index, value) =>{
+                console.log('table_cell_by_column_and_row_label() - Returning: ', value)
+            })  
 
-            return table_cell
+            return cy.wrap(table_cell)
         })
     })
 })
