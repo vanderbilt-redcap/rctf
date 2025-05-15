@@ -339,7 +339,7 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
  * We may want to introduce bahmutov/cypress-if at some point as well,
  * as the root of some of our existing duplicate logic is the lack of built-in "if" support.
  */
-function getLabeledElement(type, text, ordinal, selectOption) {
+Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectOption) {
     return retryUntilTimeout((lastRun) => {
         /**
          * We tried using "window().then(win => win.$(`:contains..." to combine the following two cases,
@@ -453,7 +453,7 @@ function getLabeledElement(type, text, ordinal, selectOption) {
 
         return match
     })
-}
+})
 
 /**
  * @module Interactions
@@ -724,7 +724,7 @@ Given("I click on the( ){ordinal}( ){onlineDesignerFieldIcons}( ){fileRepoIcons}
         })
 
     } else {
-        getLabeledElement(link_name, text, ordinal).then(($elm) => {
+        cy.getLabeledElement(link_name, text, ordinal).then(($elm) => {
             $elm = cy.wrap($elm)
             $elm.click()
         })
@@ -801,7 +801,7 @@ Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} fi
         })
 
     } else {
-        const elm = getLabeledElement('input', label, ordinal).eq(ord)
+        const elm = cy.getLabeledElement('input', label, ordinal).eq(ord)
 
         if(enter_type === "enter"){
             if(text === ''){
@@ -985,7 +985,7 @@ Given('I {enterType} {string} (is within)(into) the data entry form field labele
  * @description Clears the text from an input field based upon its label
  */
 Given('I clear the field labeled {string}', (label) => {
-    getLabeledElement('input', label).then(element =>{
+    cy.getLabeledElement('input', label).then(element =>{
         cy.wrap(element).clear()
     })
 })
@@ -1052,7 +1052,7 @@ Given("(for the Event Name \")(the Column Name \")(for the Column Name \"){optio
 
     function findAndClickElement(label_selector, outer_element, element_selector, label, labeled_exactly){
         cy.top_layer(label_selector, outer_element).within(() => {
-            getLabeledElement(type, label, ordinal).then(element => {
+            cy.getLabeledElement(type, label, ordinal).then(element => {
                 clickElement(cy.wrap(element))
             })
         })
@@ -1279,7 +1279,7 @@ Given('I select {string} (in)(on) the{ordinal} {dropdownType} (field labeled)(of
                 cy.get(`#ui-datepicker-div option:contains(${JSON.stringify(option)})`).closest('select').then(action)
             }
             else{
-                getLabeledElement(type, label, ordinal, option).then(optionElement =>{
+                cy.getLabeledElement(type, label, ordinal, option).then(optionElement =>{
                     /**
                      * getLabeledElement() returns an <option> element when the 'option' argument is specified
                      * It's text may be slightly different than what is specified in the step.
@@ -1569,7 +1569,7 @@ Given("I {action} {labeledElement} labeled {string} in the column labeled {strin
         }
         else{
             $td.within(() => {
-                getLabeledElement(type, text).then(element =>{
+                cy.getLabeledElement(type, text).then(element =>{
                     performAction(action, element)
                 })
             })
@@ -1598,7 +1598,7 @@ Given("I {action} {labeledElement} labeled {string} in the row labeled {string}"
         }
 
         cy.wrap(results[0]).within(() => {
-            getLabeledElement(type, text).then(element =>{
+            cy.getLabeledElement(type, text).then(element =>{
                 performAction(action, element)
             })
         })
