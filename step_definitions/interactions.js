@@ -385,8 +385,13 @@ function getLabeledElement(type, text, ordinal, selectOption) {
                     else if (['checkbox', 'radio'].includes(type)) {
                         childSelector = 'input[type=' + type + ']'
                     }
-                    else if (type === 'dropdown' && selectOption !== undefined) {
-                        childSelector = `option:containsCustom(${JSON.stringify(selectOption)})`
+                    else if (type === 'dropdown') {
+                        if(selectOption !== undefined){
+                            childSelector = `option:containsCustom(${JSON.stringify(selectOption)})`
+                        }
+                        else{
+                            childSelector = 'select'
+                        }
                     }
                     else if (['input', 'textbox', 'button'].includes(type)){
                         childSelector = type // Covers input, textbox, button, etc.
