@@ -143,12 +143,7 @@ function retryUntilTimeout(action, start, lastRun) {
 function getShortestMatchingNodeLength(textToFind, element) {
     let text = null
     if (element.tagName === 'INPUT') {
-        if (element.value !== '') {
-            text = element.value
-        }
-        else {
-            text = element.placeholder
-        }
+        text = element.placeholder
     }
     else if(element.childNodes.length > 0) {
         // This is required for 'on the dropdown field labeled "to"' syntax
@@ -305,6 +300,18 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
     selectOption = normalizeString(selectOption)
 
     let children = Array.from(Cypress.$(searchParent).find(childSelector)).filter(child => {
+        if(
+            childSelector.replace(':visible', '') === 'input'
+            &&
+            // Remember, child.type will be 'text' even when type is not set in the DOM.
+            !['text', 'password'].includes(child.type) 
+        ){
+            /**
+             * We're looking for a text type (like checkbox), but found a non-text type.  Ignore this element.
+             */
+            return false
+        }
+
         return !childrenToIgnore.includes(child)
             // B.3.14.0900.
             && child.closest('.ui-helper-hidden-accessible') === null
@@ -356,6 +363,8 @@ function getLabeledElement(type, text, ordinal, selectOption) {
 
             for (let i = 0; i < matches.length; i++){
                 const match = matches[i]
+                match.scrollIntoView() // Matches must be in view for the ':visible' selector to work
+                
                 let current = match
                 const childrenToIgnore = []
                 do {
@@ -378,8 +387,16 @@ function getLabeledElement(type, text, ordinal, selectOption) {
                     else if (type === 'dropdown' && selectOption !== undefined) {
                         childSelector = `option:containsCustom(${JSON.stringify(selectOption)})`
                     }
-                    else if (type === 'input'){
-                        childSelector = 'input'
+                    else if (['input', 'textbox', 'button'].includes(type)){
+                        childSelector = type // Covers input, textbox, button, etc.
+                    }
+                    else {
+                        // Leave childSelector blank.  Catch all for 'link', 'tab', 'instrument', etc.
+                    }
+
+                    if(childSelector !== null && type !== 'dropdown'){
+                        // Required for the 'input field labeled "Search"' step in C.3.24.2100
+                        childSelector += ':visible'
                     }
 
                     if (childSelector) {
@@ -404,9 +421,6 @@ function getLabeledElement(type, text, ordinal, selectOption) {
                             childrenToIgnore.push(...children)
                         }
                     } else if (
-                        // e.g. <button>
-                        type === current.tagName.toLowerCase()
-                        ||
                         // Default to the first matching "a" tag, if no other cases apply.
                         current.tagName === 'A'
                      ){
@@ -592,7 +606,7 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
                         if(text.includes("Open public survey")){ //Handle the "Open public survey" and "Open public survey + Logout" cases
                             cy.open_survey_in_same_tab($button, !(button_type !== undefined && button_type === " and will leave the tab open when I return to the REDCap project"), (text === 'Log out+ Open survey'))
                         } else {
-                            cy.wrap($button).click(force)
+                            cy.wrap($button).click()
                         }
                     })
                 })
@@ -781,17 +795,22 @@ Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} fi
         })
 
     } else {
-        const elm = getLabeledElement('input', label, ordinal)
+        const elm = getLabeledElement('input', label, ordinal).eq(ord)
 
         if(enter_type === "enter"){
-            elm.eq(ord).type(text)
+            if(text === ''){
+                elm.clear()                
+            }
+            else{
+                elm.type(text)
+            }
         } else if (enter_type === "clear field and enter") {
-            elm.eq(ord).clear().type(text)
+            elm.clear().type(text)
         } else if (enter_type === "verify"){
             if(window.dateFormats.hasOwnProperty(text)){
                 //elm.invoke('val').should('match', window.dateFormats[text])
             } else {
-                elm.eq(ord).invoke('val').should('include', text)
+                elm.invoke('val').should('include', text)
             }
         }
     }
@@ -840,12 +859,14 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
 
                         //All other cases
                     } else {
+                        elm = cy.wrap($parent).find(element).eq(ord)
+
                         if(enter_type === "enter"){
-                            cy.wrap($parent).find(element).eq(ord).type(text)
+                            elm.type(text)
                         } else if (enter_type === "clear field and enter") {
-                            cy.wrap($parent).find(element).eq(ord).clear().type(text)
+                            elm.clear().type(text)
                         } else if(enter_type === "click on"){
-                            cy.wrap($parent).find(element).eq(ord).click()
+                            elm.click()
                         }
                     }
 
@@ -958,8 +979,8 @@ Given('I {enterType} {string} (is within)(into) the data entry form field labele
  * @description Clears the text from an input field based upon its label
  */
 Given('I clear the field labeled {string}', (label) => {
-    cy.contains(label).then(($label) => {
-        cy.wrap($label).parent().find('input').clear()
+    getLabeledElement('input', label).then(element =>{
+        cy.wrap(element).clear()
     })
 })
 
@@ -1510,11 +1531,12 @@ Given("I click on the icon in the column labeled {string} and the row labeled {s
     cy.table_cell_by_column_and_row_label(column_label, row_label).then(($td) => {
         $td = cy.wrap($td)
         $td.within(() => {
-            cy.get('i').then(results =>{
+            cy.get('i, img').then(results =>{
                 if(results.length === 1){
                     $td.click()
                 }
                 else{
+                    console.log('Icons Found', results)
                     throw 'Expected to find a single icon in the table cell, but found ' + results.length + ' icons'
                 }
             })
@@ -1546,5 +1568,34 @@ Given("I {action} {labeledElement} labeled {string} in the column labeled {strin
                 })
             })
         }
+    })
+})
+
+/**
+ * @module Interactions
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @example I should see a link labeled "Remove file" in the row labeled "Coordinator Signature file"
+ * @param {action} action - the type of action to perform
+ * @param {labeledElement} type - the type of element we're looking for
+ * @param {string} text - the label for the element
+ * @param {string} row_label - the label of the table row
+ * @description Performs an action on a labeled element in a specific row & column of table
+ */
+Given("I {action} {labeledElement} labeled {string} in the row labeled {string}", (action, type, text, row_label) => {
+    cy.get(`tr:contains("${row_label}")`).then(results => {
+        results = results.filter((i, row) => {
+            return row.textContent.trim().startsWith(row_label)
+                && !(row.closest('table').classList.contains('form-label-table'))
+        })
+
+        if(results.length !== 1){
+            throw 'Row with given label not found'
+        }
+
+        cy.wrap(results[0]).within(() => {
+            getLabeledElement(type, text).then(element =>{
+                performAction(action, element)
+            })
+        })
     })
 })

@@ -335,7 +335,6 @@ Cypress.Commands.add("closestIncludingChildren", {prevSubject: true}, function (
     subject = subject[0]
     
     do {
-        console.log('subject', subject, subject.parentElement)
         const children = Cypress.$(subject).find(selector)
         if(children.length === 1){
             return children[0]

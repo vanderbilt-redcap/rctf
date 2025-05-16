@@ -3,20 +3,6 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 /**
  * @module DataAccessGroups
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I click the X to delete the data access group named {string}
- * @param {string} event - name of the event displayed on the Record Home Page
- * @description Activates a pop-up confirming that user wants to delete all data on a specific even within a record.
- */
-Given("I click the X to delete the data access group named {string}", (dag_name) => {
-    cy.table_cell_by_column_and_row_label("Delete", dag_name, window.tableMappings['data access groups'][0], 'th', 'td', 0, window.tableMappings['data access groups'][1], true).then(($td) => {
-        cy.wrap($td).find('a:visible:first').click({ waitForAnimations: false })
-        cy.get('.ui-dialog').should('contain.text', 'Delete group')
-    })
-})
-
-/**
- * @module DataAccessGroups
- * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @example I click on a table cell containing the text {string} in the {tableTypes} table and clear field and {enterType} enter {string}
  * @param {string} text - the text to locate the table cell
  * @param {string} tableTypes - available options: 'a', 'logging', 'browse users', 'file repository', 'administrators', 'reports', 'report data', 'define events', 'data access groups', 'DAGs Switcher', 'record status dashboard', 'data collection instruments', 'codebook', 'import data display', 'participant list', 'user rights', 'record locking', 'e-signature and locking management', 'record home page'
