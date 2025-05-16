@@ -137,5 +137,5 @@ function rctf_initialize(preprocessor) {
 
 // // This is what makes these functions available to outside scripts
 module.exports = {
-    rctf_initialize: (Given, BeforeStep, defineParameterType) => { rctf_initialize(Given, BeforeStep, defineParameterType) }
+    rctf_initialize: rctf_initialize
 }
