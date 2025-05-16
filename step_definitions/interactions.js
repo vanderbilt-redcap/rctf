@@ -1317,11 +1317,18 @@ Given('I select {string} (in)(on) the{ordinal} {dropdownType} (field labeled)(of
  * @description Waits for specified number of second(s)/minute(s) before allowing anything else to happen
  */
 Given("I wait for (another ){int} {timeType}", (time, unit) => {
+    window.shouldShowAlerts = true
+    
+    let millis
     if(unit === "second" || unit === "seconds"){
-        cy.wait(time * 1000)
+        millis = time * 1000
     } else if (unit === "minute" || unit === "minutes"){
-        cy.wait(time * 60000)
+        millis = time * 60000
     }
+
+    cy.wait(millis).then(() => {
+        window.shouldShowAlerts = false
+    })
 })
 
 /**
