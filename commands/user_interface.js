@@ -109,7 +109,15 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
     let table
     cy.top_layer(selector).find(selector).first().then(result => {
         table = result[0]
-        return result
+        if(table.closest('.dataTables_scrollHead') !== null){
+            /**
+             * The headers and cells are split into separate tables under the hood.
+             * Return the outer container
+             */
+            table = table.closest('.dataTables_scroll')
+        }
+        
+        return cy.wrap(table)
     }).within(() => {
         if(no_col_match_body === false || body_table !== 'table'){
             cy.get(`${header_row_type}:contains('${column_label}'):visible`).parent('tr').then(($tr) => {
