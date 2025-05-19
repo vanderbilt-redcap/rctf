@@ -146,6 +146,9 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
             // We've matched the header table.  Switch to the content table instead
             table = flexigrid.querySelector('.bDiv table')
         }
+        else if(body_table === 'table.addFieldMatrixRowParent'){
+            table = Cypress.$(body_table)[0]
+        }
 
         console.log(`table_cell_by_column_and_row_label() - Looking for the \`${td_selector}\` selector in this table: `, table)
 
