@@ -497,7 +497,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
 
     let selector = window.tableMappings[table_type]
     let tabular_data = dataTable['rawTable']
-    let html_elements = window.tableHtmlElements
+    let html_elements = structuredClone(window.tableHtmlElements) // Clone it since we modify it in some cases
 
     if(Cypress.$('#record_display_name').length === 1){
         // We are on the record homepage, where lock icons are rendered a little differently thatn usual.
