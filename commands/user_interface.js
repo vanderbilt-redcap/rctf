@@ -106,7 +106,11 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
         td_selector = `tr:has(${row_cell_type}:contains('${row_label}'):visible):visible`
     }
 
-    cy.get(selector).first().within(() => {
+    let table
+    cy.top_layer(selector).find(selector).first().then(result => {
+        table = result[0]
+        return result
+    }).within(() => {
         if(no_col_match_body === false || body_table !== 'table'){
             cy.get(`${header_row_type}:contains('${column_label}'):visible`).parent('tr').then(($tr) => {
                 cy.wrap($tr).find(header_row_type).each((thi, th) => {
@@ -129,7 +133,6 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
             }
         }
 
-        let table = Cypress.$(selector)[0]
         const flexigrid = table.closest('.flexigrid')
         if(flexigrid && table.querySelector('td') === null){
             // We've matched the header table.  Switch to the content table instead
