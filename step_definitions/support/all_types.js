@@ -25,3 +25,8 @@ defineParameterType({
     name: 'optionalString',
     regexp: /(.*?)/
 })
+
+defineParameterType({
+    name: 'optionalQuotedString',
+    regexp: /(?:"((?:[^"\\]|\\.)*)")?/
+})

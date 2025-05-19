@@ -14,8 +14,8 @@ Given("I {notSee} see {string}{baseElement}", (not_see, text, base_element = '')
     cy.get(window.elementChoices[base_element]).then($elm => {
         /**
          * We use innerText.indexOf() rather than the ':contains()' selector
-         * to avoid matching text within hidden tags and <script> tags
-         * that is not actually displayed.
+         * to avoid matching text within hidden tags and <script> tags,
+         * since they are not actually visible.
          */
         const index = $elm.get(0).innerText.indexOf(text)
         //If we don't detect it anywhere

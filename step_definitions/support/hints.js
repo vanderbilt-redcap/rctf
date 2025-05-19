@@ -45,7 +45,7 @@ defineParameterType({
 
 defineParameterType({
             name: 'action',
-            regexp: /|click on the|should see a|should NOT see a/,
+            regexp: /|click on|should see|should NOT see/,
         })
 
 defineParameterType({

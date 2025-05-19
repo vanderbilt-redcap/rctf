@@ -11,10 +11,10 @@ function normalizeString(s){
 
 function performAction(action, element){
     element = cy.wrap(element)
-    if(action === 'click on the'){
+    if(action === 'click on'){
         element.click()
     }
-    else if(action === 'should see a'){
+    else if(action === 'should see'){
         element.should('be.visible')
     }
     else{
@@ -1536,78 +1536,98 @@ Given("I click on the {string} {labeledElement} within (a)(the) {tableTypes} tab
  * @module Interactions
  * @author Mark McEver <mark.mcever@vumc.org>
  * @example I click on the icon in the column labeled "Setup" and the row labeled "1"
- * @param {string} column_label - the label of the table column
- * @param {string} row_label - the label of the table row
- * @description Clicks on icon in the table cell matching the specified column & row
- */
-Given("I click on the icon in the column labeled {string} and the row labeled {string}", (column_label, row_label) => {
-    cy.table_cell_by_column_and_row_label(column_label, row_label).then(($td) => {
-        $td = cy.wrap($td)
-        $td.within(() => {
-            cy.get('i, img').then(results =>{
-                if(results.length === 1){
-                    $td.click()
-                }
-                else{
-                    console.log('Icons Found', results)
-                    throw 'Expected to find a single icon in the table cell, but found ' + results.length + ' icons'
-                }
-            })
-        })
-    })
-})
-
-/**
- * @module Interactions
- * @author Mark McEver <mark.mcever@vumc.org>
  * @example I should see a button labeled "Edit" in the column labeled "Management Options" and the row labeled "1"
  * @param {action} action - the type of action to perform
  * @param {labeledElement} type - the type of element we're looking for
  * @param {string} text - the label for the element
- * @param {string} column_label - the label of the table column
- * @param {string} row_label - the label of the table row
- * @description Performs an action on a labeled element in a specific row & column of table
+ * @param {string} columnLabel - the label of the table column
+ * @param {string} rowLabel - the label of the table row
+ * @description Performs an action on a labeled element in the specified table row and/or column
  */
-Given("I {action} {labeledElement} labeled {string} in the column labeled {string} and the row labeled {string}", (action, type, text, column_label, row_label) => {
-    cy.table_cell_by_column_and_row_label(column_label, row_label).then(($td) => {
-        $td = cy.wrap($td)
-        if(action === 'should NOT see a'){
-            $td.should('not.contain', text)
+Given("I {action} {articleType}( ){labeledElement}( )(labeled ){optionalQuotedString}( )in the (column labeled ){optionalQuotedString}( and the )row labeled {string}", (action, articleType, labeledElement, text, columnLabel, rowLabel) => {
+    const performActionOnTarget = (target) =>{
+        if(labeledElement){
+            cy.wrap(target).within(() => {
+                if(text){
+                    cy.getLabeledElement(labeledElement, text).then(result =>{
+                        performAction(action, result)
+                    })
+                }
+                else if(labeledElement === 'icon'){
+                    cy.get('i, img').then(results =>{
+                        if(results.length === 1){
+                            performAction(action, results[0])
+                        }
+                        else{
+                            console.log('Icons Found', results)
+                            throw 'Expected to find a single icon in the table cell, but found ' + results.length + ' icons'
+                        }
+                    })
+                }
+                else{
+                    throw 'Unexpected labeledElement and text combo'
+                }
+            })
+        }
+        else if(action === 'should see'){
+            /**
+             * We use innerText.indexOf() rather than the ':contains()' selector
+             * to avoid matching text within hidden tags and <script> tags,
+             * since they are not actually visible.
+             */
+            if(!target.innerText.includes(text)){
+                throw 'Expected text not found'
+            }
+        }
+        else if(action === 'should NOT see'){
+            /**
+             * We use innerText.indexOf() rather than the ':contains()' selector
+             * to avoid matching text within hidden tags and <script> tags,
+             * since they are not actually visible.
+             */
+            if(target.innerText.includes(text)){
+                throw 'Unexpected text found'
+            }
         }
         else{
-            $td.within(() => {
-                cy.getLabeledElement(type, text).then(element =>{
-                    performAction(action, element)
-                })
-            })
+            throw 'Action not found: ' + action
         }
-    })
-})
-
-/**
- * @module Interactions
- * @author Mark McEver <mark.mcever@vumc.org>
- * @example I should see a link labeled "Remove file" in the row labeled "Coordinator Signature file"
- * @param {action} action - the type of action to perform
- * @param {labeledElement} type - the type of element we're looking for
- * @param {string} text - the label for the element
- * @param {string} row_label - the label of the table row
- * @description Performs an action on a labeled element in a specific row & column of table
- */
-Given("I {action} {labeledElement} labeled {string} in the row labeled {string}", (action, type, text, row_label) => {
-    cy.get(`tr:contains("${row_label}")`).then(results => {
-        results = results.filter((i, row) => {
-            return !(row.closest('table').classList.contains('form-label-table'))
+    }
+    
+    if(columnLabel && rowLabel){
+        cy.table_cell_by_column_and_row_label(columnLabel, rowLabel).then(($td) => {
+            $td = $td[0]
+            console.log('Found cell:', $td)
+            performActionOnTarget($td)
         })
-
-        if(results.length !== 1){
-            throw 'Row with given label not found'
-        }
-
-        cy.wrap(results[0]).within(() => {
-            cy.getLabeledElement(type, text).then(element =>{
-                performAction(action, element)
+    }
+    else if(columnLabel){
+        /**
+         * Currently this case cannot be reached because rowLabel is required and always set when columnLabel is set,
+         * hitting the above 'if' block instead of this one.
+         * Eventually we should make rowLabel optional as well and consolidate this with other generic {action} steps.
+         */
+        throw 'Support for "in the column labeled" syntax is not yet implemented.  Please ask if you need it!'
+    }
+    else if(rowLabel){
+        cy.get(`tr:contains("${rowLabel}")`).then(results => {
+            results = results.filter((i, row) => {
+                return !(row.closest('table').classList.contains('form-label-table'))
             })
+
+            if(results.length !== 1){
+                throw 'Row with given label not found'
+            }
+
+            console.log('Found row:', results[0])
+            performActionOnTarget(results[0])
         })
-    })
+    }
+    else{
+        /**
+         * Currently this case cannot be reached because rowLabel is required.
+         * Eventually we should make rowLabel optional as well and consolidate this with other generic {action} steps.
+         */
+        throw 'Support for omitting both column & row labels is not yet implemented.  Please ask if you need it!'
+    }
 })
