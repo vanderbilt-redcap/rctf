@@ -81,6 +81,7 @@ window.parameterTypes = {
     shouldOrShouldNot: ['should', 'should NOT'],
     ordering: ['ascending', 'descending'],
     onlineDesignerButtons: ['"Enable"', '"Disable"', '"Choose action"', '"Survey settings"', '"Automated Invitations"', 'enabled survey icon', '"View Report"', '"Export Data"', '"Stats & Charts"', '"Execute"', '"Save"'],
+    optionalLabeledElement: ['button', 'link', 'field', 'section break', 'checkbox', 'toggle button', 'icon'],
     projectStatus: ['Production', 'Development', 'Analysis/Cleanup'],
     projectType: [
         'Practice / Just for fun',
