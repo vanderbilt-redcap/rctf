@@ -725,8 +725,22 @@ Given("I click on the( ){ordinal}( ){onlineDesignerFieldIcons}( ){fileRepoIcons}
 
     } else {
         cy.getLabeledElement(link_name, text, ordinal).then(($elm) => {
+            let waitForPageLoad = false 
+            if($elm[0].href && $elm[0].href.startsWith('http')){
+                waitForPageLoad = true
+                cy.intercept({
+                    method: 'GET',
+                    url: '*'
+                }).as('page_load')
+            }
+
             $elm = cy.wrap($elm)
             $elm.click()
+
+            if(waitForPageLoad){
+                // This click should cause a page load.  Wait for the request to complete before executing any other steps.
+                cy.wait('@page_load')
+            }
         })
     }
 
