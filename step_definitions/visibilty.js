@@ -772,8 +772,17 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
  * @example I (should) see the pdf has loaded in the iframe
  * @description Allows us to check whether PDF has loaded in iframe
  */
-Given("I (should )see the pdf has loaded in the iframe", () => {
-    cy.frameLoaded()
+Given("I should see the consent pdf has loaded in the iframe", () => {
+    let selector = '.pdfobject'
+    if(Cypress.$('#econsent_confirm_checkbox_div').length === 1){
+        // We're on the survey consent page, and only one pdf can be shown here, so the basic selector is all we need.
+    }
+    else {
+        // We're on data entry. Make sure we find a pdf within the expected parent element.
+        selector = '.consent-form-pdf ' + selector
+    }
+
+    cy.frameLoaded(selector)
 })
 
 /**
