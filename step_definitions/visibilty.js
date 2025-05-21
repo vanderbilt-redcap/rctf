@@ -778,7 +778,7 @@ Given("I should see the consent pdf has loaded in the iframe", () => {
         // We're on the survey consent page, and only one pdf can be shown here, so the basic selector is all we need.
     }
     else {
-        // We're on data entry. Make sure we find a pdf within the expected parent element.
+        // We're on the form (survey or data entry). Make sure we find a pdf within the expected parent element.
         selector = '.consent-form-pdf ' + selector
     }
 
