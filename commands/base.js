@@ -272,8 +272,12 @@ Cypress.Commands.add("clickAndWaitForPageLoad", {prevSubject: true}, function ($
     $elm.click(options)
 
     if(pageLoadAlias){
-        // This click should cause a page load.  Wait for the request to complete before executing any other steps.
-        cy.wait('@' + pageLoadAlias)
+        /**
+         * This click should cause a page load.  Wait for the request to complete before executing any other steps.
+         * The timeout is set because we have places where this doesn't work as expected.
+         * These may be because we are firing multiple click events when we should not be in those cases.
+         */
+        cy.wait('@' + pageLoadAlias, {timeout: 250})
     }
 })
 
