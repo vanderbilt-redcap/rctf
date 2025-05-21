@@ -254,24 +254,31 @@ Cypress.Commands.add('ensure_csrf_token', () => {
 })
 
 Cypress.Commands.add("clickAndWaitForPageLoad", {prevSubject: true}, function ($elm, options) {
+    let pageLoadAlias = null 
     if($elm[0].href && $elm[0].href.startsWith('http')){
         /**
          * Append a random number to ensure we're always waiting for the right page load,
          * in case we come upon some unexpected series of events that causes an oddly ordered page load.
          */
+        pageLoadAlias = 'page_load_' + Math.random()
         cy.intercept({
             method: 'GET',
             url: '*',
             times: 1,
-        }, (req) => {
-            req.continue((res) => {
-                // Do nothing.  All we care about is waiting until the response comes back before continuing.
-            })
-        })
+        }).as(pageLoadAlias)
     }
 
     $elm = cy.wrap($elm)
     $elm.click(options)
+
+    if(pageLoadAlias){
+        /**
+         * This click should cause a page load.  Wait for the request to complete before executing any other steps.
+         * The timeout is set because we have places where this doesn't work as expected.
+         * These may be because we are firing multiple click events when we should not be in those cases.
+         */
+        cy.wait('@' + pageLoadAlias, {timeout: 250})
+    }
 })
 
 Cypress.Commands.overwrite(
