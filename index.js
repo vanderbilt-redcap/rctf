@@ -58,6 +58,19 @@ function rctf_initialize(preprocessor) {
         set_timezone()
         reset_database()
         window.lastAlert = []
+
+        /**
+         * Wait for all requests to finish before continuing to the next step
+         */
+        let lastResponse
+        cy.intercept('*', req => {
+            lastResponse = null
+            req.continue(res => {
+                lastResponse = res
+            })
+        })
+
+        cy.wrap(lastResponse).should('not.be.null')
     })
 
     const registerEventListeners = () => {

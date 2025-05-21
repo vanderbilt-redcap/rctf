@@ -253,27 +253,6 @@ Cypress.Commands.add('ensure_csrf_token', () => {
     })
 })
 
-Cypress.Commands.add("clickAndWaitForPageLoad", {prevSubject: true}, function ($elm, options) {
-    if($elm[0].href && $elm[0].href.startsWith('http')){
-        /**
-         * Append a random number to ensure we're always waiting for the right page load,
-         * in case we come upon some unexpected series of events that causes an oddly ordered page load.
-         */
-        cy.intercept({
-            method: 'GET',
-            url: '*',
-            times: 1,
-        }, (req) => {
-            req.continue((res) => {
-                // Do nothing.  All we care about is waiting until the response comes back before continuing.
-            })
-        })
-    }
-
-    $elm = cy.wrap($elm)
-    $elm.click(options)
-})
-
 Cypress.Commands.overwrite(
     'click',
     (originalFn, subject, options) => {
@@ -305,7 +284,7 @@ Cypress.Commands.overwrite(
                 //If our other detachment prevention measures failed, let's check to see if it detached and deal with it
                 cy.wrap(subject).then($el => {
                     return Cypress.dom.isDetached($el) ? Cypress.$($el): $el
-                }).clickAndWaitForPageLoad(options)
+                }).click(options)
 
             } else {
                 return originalFn(subject, options)
