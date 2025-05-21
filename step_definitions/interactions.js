@@ -734,7 +734,8 @@ Given("I click on the( ){ordinal}( ){onlineDesignerFieldIcons}( ){fileRepoIcons}
                 waitForPageLoad = true
                 cy.intercept({
                     method: 'GET',
-                    url: '*'
+                    url: '*',
+                    times: 1,
                 }).as('page_load')
             }
 
