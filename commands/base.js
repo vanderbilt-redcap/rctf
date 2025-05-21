@@ -274,6 +274,10 @@ Cypress.Commands.add("clickAndWaitForPageLoad", {prevSubject: true}, function ($
     if(pageLoadAlias){
         // This click should cause a page load.  Wait for the request to complete before executing any other steps.
         cy.wait('@' + pageLoadAlias)
+
+        $elm.then(() =>{
+            // This makes sure $elm is passed to the next item in the chain instead of the intercepted response
+        })
     }
 })
 
