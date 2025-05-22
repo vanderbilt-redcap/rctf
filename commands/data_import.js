@@ -158,7 +158,9 @@ Cypress.Commands.add('upload_file', (fileName, fileType = ' ', selector = '', bu
                     dataTransfer.items.add(testFile)
                     el.files = dataTransfer.files
 
-                    if(button_label !== '') cy.get(submit_button_selector).click()
+                    if(button_label !== '') {
+                        cy.wrap(subject).closestIncludingChildren(submit_button_selector).click()
+                    }
                 })
         })
     })
@@ -216,7 +218,6 @@ Cypress.Commands.add('file_repo_upload', (fileNames, id = 'input#file-repository
                     })
                 }
             }
-            cy.wait('@file_breadcrumbs')
         })
 
     })

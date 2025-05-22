@@ -75,16 +75,6 @@ function rctf_initialize(preprocessor) {
                 window.lastAlert.push(str)
             }
         })
-
-        cy.intercept({
-            method: 'POST',
-            url: '/redcap_v' + Cypress.env('redcap_version') + "/*FileRepositoryController:getBreadcrumbs*"
-        }).as('file_breadcrumbs')
-
-        cy.intercept({
-            method: 'POST',
-            url: '/redcap_v' + Cypress.env('redcap_version') + "/*FileRepositoryController:getFileList*"
-        }).as('file_list')
     })
 
     beforeEach(() => {
@@ -128,7 +118,18 @@ function rctf_initialize(preprocessor) {
              * and pick up where they left off.
              */
             cy.url().then((url) => {
-                cy.task('saveCurrentURL', ({ url: url }))
+                if(url === 'about:blank'){
+                    /**
+                     * There was likely some error restoring the previosly saved url.
+                     * Leave the previously saved url in places for troubleshooting.
+                     */
+                    return
+                }
+
+                cy.task('saveCurrentURL', ({
+                    url: url,
+                    redcap_url_pre_survey: window.redcap_url_pre_survey
+                }))
             })
         }
     })

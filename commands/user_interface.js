@@ -123,7 +123,14 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
             }
         }
 
-        cy.get(selector).first().within(() => {
+        let table = Cypress.$("#table-report_list")
+        if(table.length === 1){
+            table = cy.wrap(table)
+        } else { 
+            table = cy.get(selector).first()
+        }
+
+        table.within(() => {
             cy.get(td_selector).eq(row_number).each(($tr, $tri) => {
                 cy.wrap($tr).find(row_cell_type).each((td, tdi) => {
                     // cy.log(`COL: ${column_num}`)

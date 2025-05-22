@@ -30,12 +30,15 @@ Cypress.Commands.add('base_db_seed', () => {
             })
 
         } else if (decodeURIComponent(location.href).includes('Continue Last Run.feature')) {
-            cy.readFile('test_db/latest_url.info').then((url) => {
+            cy.readFile('test_db/latest_url.info').then((urlData) => {
+                urlData = JSON.parse(urlData)
+
                 /**
                  * Simply load the previous URL to pick up where we left off.
                  * Leave the session & DB as-is.
                  */
-                cy.visit(url)
+                window.redcap_url_pre_survey = urlData.redcap_url_pre_survey
+                cy.visit(urlData.url)
             })
 
         } else {

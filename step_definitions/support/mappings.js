@@ -141,10 +141,11 @@ window.projectModules = {
     'Enable optional modules and customizations' : [
                                                      'Repeating instruments and events',
                                                      'Auto-numbering for records',
-                                                     'Scheduling module (longitudinal only)',
+                                                     'Scheduling module',
                                                      'Randomization module',
                                                      'Designate an email field for communications (including survey invitations and alerts)',
                                                      'Twilio SMS and Voice Call services for surveys and alerts',
+                                                     'Mosio SMS services for surveys and alerts',
                                                      'SendGrid Template email services for Alerts & Notifications'
                                                     ]
 }

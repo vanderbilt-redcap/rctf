@@ -3,11 +3,11 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 /**
  * @module Reporting
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I should see the report with {int} rows
+ * @example I should see the report with {int} row(s)
  * @param {int} number the number of rows seen in a report
  * @description Visibility - Visually verifies that the report has the correct number of rows
  */
-Given("I should see the report with {int} rows", (number) => {
+Given("I should see the report with {int} row(s)", (number) => {
     cy.get('table[id="report_table"]').children('tbody').find('tr').should('have.length', number)
 })
 

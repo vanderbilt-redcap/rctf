@@ -1,5 +1,45 @@
 const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 
+function normalizeString(s){
+    if(s === undefined){
+        return undefined
+    }
+
+    // Replace '&nbsp;' so that normal spaces in steps will match that character
+    return s.trim().replaceAll('\u00a0', ' ')
+}
+
+function performAction(action, element){
+    element = cy.wrap(element)
+    if(action === 'click on the'){
+        element.click()
+    }
+    else if(action === 'should see a'){
+        element.should('be.visible')
+    }
+    else{
+        throw 'Action not found: ' + action
+    }
+}
+
+/**
+ * We tried implementing this as an exact match at first, but that made some steps unweildly.
+ * For example:
+ *      I select "gender"...
+ * Changed to:
+ *      I select "gender (Do you describe yourself as a man, a woman, or in some other way?)..."...
+ */
+Cypress.$.expr[':'].containsCustom = Cypress.$.expr.createPseudo(function(arg) {
+    arg = normalizeString(arg)
+
+    // Remove any double quote escaping added by JSON.stringify()
+    arg = JSON.parse('"' + arg + '"')
+
+    return function( elem ) {
+        return normalizeString(Cypress.$(elem).text()).includes(arg)
+    };
+});
+
 function before_click_monitor(type){
     if(type === ' in the "Add New Field" dialog box' || type === ' in the "Edit Field" dialog box' ){
         cy.intercept({
@@ -50,8 +90,6 @@ function before_click_monitor(type){
 function after_click_monitor(type){
     if(type === ' in the "Add New Field" dialog box' || type === ' in the "Edit Field" dialog box' ){
         cy.wait('@save_field')
-    } else if(type === " in the dialog box to request a change in project status"){
-        cy.get('div#actionMsg').should("have.css", "display", "none")
     } else if (type === " on the dialog box for the Repeatable Instruments and Events module"){
         cy.wait('@repeat_save')
         cy.window().its('performance.navigation.type').should('eq', 1)
@@ -74,6 +112,327 @@ function after_click_monitor(type){
             return true //subsequent windows go back to default behavior
         })
     }
+}
+
+function retryUntilTimeout(action, start, lastRun) {
+    if (start === undefined) {
+        start = Date.now()
+    }
+
+    if(lastRun === undefined){
+        lastRun = false
+    }
+
+    const isAfterTimeout = () => {
+        const elapsed = Date.now() - start
+        return elapsed > 3000
+    }
+
+    return action(lastRun).then((result) => {
+        if (result || (isAfterTimeout() && lastRun)) {
+            return result
+        }
+        else {
+            cy.wait(250).then(() => {
+                retryUntilTimeout(action, start, isAfterTimeout())
+            })
+        }
+    })
+}
+
+function getShortestMatchingNodeLength(textToFind, element) {
+    let text = null
+    if (element.tagName === 'INPUT') {
+        if (element.value !== '') {
+            text = element.value
+        }
+        else {
+            text = element.placeholder
+        }
+    }
+    else if(element.childNodes.length > 0) {
+        // This is required for 'on the dropdown field labeled "to"' syntax
+        element.childNodes.forEach(child => {
+            if(child.constructor.name === 'Text' && child.textContent.includes(textToFind)){
+                text = child.textContent
+            }
+        })
+    }
+
+    if(text === null){
+        text = element.textContent
+    }
+
+    return text.trim().length
+}
+
+function filterMatches(text, matches) {
+    matches = matches.toArray()
+
+    let topElement = null
+    let matchesWithoutParents = [...matches]
+    matches.forEach(current => {
+        if (
+            topElement === null // This will default to "body" by default, which is fine
+            ||
+            topElement.style.zIndex < current.style.zIndex
+        ) {
+            topElement = current
+        }
+        
+        if(current.tagName === 'SELECT'){
+            const option = Cypress.$(current).find(`:contains(${JSON.stringify(text)})`)[0]
+            if(!option.selected){
+                // Exclude matches for options that are not currently selected, as they are not visible and should not be considered labels
+                matchesWithoutParents = matchesWithoutParents.filter(match => match !== current)
+            }
+        }
+        
+        while (current = current.parentElement) {
+            // Remove parents so only leaf node matches are included
+            matchesWithoutParents = matchesWithoutParents.filter(match => match !== current)
+        }
+    })
+
+    let minChars = null
+    matchesWithoutParents.forEach(element => {
+        const chars = getShortestMatchingNodeLength(text, element)
+        if (
+            minChars === null
+            ||
+            chars < minChars
+        ) {
+            minChars = chars
+        }
+    })
+
+    return matchesWithoutParents.filter(element =>
+        // Only include elements withint the top most element (likely a dialog)
+        topElement.contains(element)
+        &&
+        /**
+         * Only include the closest matches as determined by minChars.
+         * If we intend to be match longer strings, we should specify them explicitly.
+         */
+        getShortestMatchingNodeLength(text, element) === minChars
+    )
+}
+
+/**
+ * This is required to support steps containing the following:
+ *      the dropdown field labeled "Assign user"
+ *      the radio labeled "Use Data Access Groups"
+ */
+function getPreferredSibling(text, originalMatch, one, two){
+    if(originalMatch === one.parentElement){
+        const nodeMatches = Array.from(originalMatch.childNodes).filter(child => {
+            return child.textContent.includes(text)
+        })
+
+        if(nodeMatches.length !== 1){
+            throw 'Found an unexpexcted number of node matches'
+        }
+
+        originalMatch = nodeMatches[0]
+    }
+
+    if(
+        originalMatch.parentElement === one.parentElement
+        &&
+        originalMatch.parentElement === two.parentElement
+    ){
+        // All three have the same parent, so the logic in this method is useful
+    }
+    else{
+        // This method is not useful in its current form since the three are not siblings
+        return undefined
+    }
+
+    const siblings = Array.from(originalMatch.parentElement.childNodes)
+    const matchIndex = siblings.indexOf(originalMatch)
+    if(matchIndex === -1){
+        console.log(1, originalMatch, siblings)
+        throw 'Could not determine match index'
+    }
+
+    const indexOne = siblings.indexOf(one)
+    const indexTwo = siblings.indexOf(two)
+    const distanceOne = Math.abs(matchIndex - indexOne)
+    const distanceTwo = Math.abs(matchIndex - indexTwo)
+    if(distanceOne === distanceTwo){
+        if(text === 'to'){
+            // Support the special case for 'dropdown field labeled "to"' language
+            // Alternatively, we could replaces such steps with 'dropdown field labeled "[No Assignment]"' to resolve this.
+            return two
+        }
+
+        throw 'Two sibling matches were found the same distance away.  We should consider implementing a way to definitively determine which to match.'
+    }
+    else if(distanceOne < distanceTwo){
+        return one
+    }
+    else{
+        return two
+    }
+}
+
+function removeUnpreferredSiblings(text, originalMatch, children){
+    for(let i=0; i<children.length-1; i++){
+        const current = children[i]
+        const next = children[i+1]
+
+        const preferredSibling = getPreferredSibling(text, originalMatch, current, next)
+        let indexToRemove
+        if(preferredSibling === current){
+            indexToRemove = i+1
+        }
+        else if(preferredSibling === next){
+            indexToRemove = i
+        }
+        else{
+            // Neither was preferred
+            indexToRemove = null
+        }
+
+        if(indexToRemove !== null){
+            children.splice(indexToRemove, 1)
+            i--
+        }
+    }
+}
+
+function findMatchingChildren(text, selectOption, originalMatch, searchParent, childSelector, childrenToIgnore) {
+    selectOption = normalizeString(selectOption)
+
+    let children = Array.from(Cypress.$(searchParent).find(childSelector)).filter(child => {
+        return !childrenToIgnore.includes(child)
+            // B.3.14.0900.
+            && child.closest('.ui-helper-hidden-accessible') === null
+    })
+
+    removeUnpreferredSiblings(text, originalMatch, children)
+
+    const exactMatches = children.filter(child =>{
+        return normalizeString(child.textContent) === selectOption // B.6.7.1900.
+    })
+
+    if(exactMatches.length > 0){
+        children = exactMatches
+    }
+
+    return children
+}
+
+/**
+ * This logic is meant to eventually replace get_labeled_element() and other label matching logic duplicated in multiple places.
+ * Is it specifically designed to help us evolve toward normalizing & simplify association of labels with their clickable elements.
+ * The main differences is that it does not require the tagName to be determined up front,
+ * allowing for significant logic simplification (incrementally over time).
+ * We may want to introduce bahmutov/cypress-if at some point as well,
+ * as the root of some of our existing duplicate logic is the lack of built-in "if" support.
+ */
+function getLabeledElement(type, text, ordinal, selectOption) {
+    return retryUntilTimeout((lastRun) => {
+        /**
+         * We tried using "window().then(win => win.$(`:contains..." to combine the following two cases,
+         * but it could not find iframe content like cy.get() can.
+         * We also tried Cypress.$, but it seems to return similar results to cy.get().
+         * Example from A.6.4.0200.: I click on the radio labeled "Keep ALL data saved so far." in the dialog box in the iframe
+        */
+        let selector = `input[placeholder=${JSON.stringify(text)}],:contains(${JSON.stringify(text)})`
+        if(!lastRun){
+            // Favor visible items until the lastRun.  Keep in mind items that must be scrolled into view aren't considered visible.
+            selector += ':visible'
+        }
+
+        return cy.get(selector).then(matches => {
+            console.log('getLabeledElement() unfiltered matches', matches)
+            matches = filterMatches(text, matches)
+            console.log('getLabeledElement() filtered matches', matches)
+
+            if (ordinal !== undefined) {
+                matches = [matches[window.ordinalChoices[ordinal]]]
+            }
+
+            for (let i = 0; i < matches.length; i++){
+                const match = matches[i]
+                let current = match
+                const childrenToIgnore = []
+                do {
+                    console.log('getLabeledElement() current', current)
+
+                    if(current.clientHeight > 500){
+                        /**
+                         * We've reached a parent that is large enough that our scope is now too large for a valid match
+                         */
+                        break
+                    }
+
+                    let childSelector = null
+                    if (type === 'icon') {
+                        childSelector = 'img'
+                    }
+                    else if (['checkbox', 'radio'].includes(type)) {
+                        childSelector = 'input[type=' + type + ']'
+                    }
+                    else if (type === 'dropdown' && selectOption !== undefined) {
+                        childSelector = `option:containsCustom(${JSON.stringify(selectOption)})`
+                    }
+                    else if (type === 'input'){
+                        childSelector = 'input'
+                    }
+
+                    if (childSelector) {
+                        const children = findMatchingChildren(text, selectOption, match, current, childSelector, childrenToIgnore)
+                        console.log('getLabeledElement() children', children)
+                        if (children.length === 1) {
+                            /**
+                             * Example Steps:
+                             *  I uncheck the first checkbox labeled "Participant Consent"
+                             *  I click on the icon labeled "[All instruments]"
+                             */
+                            return children[0]
+                        }
+                        else if (
+                            /**
+                             * We're likely matching an unrelated group of elements.
+                             * They could be children or distant siblings of the desired match
+                             * Regardles, ignore this grouping and start the search again from the next parent.
+                             */
+                            children.length > 1
+                        ) {
+                            childrenToIgnore.push(...children)
+                        }
+                    } else if (
+                        // e.g. <button>
+                        type === current.tagName.toLowerCase()
+                        ||
+                        // Default to the first matching "a" tag, if no other cases apply.
+                        current.tagName === 'A'
+                     ){
+                        return current
+                    }
+
+                    /**
+                     * Some label elements in REDCap contain mulitple fields.
+                     * Only use 'for' for matching as a last resort if none of the logic above matched the field.
+                     */
+                    if (current.tagName === 'LABEL' && current.htmlFor !== '') {
+                        // This label has the 'for' attribute set.  Use it.
+                        return cy.get('#' + current.htmlFor)
+                    }
+                } while (current = current.parentElement)
+            }
+
+            return null
+        })
+    }).then((match) => {
+        if (!match) {
+            throw 'The specified element could not be found'
+        }
+
+        return match
+    })
 }
 
 /**
@@ -117,7 +476,7 @@ function after_click_monitor(type){
  * @param {string} onlineDesignerButtons - available options: '"Enable"', '"Disable"', '"Choose action"', '"Survey settings"', '"Automated Invitations"', 'enabled survey icon', '"View Report"', '"Export Data"', '"Stats & Charts"', '"Execute"', '"Save"'
  * @param {string} ordinal - available options: 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth', 'twentieth', 'last'
  * @param {string} labeledExactly - available options: 'labeled', 'labeled exactly', 'in the row labeled', 'for the instrument row labeled', 'for the variable', 'for the File Repository file named', 'for Data Quality Rule #', 'within the Record Locking Customization table for the Data Collection Instrument named', 'the enabled survey icon link for the instrument row', 'the enabled survey icon link for the instrument row', 'for the Discrepant field labeled', 'within the Record Locking Customization table for the Data Collection Instrument named', 'for the field labeled'
- * @param {string} saveButtonRouteMonitoring - available options: ' on the dialog box for the Repeatable Instruments and Events module', ' on the Designate Instruments for My Events page', ' on the Online Designer page', ' and cancel the confirmation window', ' and accept the confirmation window', ' in the dialog box to request a change in project status', ' to rename an instrument', ' in the "Add New Field" dialog box', ' in the "Edit Field" dialog box', ' and will leave the tab open when I return to the REDCap project', ' on the active Data Quality rule'
+ * @param {string} saveButtonRouteMonitoring - available options: ' on the dialog box for the Repeatable Instruments and Events module', ' on the Designate Instruments for My Events page', ' on the Online Designer page', ' and cancel the confirmation window', ' and accept the confirmation window', ' to rename an instrument', ' in the "Add New Field" dialog box', ' in the "Edit Field" dialog box', ' and will leave the tab open when I return to the REDCap project', ' on the active Data Quality rule'
  * @param {string} baseElement - available options: ' on the tooltip', ' in the tooltip', ' on the role selector dropdown', ' in the role selector dropdown', ' on the dialog box', ' in the dialog box', ' on the Add/Edit Branching Logic dialog box', ' in the Add/Edit Branching Logic dialog box', ' within the data collection instrument list', ' on the action popup', ' in the action popup', ' in the Edit survey responses column', ' in the open date picker widget', ' in the File Repository breadcrumb', ' in the File Repository table', ' in the View Access section of User Access', ' in the Edit Access section of User Access', ' in the "Main project settings" section', ' in the "Use surveys in this project?" row in the "Main project settings" section', ' in the "Use longitudinal data collection with defined events?" row in the "Main project settings" section', ' in the "Use the MyCap participant-facing mobile app?" row in the "Main project settings" section', ' in the "Enable optional modules and customizations" section', ' in the "Repeating instruments and events" row in the "Enable optional modules and customizations" section', ' in the "Auto-numbering for records" row in the "Enable optional modules and customizations" section', ' in the "Scheduling module (longitudinal only)" row in the "Enable optional modules and customizations" section', ' in the "Randomization module" row in the "Enable optional modules and customizations" section', ' in the "Designate an email field for communications (including survey invitations and alerts)" row in the "Enable optional modules and customizations" section', ' in the "Twilio SMS and Voice Call services for surveys and alerts" row in the "Enable optional modules and customizations" section', ' in the "SendGrid Template email services for Alerts & Notifications" row in the "Enable optional modules and customizations" section', ' in the validation row labeled "Code Postal 5 caracteres (France)"', ' in the validation row labeled "Date (D-M-Y)"', ' in the validation row labeled "Date (M-D-Y)"', ' in the validation row labeled "Date (Y-M-D)"', ' in the validation row labeled "Datetime (D-M-Y H:M)"', ' in the validation row labeled "Datetime (M-D-Y H:M)"', ' in the validation row labeled "Datetime (Y-M-D H:M)"', ' in the validation row labeled "Datetime w/ seconds (D-M-Y H:M:S)"', ' in the validation row labeled "Datetime w/ seconds (M-D-Y H:M:S)"', ' in the validation row labeled "Datetime w/ seconds (Y-M-D H:M:S)"', ' in the validation row labeled "Email"', ' in the validation row labeled "Integer"', ' in the validation row labeled "Letters only"', ' in the validation row labeled "MRN (10 digits)"', ' in the validation row labeled "MRN (generic)"', ' in the validation row labeled "Number"', ' in the validation row labeled "Number (1 decimal place - comma as decimal)"', ' in the validation row labeled "Number (1 decimal place)"', ' in the validation row labeled "Number (2 decimal places - comma as decimal)"', ' in the validation row labeled "Number (2 decimal places)"', ' in the validation row labeled "Number (3 decimal places - comma as decimal)"', ' in the validation row labeled "Number (3 decimal places)"', ' in the validation row labeled "Number (4 decimal places - comma as decimal)"', ' in the validation row labeled "Number (4 decimal places)"', ' in the validation row labeled "Number (comma as decimal)"', ' in the validation row labeled "Phone (Australia)"', ' in the validation row labeled "Phone (North America)"', ' in the validation row labeled "Phone (UK)"', ' in the validation row labeled "Postal Code (Australia)"', ' in the validation row labeled "Postal Code (Canada)"', ' in the validation row labeled "Postal Code (Germany)"', ' in the validation row labeled "Social Security Number (U.S.)"', ' in the validation row labeled "Time (HH:MM:SS)"', ' in the validation row labeled "Time (HH:MM)"', ' in the validation row labeled "Time (MM:SS)"', ' in the validation row labeled "Vanderbilt MRN"', ' in the validation row labeled "Zipcode (U.S.)"'
  * @param {string} iframeVisibility - available options: '', ' in the iframe'
  * @param {string} toDownloadFile - available options: ' to download a file', ' near "with records in rows" to download a file', ' near "with records in columns" to download a file'
@@ -263,12 +622,12 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
  * @example I click on the {onlineDesignerFieldIcons} {fileRepoIcons} {linkNames} {labeledExactly} {string} {saveButtonRouteMonitoring} {toDownloadFile} {baseElement}
  * @param {string} linkNames - available options: 'link', 'tab', 'instrument', 'icon'
  * @param {string} text - the text on the anchor element you want to click
- * @param {string} saveButtonRouteMonitoring - available options: '', ' on the dialog box for the Repeatable Instruments and Events module', ' on the Designate Instruments for My Events page', ' on the Online Designer page', ' and cancel the confirmation window', ' and accept the confirmation window', ' in the dialog box to request a change in project status', ' to rename an instrument', ' in the "Add New Field" dialog box', ' in the "Edit Field" dialog box', ''
+ * @param {string} saveButtonRouteMonitoring - available options: '', ' on the dialog box for the Repeatable Instruments and Events module', ' on the Designate Instruments for My Events page', ' on the Online Designer page', ' and cancel the confirmation window', ' and accept the confirmation window', ' to rename an instrument', ' in the "Add New Field" dialog box', ' in the "Edit Field" dialog box', ''
  * @param {string} toDownloadFile - available options: ' to download a file'
  * @param {string} baseElement - available options: ' on the tooltip', ' in the tooltip', ' on the role selector dropdown', ' in the role selector dropdown', ' on the dialog box', ' in the dialog box', ' within the data collection instrument list', ' on the action popup', ' in the action popup', ' in the Edit survey responses column', ' in the "Main project settings" section', ' in the "Use surveys in this project?" row in the "Main project settings" section', ' in the "Use longitudinal data collection with defined events?" row in the "Main project settings" section', ' in the "Use the MyCap participant-facing mobile app?" row in the "Main project settings" section', ' in the "Enable optional modules and customizations" section', ' in the "Repeating instruments and events" row in the "Enable optional modules and customizations" section', ' in the "Auto-numbering for records" row in the "Enable optional modules and customizations" section', ' in the "Scheduling module (longitudinal only)" row in the "Enable optional modules and customizations" section', ' in the "Randomization module" row in the "Enable optional modules and customizations" section', ' in the "Designate an email field for communications (including survey invitations and alerts)" row in the "Enable optional modules and customizations" section', ' in the "Twilio SMS and Voice Call services for surveys and alerts" row in the "Enable optional modules and customizations" section', ' in the "SendGrid Template email services for Alerts & Notifications" row in the "Enable optional modules and customizations" section', ' in the validation row labeled "Code Postal 5 caracteres (France)"', ' in the validation row labeled "Date (D-M-Y)"', ' in the validation row labeled "Date (M-D-Y)"', ' in the validation row labeled "Date (Y-M-D)"', ' in the validation row labeled "Datetime (D-M-Y H:M)"', ' in the validation row labeled "Datetime (M-D-Y H:M)"', ' in the validation row labeled "Datetime (Y-M-D H:M)"', ' in the validation row labeled "Datetime w/ seconds (D-M-Y H:M:S)"', ' in the validation row labeled "Datetime w/ seconds (M-D-Y H:M:S)"', ' in the validation row labeled "Datetime w/ seconds (Y-M-D H:M:S)"', ' in the validation row labeled "Email"', ' in the validation row labeled "Integer"', ' in the validation row labeled "Letters only"', ' in the validation row labeled "MRN (10 digits)"', ' in the validation row labeled "MRN (generic)"', ' in the validation row labeled "Number"', ' in the validation row labeled "Number (1 decimal place - comma as decimal)"', ' in the validation row labeled "Number (1 decimal place)"', ' in the validation row labeled "Number (2 decimal places - comma as decimal)"', ' in the validation row labeled "Number (2 decimal places)"', ' in the validation row labeled "Number (3 decimal places - comma as decimal)"', ' in the validation row labeled "Number (3 decimal places)"', ' in the validation row labeled "Number (4 decimal places - comma as decimal)"', ' in the validation row labeled "Number (4 decimal places)"', ' in the validation row labeled "Number (comma as decimal)"', ' in the validation row labeled "Phone (Australia)"', ' in the validation row labeled "Phone (North America)"', ' in the validation row labeled "Phone (UK)"', ' in the validation row labeled "Postal Code (Australia)"', ' in the validation row labeled "Postal Code (Canada)"', ' in the validation row labeled "Postal Code (Germany)"', ' in the validation row labeled "Social Security Number (U.S.)"', ' in the validation row labeled "Time (HH:MM:SS)"', ' in the validation row labeled "Time (HH:MM)"', ' in the validation row labeled "Time (MM:SS)"', ' in the validation row labeled "Vanderbilt MRN"', ' in the validation row labeled "Zipcode (U.S.)"'
  * @description Clicks on an anchor element with a specific text label.
  */
-Given("I (click)(locate) on the( ){ordinal}( ){onlineDesignerFieldIcons}( ){fileRepoIcons}( ){linkNames}( ){labeledExactly} {string}{saveButtonRouteMonitoring}{toDownloadFile}{baseElement}", (ordinal, designer_field_icons, file_repo_icons, link_name, exactly, text, link_type, download, base_element) => {
+Given("I click on the( ){ordinal}( ){onlineDesignerFieldIcons}( ){fileRepoIcons}( ){linkNames}( ){labeledExactly} {string}{saveButtonRouteMonitoring}{toDownloadFile}{baseElement}", (ordinal, designer_field_icons, file_repo_icons, link_name, exactly, text, link_type, download, base_element) => {
     before_click_monitor(link_type)
 
     let ord = 0
@@ -345,19 +704,9 @@ Given("I (click)(locate) on the( ){ordinal}( ){onlineDesignerFieldIcons}( ){file
         })
 
     } else {
-        cy.top_layer(`a:contains(${JSON.stringify(text)}):visible`, outer_element).within(() => {
-            cy.get(`a:contains(${JSON.stringify(text)}):visible`).contains(text).then(($elm) => {
-                if(base_element === " in the File Repository table"){
-                    cy.intercept({
-                        method: 'POST',
-                        url: '/redcap_v' + Cypress.env('redcap_version') + "/*FileRepositoryController:getBreadcrumbs*"
-                    }).as('file_breadcrumbs')
-                    //cy.get($elm).invoke('attr', 'onclick')
-                    cy.get($elm).eq(ord).click()
-                } else {
-                    cy.wrap($elm).eq(ord).click()
-                }
-            })
+        getLabeledElement(link_name, text, ordinal).then(($elm) => {
+            $elm = cy.wrap($elm)
+            $elm.click()
         })
     }
 
@@ -390,6 +739,10 @@ Given("I click on the button labeled {string} for the row labeled {string}", (te
  */
 Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}', (enter_type, text, ordinal, input_type, column, labeled_exactly, label, base_element, iframe) => {
     let select = 'input[type=text]:visible,input[type=password]:visible'
+
+    // Also look for inputs that omit a "type", like "Name of trigger"
+    select += ',input:not([type]):visible'
+
     if(input_type === 'password'){
         select = 'input[type=password]:visible'
     }
@@ -428,47 +781,19 @@ Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} fi
         })
 
     } else {
-        let sel = `:contains(${JSON.stringify(label)}):visible`
-        let element = select
+        const elm = getLabeledElement('input', label, ordinal)
 
-        //Either the base element as specified or the default
-        let outer_element = base_element.length > 0 ?
-            cy.top_layer(sel, window.elementChoices[base_element]) :
-            cy.top_layer(sel)
-
-        outer_element.within(() => {
-            let elm = null
-
-            let label_base = labeled_exactly === 'labeled exactly' ?
-                cy.contains(new RegExp("^" + label + "$", "g")) :
-                cy.contains(label)
-
-            label_base.should('be.visible').then(($label) => {
-                cy.wrap($label).parent().then(($parent) =>{
-                    //We are ONLY filtering here - it is okay to return more than one, do NOT use .eq() yet
-                    if($parent.find(element).length){
-                        //console.log('parent')
-                        elm = cy.wrap($parent).find(element).filter((i, el) => !Cypress.$(el).parent().hasClass('ui-helper-hidden-accessible'))
-                    //We are also ONLY filtering here - it is okay to return more than one, do NOT use .eq() yet
-                    } else if ($parent.parent().find(element).length) {
-                        //console.log('parent parent ')
-                        elm = cy.wrap($parent).parent().find(element).filter((i, el) => !Cypress.$(el).parent().hasClass('ui-helper-hidden-accessible'))
-                    }
-
-                    if(enter_type === "enter"){
-                        elm.eq(ord).type(text)
-                    } else if (enter_type === "clear field and enter") {
-                        elm.eq(ord).clear().type(text)
-                    } else if (enter_type === "verify"){
-                        if(window.dateFormats.hasOwnProperty(text)){
-                            //elm.invoke('val').should('match', window.dateFormats[text])
-                        } else {
-                            elm.eq(ord).invoke('val').should('include', text)
-                        }
-                    }
-                })
-            })
-        })
+        if(enter_type === "enter"){
+            elm.eq(ord).type(text)
+        } else if (enter_type === "clear field and enter") {
+            elm.eq(ord).clear().type(text)
+        } else if (enter_type === "verify"){
+            if(window.dateFormats.hasOwnProperty(text)){
+                //elm.invoke('val').should('match', window.dateFormats[text])
+            } else {
+                elm.eq(ord).invoke('val').should('include', text)
+            }
+        }
     }
 })
 
@@ -494,6 +819,7 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
     //Turns out the logic editor uses a DIV with an "Ace Editor" somehow /shrug
     if(label === "Logic Editor") {
         element = `div#rc-ace-editor div.ace_line`
+        enter_type = 'clear field and enter'
     }
 
     //Either the base element as specified or the default
@@ -642,12 +968,13 @@ Given('I clear the field labeled {string}', (label) => {
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @example I {clickType} the {checkBoxRadio} labeled {string} {baseElement}
  * @param {string} clickType - available options: 'click on', 'check', 'uncheck', 'enable', 'disable'
+ * @param {string} ordinal - available options: 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth', 'twentieth', 'last'
  * @param {string} checkBoxRadio - available options: 'checkbox', 'radio', 'toggle button'
  * @param {string} label - the label associated with the checkbox field
  * @param {string} baseElement - available options: ' on the tooltip', ' in the tooltip', ' on the role selector dropdown', ' in the role selector dropdown', ' on the dialog box', ' in the dialog box', ' within the data collection instrument list', ' on the action popup', ' in the action popup', ' in the Edit survey responses column', ' in the "Main project settings" section', ' in the "Use surveys in this project?" row in the "Main project settings" section', ' in the "Use longitudinal data collection with defined events?" row in the "Main project settings" section', ' in the "Use the MyCap participant-facing mobile app?" row in the "Main project settings" section', ' in the "Enable optional modules and customizations" section', ' in the "Repeating instruments and events" row in the "Enable optional modules and customizations" section', ' in the "Auto-numbering for records" row in the "Enable optional modules and customizations" section', ' in the "Scheduling module (longitudinal only)" row in the "Enable optional modules and customizations" section', ' in the "Randomization module" row in the "Enable optional modules and customizations" section', ' in the "Designate an email field for communications (including survey invitations and alerts)" row in the "Enable optional modules and customizations" section', ' in the "Twilio SMS and Voice Call services for surveys and alerts" row in the "Enable optional modules and customizations" section', ' in the "SendGrid Template email services for Alerts & Notifications" row in the "Enable optional modules and customizations" section', ' in the validation row labeled "Code Postal 5 caracteres (France)"', ' in the validation row labeled "Date (D-M-Y)"', ' in the validation row labeled "Date (M-D-Y)"', ' in the validation row labeled "Date (Y-M-D)"', ' in the validation row labeled "Datetime (D-M-Y H:M)"', ' in the validation row labeled "Datetime (M-D-Y H:M)"', ' in the validation row labeled "Datetime (Y-M-D H:M)"', ' in the validation row labeled "Datetime w/ seconds (D-M-Y H:M:S)"', ' in the validation row labeled "Datetime w/ seconds (M-D-Y H:M:S)"', ' in the validation row labeled "Datetime w/ seconds (Y-M-D H:M:S)"', ' in the validation row labeled "Email"', ' in the validation row labeled "Integer"', ' in the validation row labeled "Letters only"', ' in the validation row labeled "MRN (10 digits)"', ' in the validation row labeled "MRN (generic)"', ' in the validation row labeled "Number"', ' in the validation row labeled "Number (1 decimal place - comma as decimal)"', ' in the validation row labeled "Number (1 decimal place)"', ' in the validation row labeled "Number (2 decimal places - comma as decimal)"', ' in the validation row labeled "Number (2 decimal places)"', ' in the validation row labeled "Number (3 decimal places - comma as decimal)"', ' in the validation row labeled "Number (3 decimal places)"', ' in the validation row labeled "Number (4 decimal places - comma as decimal)"', ' in the validation row labeled "Number (4 decimal places)"', ' in the validation row labeled "Number (comma as decimal)"', ' in the validation row labeled "Phone (Australia)"', ' in the validation row labeled "Phone (North America)"', ' in the validation row labeled "Phone (UK)"', ' in the validation row labeled "Postal Code (Australia)"', ' in the validation row labeled "Postal Code (Canada)"', ' in the validation row labeled "Postal Code (Germany)"', ' in the validation row labeled "Social Security Number (U.S.)"', ' in the validation row labeled "Time (HH:MM:SS)"', ' in the validation row labeled "Time (HH:MM)"', ' in the validation row labeled "Time (MM:SS)"', ' in the validation row labeled "Vanderbilt MRN"', ' in the validation row labeled "Zipcode (U.S.)"'
  * @description Selects a checkbox field by its label
  */
-Given("(for the Event Name \")(the Column Name \")(for the Column Name \"){optionalString}(\", I )(I ){clickType} the {checkBoxRadio} {labeledExactly} {string}{baseElement}{iframeVisibility}", (event_name, check, type, labeled_exactly, label, base_element, iframe) => {
+Given("(for the Event Name \")(the Column Name \")(for the Column Name \"){optionalString}(\", I )(I ){clickType} the{ordinal} {checkBoxRadio} {labeledExactly} {string}{baseElement}{iframeVisibility}", (event_name, check, ordinal, type, labeled_exactly, label, base_element, iframe) => {
     cy.not_loading()
 
     //This is to accommodate for aliases such as "toggle button" which is actually a checkbox behind the scenes
@@ -685,16 +1012,22 @@ Given("(for the Event Name \")(the Column Name \")(for the Column Name \"){optio
         }
     }
 
-    function clickElement(label_selector, outer_element, element_selector, label, labeled_exactly){
+    function clickElement(element){
+        element = element.scrollIntoView()
+        if (type === "radio" || check === "click on") {
+            element.click()
+        } else if (check === "check") {
+            element.check()
+        } else if (check === "uncheck") {
+            element.uncheck()
+        }
+    }
+
+    function findAndClickElement(label_selector, outer_element, element_selector, label, labeled_exactly){
         cy.top_layer(label_selector, outer_element).within(() => {
-            let selector = cy.get_labeled_element(element_selector, label, null, labeled_exactly === "labeled exactly")
-            if (type === "radio" || check === "click on") {
-                selector.scrollIntoView().click()
-            } else if (check === "check") {
-                selector.scrollIntoView().check()
-            } else if (check === "uncheck") {
-                selector.scrollIntoView().uncheck()
-            }
+            getLabeledElement(type, label, ordinal).then(element => {
+                clickElement(cy.wrap(element))
+            })
         })
     }
 
@@ -709,13 +1042,16 @@ Given("(for the Event Name \")(the Column Name \")(for the Column Name \"){optio
         }).then(() => {
             outer_element = `${window.tableMappings['record locking']}:visible`
             label_selector = `tr:contains(${JSON.stringify(label)}):visible`
-            clickElement(label_selector, outer_element, element_selector, label, labeled_exactly)
+            cy.top_layer(label_selector, outer_element).within(() => {
+                let selector = cy.get_labeled_element(element_selector, label, null, labeled_exactly === "labeled exactly")
+                clickElement(selector)
+            })
         })
 
     } else if(iframe === " in the iframe") {
-        elm.within(() => { clickElement(label_selector, outer_element, element_selector, label, labeled_exactly) })
+        elm.within(() => { findAndClickElement(label_selector, outer_element, element_selector, label, labeled_exactly) })
     } else {
-        clickElement(label_selector, outer_element, element_selector, label, labeled_exactly)
+        findAndClickElement(label_selector, outer_element, element_selector, label, labeled_exactly)
     }
 })
 
@@ -875,19 +1211,18 @@ Given('I select the checkbox option {string} for the field labeled {string}', (c
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @example I select {string} on the {dropdownType} field labeled {string} {baseElement}
  * @param {string} text - the text to enter into the field
+ * @param {string} ordinal - available options: 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth', 'twentieth', 'last'
  * @param {string} dropdownType - available options: 'dropdown', 'multiselect', 'checkboxes', 'radio'
  * @param {string} label - the label of the field
  * @param {string} baseElement - available options: ' on the tooltip', ' in the tooltip', ' on the role selector dropdown', ' in the role selector dropdown', ' on the dialog box', ' in the dialog box', ' within the data collection instrument list', ' on the action popup', ' in the action popup', ' in the Edit survey responses column', ' in the "Main project settings" section', ' in the "Use surveys in this project?" row in the "Main project settings" section', ' in the "Use longitudinal data collection with defined events?" row in the "Main project settings" section', ' in the "Use the MyCap participant-facing mobile app?" row in the "Main project settings" section', ' in the "Enable optional modules and customizations" section', ' in the "Repeating instruments and events" row in the "Enable optional modules and customizations" section', ' in the "Auto-numbering for records" row in the "Enable optional modules and customizations" section', ' in the "Scheduling module (longitudinal only)" row in the "Enable optional modules and customizations" section', ' in the "Randomization module" row in the "Enable optional modules and customizations" section', ' in the "Designate an email field for communications (including survey invitations and alerts)" row in the "Enable optional modules and customizations" section', ' in the "Twilio SMS and Voice Call services for surveys and alerts" row in the "Enable optional modules and customizations" section', ' in the "SendGrid Template email services for Alerts & Notifications" row in the "Enable optional modules and customizations" section', ' in the validation row labeled "Code Postal 5 caracteres (France)"', ' in the validation row labeled "Date (D-M-Y)"', ' in the validation row labeled "Date (M-D-Y)"', ' in the validation row labeled "Date (Y-M-D)"', ' in the validation row labeled "Datetime (D-M-Y H:M)"', ' in the validation row labeled "Datetime (M-D-Y H:M)"', ' in the validation row labeled "Datetime (Y-M-D H:M)"', ' in the validation row labeled "Datetime w/ seconds (D-M-Y H:M:S)"', ' in the validation row labeled "Datetime w/ seconds (M-D-Y H:M:S)"', ' in the validation row labeled "Datetime w/ seconds (Y-M-D H:M:S)"', ' in the validation row labeled "Email"', ' in the validation row labeled "Integer"', ' in the validation row labeled "Letters only"', ' in the validation row labeled "MRN (10 digits)"', ' in the validation row labeled "MRN (generic)"', ' in the validation row labeled "Number"', ' in the validation row labeled "Number (1 decimal place - comma as decimal)"', ' in the validation row labeled "Number (1 decimal place)"', ' in the validation row labeled "Number (2 decimal places - comma as decimal)"', ' in the validation row labeled "Number (2 decimal places)"', ' in the validation row labeled "Number (3 decimal places - comma as decimal)"', ' in the validation row labeled "Number (3 decimal places)"', ' in the validation row labeled "Number (4 decimal places - comma as decimal)"', ' in the validation row labeled "Number (4 decimal places)"', ' in the validation row labeled "Number (comma as decimal)"', ' in the validation row labeled "Phone (Australia)"', ' in the validation row labeled "Phone (North America)"', ' in the validation row labeled "Phone (UK)"', ' in the validation row labeled "Postal Code (Australia)"', ' in the validation row labeled "Postal Code (Canada)"', ' in the validation row labeled "Postal Code (Germany)"', ' in the validation row labeled "Social Security Number (U.S.)"', ' in the validation row labeled "Time (HH:MM:SS)"', ' in the validation row labeled "Time (HH:MM)"', ' in the validation row labeled "Time (MM:SS)"', ' in the validation row labeled "Vanderbilt MRN"', ' in the validation row labeled "Zipcode (U.S.)"'
  * @description Selects a specific item from a dropdown
  */
-Given('I select {string} (in)(on) the {dropdownType} (field labeled)(of the open date picker widget for) {string}{baseElement}', (option, type, label, base_element) => {
+Given('I select {string} (in)(on) the{ordinal} {dropdownType} (field labeled)(of the open date picker widget for) {string}{baseElement}', (option, ordinal, type, label, base_element) => {
     cy.not_loading()
     let outer_element = window.elementChoices[base_element]
     let label_selector = `:contains(${JSON.stringify(label)}):visible`
     if(type === "dropdown" || type === "multiselect"){
-        let element_selector = `select:has(option:contains(${JSON.stringify(option)})):visible:enabled`
-        cy.top_layer(label_selector, outer_element).within(() => {
-            cy.get_labeled_element(element_selector, label, option).then(($select) => {
+        const action = ($select) => {
                 cy.wrap($select).scrollIntoView().
                 should('be.visible').
                 should('be.enabled').then(($t) => {
@@ -909,8 +1244,34 @@ Given('I select {string} (in)(on) the {dropdownType} (field labeled)(of the open
                         cy.wrap($t).select(all_options)
                     }
                 })
+        }
+
+        if(type === "dropdown"){
+            if(label.startsWith('datetime')){
+                // For "of the open date picker widget for" syntax
+                cy.get(`#ui-datepicker-div option:contains(${JSON.stringify(option)})`).closest('select').then(action)
+            }
+            else{
+                getLabeledElement(type, label, ordinal, option).then(optionElement =>{
+                    /**
+                     * getLabeledElement() returns an <option> element when the 'option' argument is specified
+                     * It's text may be slightly different than what is specified in the step.
+                     * For example, it may use '&nbsp;' rather than a space like in B.6.7.1900.
+                     * The cy.select() method only matches exact text,
+                     * so use to value of the <option> element returned instead 
+                     * Using '.trim()' is required as cy.select() seems to trim all options when looking for a match.
+                     */
+                    option = optionElement[0].textContent.trim()
+                    action(optionElement.closest('select'))
+                })
+            }
+        }
+        else{
+            let element_selector = `select:has(option:contains(${JSON.stringify(option)})):visible:enabled`
+            cy.top_layer(label_selector, outer_element).within(() => {
+                cy.get_labeled_element(element_selector, label, option).then(action)
             })
-        })
+        }
     } else if(type === "radio" || type === "checkboxes"){
         if(type === "checkboxes"){ type = 'checkbox' }
         let label_selector = `:contains(${JSON.stringify(label)}):visible input[type=${type}]:visible:not([disabled])`
@@ -1135,4 +1496,55 @@ Given("I click on the {string} {labeledElement} within (a)(the) {tableTypes} tab
     cy.get(`${selector}:visible tr${tds}:visible ${subsel}`).then(($elm) => {
         $elm.attr('target', '_self')
     }).click()
+})
+
+/**
+ * @module Interactions
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @example I click on the icon in the column labeled "Setup" and the row labeled "1"
+ * @param {string} column_label - the label of the table column
+ * @param {string} row_label - the label of the table row
+ * @description Clicks on icon in the table cell matching the specified column & row
+ */
+Given("I click on the icon in the column labeled {string} and the row labeled {string}", (column_label, row_label) => {
+    cy.table_cell_by_column_and_row_label(column_label, row_label).then(($td) => {
+        $td = cy.wrap($td)
+        $td.within(() => {
+            cy.get('i').then(results =>{
+                if(results.length === 1){
+                    $td.click()
+                }
+                else{
+                    throw 'Expected to find a single icon in the table cell, but found ' + results.length + ' icons'
+                }
+            })
+        })
+    })
+})
+
+/**
+ * @module Interactions
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @example I should see a button labeled "Edit" in the column labeled "Management Options" and the row labeled "1"
+ * @param {action} action - the type of action to perform
+ * @param {labeledElement} type - the type of element we're looking for
+ * @param {string} text - the label for the element
+ * @param {string} column_label - the label of the table column
+ * @param {string} row_label - the label of the table row
+ * @description Performs an action on a labeled element in a specific row & column of table
+ */
+Given("I {action} {labeledElement} labeled {string} in the column labeled {string} and the row labeled {string}", (action, type, text, column_label, row_label) => {
+    cy.table_cell_by_column_and_row_label(column_label, row_label).then(($td) => {
+        $td = cy.wrap($td)
+        if(action === 'should NOT see a'){
+            $td.should('not.contain', text)
+        }
+        else{
+            $td.within(() => {
+                getLabeledElement(type, text).then(element =>{
+                    performAction(action, element)
+                })
+            })
+        }
+    })
 })

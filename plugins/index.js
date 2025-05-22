@@ -97,10 +97,9 @@ module.exports = (cypressOn, config) => {
             })
         },
 
-        saveCurrentURL({ url }) {
+        saveCurrentURL(urlData) {
             let path = shell.pwd() + '/test_db/latest_url.info'
-            shell.ShellString(`${url}`).to(path)
-            return fs.existsSync(path)
+            return fs.writeFileSync(path, JSON.stringify(urlData, null, 2)) > 0
         },
 
         currentSnapshotInfo({url, user, pass}){
