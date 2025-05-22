@@ -93,7 +93,7 @@ Cypress.Commands.add('select_field_choices', (timeout = 10000) => {
 
 Cypress.Commands.add('select_radio_by_label', ($name, $value, $click = true, $selected = true ) => {
     //const radio_labels = cy.set_field_value_by_label($name, $value, 'input', '', '___radio')
-    cy.get(`tr:visible:has(:contains(${JSON.stringify($name)}))`).first().within(() => {
+    cy.get(`tr:visible:has(:contains(${JSON.stringify($name)}))`).last().within(() => {
         const $label = Cypress.$(`label[class=mc]:contains(${$value})`);
 
         if ($label.length) {
