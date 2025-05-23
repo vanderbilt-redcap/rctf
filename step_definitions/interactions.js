@@ -380,7 +380,7 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
 
                     let childSelector = null
                     if (type === 'icon') {
-                        childSelector = 'img'
+                        childSelector = 'i, img'
                     }
                     else if (['checkbox', 'radio'].includes(type)) {
                         childSelector = 'input[type=' + type + ']'
