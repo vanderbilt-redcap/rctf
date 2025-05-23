@@ -1616,8 +1616,11 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
                 return !(row.closest('table').classList.contains('form-label-table'))
             })
 
-            if(results.length !== 1){
+            if(results.length === 0){
                 throw 'Row with given label not found'
+            }
+            else if(results.length > 1){
+                throw 'Multiple rows found for the given label'
             }
 
             console.log('Found row:', results[0])
