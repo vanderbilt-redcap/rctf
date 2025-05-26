@@ -166,17 +166,8 @@ function getShortestMatchingNodeLength(textToFind, element) {
 function filterMatches(text, matches) {
     matches = matches.toArray()
 
-    let topElement = null
     let matchesWithoutParents = [...matches]
     matches.forEach(current => {
-        if (
-            topElement === null // This will default to "body" by default, which is fine
-            ||
-            topElement.style.zIndex < current.style.zIndex
-        ) {
-            topElement = current
-        }
-        
         if(current.tagName === 'SELECT'){
             const option = Cypress.$(current).find(`:contains(${JSON.stringify(text)})`)[0]
             if(!option.selected){
@@ -192,7 +183,15 @@ function filterMatches(text, matches) {
     })
 
     let minChars = null
+    let topElement = Cypress.$('html')[0]
     matchesWithoutParents.forEach(element => {
+        let current = element
+        while(current = current.parentElement){
+            if (topElement.style.zIndex < current.style.zIndex) {
+                topElement = current
+            }
+        }
+        
         const chars = getShortestMatchingNodeLength(text, element)
         if (
             minChars === null
