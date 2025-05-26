@@ -387,6 +387,17 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
             matches = filterMatches(text, matches)
             console.log('getLabeledElement() filtered matches', matches)
 
+            if (type === 'button'){
+                const buttonMatches = matches.filter(element => 
+                    ['BUTTON', 'INPUT'].includes(element.tagName)
+                )
+
+                if(buttonMatches.length > 0){
+                    // Favor matches with labels inside the button, rather than outside.
+                    matches = buttonMatches
+                }
+            }
+
             if (ordinal !== undefined) {
                 const match = matches[window.ordinalChoices[ordinal]]
                 if(!match){
