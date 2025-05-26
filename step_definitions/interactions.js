@@ -145,7 +145,12 @@ function retryUntilTimeout(action, start, lastRun) {
 function getShortestMatchingNodeLength(textToFind, element) {
     let text = null
     if (element.tagName === 'INPUT') {
-        text = element.placeholder
+        if(element.value){
+            text = element.value
+        }
+        else{
+            text = element.placeholder
+        }
     }
     else if(element.childNodes.length > 0) {
         // This is required for 'on the dropdown field labeled "to"' syntax
@@ -156,8 +161,17 @@ function getShortestMatchingNodeLength(textToFind, element) {
         })
     }
 
-    if(text === null){
+    if(!text){
         text = element.textContent
+    }
+
+    if(!text){
+        text = element.title
+    }
+
+    if(!text){
+        // We're having trouble detecting the matched text.  Ensure this is not determined to be the shortest match.
+        return Number.MAX_SAFE_INTEGER
     }
 
     return text.trim().length
