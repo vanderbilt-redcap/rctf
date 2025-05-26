@@ -163,28 +163,6 @@ function getShortestMatchingNodeLength(textToFind, element) {
     return text.trim().length
 }
 
-function filterNonExactMatches(text, matches) {
-    let minChars = null
-    matches.forEach(element => {
-        const chars = getShortestMatchingNodeLength(text, element)
-        if (
-            minChars === null
-            ||
-            chars < minChars
-        ) {
-            minChars = chars
-        }
-    })
-
-    return matches.filter(element =>
-        /**
-         * Only include the closest matches as determined by minChars.
-         * If we intend to be match longer strings, we should specify them explicitly.
-         */
-        getShortestMatchingNodeLength(text, element) === minChars
-    )  
-}
-
 function filterMatches(text, matches) {
     matches = matches.toArray()
 
@@ -203,9 +181,8 @@ function filterMatches(text, matches) {
             matchesWithoutParents = matchesWithoutParents.filter(match => match !== current)
         }
     })
-    
-    matchesWithoutParents = filterNonExactMatches(text, matchesWithoutParents)
 
+    let minChars = null
     let topElement = Cypress.$('html')[0]
     matchesWithoutParents.forEach(element => {
         let current = element
@@ -214,11 +191,26 @@ function filterMatches(text, matches) {
                 topElement = current
             }
         }
+        
+        const chars = getShortestMatchingNodeLength(text, element)
+        if (
+            minChars === null
+            ||
+            chars < minChars
+        ) {
+            minChars = chars
+        }
     })
 
     return matchesWithoutParents.filter(element =>
         // Only include elements withint the top most element (likely a dialog)
         topElement.contains(element)
+        &&
+        /**
+         * Only include the closest matches as determined by minChars.
+         * If we intend to be match longer strings, we should specify them explicitly.
+         */
+        getShortestMatchingNodeLength(text, element) === minChars
     )
 }
 
@@ -359,7 +351,6 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
             `:contains(${JSON.stringify(text)})`,
             `[title*=${JSON.stringify(text)}]`,
             `[data-bs-original-title*=${JSON.stringify(text)}]`,
-            `input[type=button][value*=${JSON.stringify(text)}]`,
             `input[type=submit][value*=${JSON.stringify(text)}]`,
         ].join(', ')
 
@@ -419,7 +410,7 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
                             return current
                         }
 
-                        childSelector = 'input[type=button], input[type=submit], button'
+                        childSelector = 'input[type=submit], button'
                     }
                     else if (['input', 'textbox'].includes(type)){
                         childSelector = type
@@ -1635,8 +1626,6 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
             results = results.filter((i, row) => {
                 return !(row.closest('table').classList.contains('form-label-table'))
             })
-
-            results = filterNonExactMatches(text, results.toArray())
 
             if(results.length === 0){
                 throw 'Row with given label not found'
