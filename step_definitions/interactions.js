@@ -405,6 +405,11 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
                         }
                     }
                     else if (type === 'button'){
+                        if(current.tagName === 'BUTTON'){
+                            // We've already found it.  No need to keep searching.
+                            return current
+                        }
+
                         childSelector = 'input[type=submit], button'
                     }
                     else if (['input', 'textbox'].includes(type)){
