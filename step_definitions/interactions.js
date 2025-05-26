@@ -397,8 +397,11 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
                             childSelector = 'select'
                         }
                     }
-                    else if (['input', 'textbox', 'button'].includes(type)){
-                        childSelector = type // Covers input, textbox, button, etc.
+                    else if (type === 'button'){
+                        childSelector = 'input[type=submit], button'
+                    }
+                    else if (['input', 'textbox'].includes(type)){
+                        childSelector = type
                     }
                     else {
                         // Leave childSelector blank.  Catch all for 'link', 'tab', 'instrument', etc.
@@ -609,20 +612,12 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
                 })
 
             } else {
-                let sel = `button:contains("${text}"):visible,input[value*="${text}"]:visible`
-
-                if(outer_element === 'html'){
-                    outer_element = 'div[role=dialog]:visible,html'
-                }
-                
-                cy.top_layer(sel, outer_element).within(() => {
-                    cy.get(sel).eq(ord).then(($button) => {
-                        if(text.includes("Open public survey")){ //Handle the "Open public survey" and "Open public survey + Logout" cases
-                            cy.open_survey_in_same_tab($button, !(button_type !== undefined && button_type === " and will leave the tab open when I return to the REDCap project"), (text === 'Log out+ Open survey'))
-                        } else {
-                            cy.wrap($button).click()
-                        }
-                    })
+                cy.getLabeledElement('button', text, ordinal).then($button => {
+                    if(text.includes("Open public survey")){ //Handle the "Open public survey" and "Open public survey + Logout" cases
+                        cy.open_survey_in_same_tab($button, !(button_type !== undefined && button_type === " and will leave the tab open when I return to the REDCap project"), (text === 'Log out+ Open survey'))
+                    } else {
+                        cy.wrap($button).click()
+                    }
                 })
             }
         }
