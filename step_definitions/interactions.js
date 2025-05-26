@@ -390,6 +390,8 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
             if (type === 'button'){
                 const buttonMatches = matches.filter(element => 
                     ['BUTTON', 'INPUT'].includes(element.tagName)
+                    ||
+                    element.closest('button').length > 0
                 )
 
                 if(buttonMatches.length > 0){
