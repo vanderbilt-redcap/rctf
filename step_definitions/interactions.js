@@ -346,7 +346,14 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
          * We also tried Cypress.$, but it seems to return similar results to cy.get().
          * Example from A.6.4.0200.: I click on the radio labeled "Keep ALL data saved so far." in the dialog box in the iframe
         */
-        let selector = `input[placeholder=${JSON.stringify(text)}],:contains(${JSON.stringify(text)}),[title*=${JSON.stringify(text)}],[data-bs-original-title*=${JSON.stringify(text)}]`
+        let selector = [
+            `input[placeholder=${JSON.stringify(text)}]`,
+            `:contains(${JSON.stringify(text)})`,
+            `[title*=${JSON.stringify(text)}]`,
+            `[data-bs-original-title*=${JSON.stringify(text)}]`,
+            `input[type=submit][value*=${JSON.stringify(text)}]`,
+        ].join(', ')
+
         if(!lastRun){
             // Favor visible items until the lastRun.  Keep in mind items that must be scrolled into view aren't considered visible.
             selector += ':visible'
