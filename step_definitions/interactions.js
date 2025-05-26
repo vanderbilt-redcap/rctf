@@ -220,11 +220,21 @@ function filterMatches(text, matches) {
     
     matchesWithoutParents = filterNonExactMatches(text, matchesWithoutParents)
 
+    const getZIndex = (element) => {
+        const zIndex = getComputedStyle(element).zIndex
+        if(isNaN(zIndex)){
+            return 0
+        }
+        else{
+            return zIndex
+        }
+    }
+
     let topElement = Cypress.$('html')[0]
     matchesWithoutParents.forEach(element => {
         let current = element
         while(current = current.parentElement){
-            if (topElement.style.zIndex < current.style.zIndex) {
+            if (getZIndex(topElement) < getZIndex(current)) {
                 topElement = current
             }
         }
