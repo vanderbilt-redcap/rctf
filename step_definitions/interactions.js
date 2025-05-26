@@ -359,7 +359,12 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
             console.log('getLabeledElement() filtered matches', matches)
 
             if (ordinal !== undefined) {
-                matches = [matches[window.ordinalChoices[ordinal]]]
+                const match = matches[window.ordinalChoices[ordinal]]
+                if(!match){
+                    throw 'Specified ordinal not found'
+                }
+
+                matches = [match]
             }
 
             for (let i = 0; i < matches.length; i++){
