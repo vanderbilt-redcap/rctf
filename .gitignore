@@ -2,4 +2,4 @@
 /.idea/*
 .DS_Store
 /test_db/structure_and_data.sql
-/test_db/structure_and_data.sql.tmp
+/test_db/*.tmp
