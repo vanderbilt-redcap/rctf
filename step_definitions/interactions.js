@@ -417,7 +417,14 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
             }
 
             if (ordinal !== undefined) {
-                const match = matches[window.ordinalChoices[ordinal]]
+                let match
+                if(ordinal === 'last'){
+                    match = matches[matches.length-1]
+                }
+                else{
+                    match = matches[window.ordinalChoices[ordinal]]
+                }
+                
                 if(!match){
                     throw 'Specified ordinal not found'
                 }
