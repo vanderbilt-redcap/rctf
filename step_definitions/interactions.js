@@ -199,7 +199,7 @@ function filterNonExactMatches(text, matches) {
     )  
 }
 
-function filterCoveredElemenets(matches) {
+function filterCoveredElements(matches) {
     const getZIndex = (element) => {
         const zIndex = getComputedStyle(element).zIndex
         if(isNaN(zIndex)){
@@ -244,6 +244,16 @@ function filterMatches(text, matches) {
             matchesWithoutParents = matchesWithoutParents.filter(match => match !== current)
         }
     })
+
+    /**
+     * We filter out covered elements after removing parents but before deoing 
+     * aything else. We definitely want this to happen before searching for visible elements
+     * to support the case where there are multiple matches and we want to
+     * exclude matches outside the current dialog that are visible, while 
+     * keeping matches within the dialog that require scrolling to become visible.
+     * e.g. B.4.9.0100
+     */
+    matchesWithoutParents = filterCoveredElements(matchesWithoutParents)
     
     matchesWithoutParents = filterNonExactMatches(text, matchesWithoutParents)
 
@@ -252,8 +262,6 @@ function filterMatches(text, matches) {
         // Favor visible matches
         matchesWithoutParents = visibleMatches
     }
-
-    matchesWithoutParents = filterCoveredElemenets(matchesWithoutParents)
 
     return matchesWithoutParents
 }
