@@ -145,7 +145,7 @@ function retryUntilTimeout(action, start, lastRun) {
 function getShortestMatchingNodeLength(textToFind, element) {
     let text = null
     if (element.tagName === 'INPUT') {
-        if(element.value){
+        if(['button', 'submit'].includes(element.value)){
             text = element.value
         }
         else{
@@ -169,8 +169,8 @@ function getShortestMatchingNodeLength(textToFind, element) {
         text = element.title
     }
 
-    if(!text){
-        // We're having trouble detecting the matched text.  Ensure this is not determined to be the shortest match.
+    if(!text.includes(textToFind)){
+        // This is not a match.  Return a large int to make sure it is excluded.
         return Number.MAX_SAFE_INTEGER
     }
 
