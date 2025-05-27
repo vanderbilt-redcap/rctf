@@ -202,6 +202,12 @@ function filterNonExactMatches(text, matches) {
 function filterMatches(text, matches) {
     matches = matches.toArray()
 
+    const visibleMatches = matches.filter(element => Cypress.$(element).is(':visible'))
+    if(visibleMatches.length > 0){
+        // Favor visible matches
+        matches = visibleMatches
+    }
+
     let matchesWithoutParents = [...matches]
     matches.forEach(current => {
         if(current.tagName === 'SELECT'){
@@ -217,12 +223,6 @@ function filterMatches(text, matches) {
             matchesWithoutParents = matchesWithoutParents.filter(match => match !== current)
         }
     })
-
-    const visibleMatches = matches.filter(element => Cypress.$(element).is(':visible'))
-    if(visibleMatches.length > 0){
-        // Favor visible matches
-        matches = visibleMatches
-    }
     
     matchesWithoutParents = filterNonExactMatches(text, matchesWithoutParents)
 
