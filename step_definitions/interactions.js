@@ -199,6 +199,33 @@ function filterNonExactMatches(text, matches) {
     )  
 }
 
+function filterCoveredElemenets(matches) {
+    const getZIndex = (element) => {
+        const zIndex = getComputedStyle(element).zIndex
+        if(isNaN(zIndex)){
+            return 0
+        }
+        else{
+            return zIndex
+        }
+    }
+
+    let topElement = Cypress.$('html')[0]
+    matches.forEach(element => {
+        let current = element
+        while(current = current.parentElement){
+            if (getZIndex(topElement) < getZIndex(current)) {
+                topElement = current
+            }
+        }
+    })
+
+    return matches.filter(element =>
+        // Only include elements withint the top most element (likely a dialog)
+        topElement.contains(element)
+    )
+}
+
 function filterMatches(text, matches) {
     matches = matches.toArray()
 
@@ -218,6 +245,7 @@ function filterMatches(text, matches) {
         }
     })
     
+    matchesWithoutParents = filterCoveredElemenets(matchesWithoutParents)
     matchesWithoutParents = filterNonExactMatches(text, matchesWithoutParents)
 
     const visibleMatches = matchesWithoutParents.filter(element => Cypress.$(element).is(':visible'))
@@ -226,30 +254,7 @@ function filterMatches(text, matches) {
         matchesWithoutParents = visibleMatches
     }
 
-    const getZIndex = (element) => {
-        const zIndex = getComputedStyle(element).zIndex
-        if(isNaN(zIndex)){
-            return 0
-        }
-        else{
-            return zIndex
-        }
-    }
-
-    let topElement = Cypress.$('html')[0]
-    matchesWithoutParents.forEach(element => {
-        let current = element
-        while(current = current.parentElement){
-            if (getZIndex(topElement) < getZIndex(current)) {
-                topElement = current
-            }
-        }
-    })
-
-    return matchesWithoutParents.filter(element =>
-        // Only include elements withint the top most element (likely a dialog)
-        topElement.contains(element)
-    )
+    return matchesWithoutParents
 }
 
 /**
