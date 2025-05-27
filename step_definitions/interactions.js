@@ -245,7 +245,6 @@ function filterMatches(text, matches) {
         }
     })
     
-    matchesWithoutParents = filterCoveredElemenets(matchesWithoutParents)
     matchesWithoutParents = filterNonExactMatches(text, matchesWithoutParents)
 
     const visibleMatches = matchesWithoutParents.filter(element => Cypress.$(element).is(':visible'))
@@ -253,6 +252,8 @@ function filterMatches(text, matches) {
         // Favor visible matches
         matchesWithoutParents = visibleMatches
     }
+
+    matchesWithoutParents = filterCoveredElemenets(matchesWithoutParents)
 
     return matchesWithoutParents
 }
