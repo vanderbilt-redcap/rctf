@@ -259,11 +259,17 @@ function filterMatches(text, matches) {
      * to support the case where there are multiple matches and we want to
      * exclude matches outside the current dialog that are visible, while 
      * keeping matches within the dialog that require scrolling to become visible.
-     * e.g. B.4.9.0100
+     * Some examples include B.4.9.0100 and B.6.7.1600.
      */
     matchesWithoutParents = filterCoveredElements(matchesWithoutParents)
     
     matchesWithoutParents = filterNonExactMatches(text, matchesWithoutParents)
+
+    const visibleMatches = matchesWithoutParents.filter(element => Cypress.$(element).is(':visible'))
+    if(visibleMatches.length > 0){
+        // Favor visible matches
+        matchesWithoutParents = visibleMatches
+    }
 
     return matchesWithoutParents
 }
