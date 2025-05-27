@@ -247,12 +247,6 @@ function filterMatches(text, matches) {
     
     matchesWithoutParents = filterNonExactMatches(text, matchesWithoutParents)
 
-    const visibleMatches = matchesWithoutParents.filter(element => Cypress.$(element).is(':visible'))
-    if(visibleMatches.length > 0){
-        // Favor visible matches
-        matchesWithoutParents = visibleMatches
-    }
-
     matchesWithoutParents = filterCoveredElemenets(matchesWithoutParents)
 
     return matchesWithoutParents
