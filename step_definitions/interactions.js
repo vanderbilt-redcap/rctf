@@ -214,7 +214,15 @@ function filterCoveredElements(matches) {
     matches.forEach(element => {
         let current = element
         while(current = current.parentElement){
-            if (getZIndex(topElement) < getZIndex(current)) {
+            if (
+                getZIndex(topElement) < getZIndex(current)
+                &&
+                /**
+                 * Don't match bootstrap ".dropdown-menu" elements that aren't actually visible,
+                 * but have a z-index set .
+                 */
+                Cypress.$(current).is(':visible') 
+            ) {
                 topElement = current
             }
         }
@@ -256,12 +264,6 @@ function filterMatches(text, matches) {
     matchesWithoutParents = filterCoveredElements(matchesWithoutParents)
     
     matchesWithoutParents = filterNonExactMatches(text, matchesWithoutParents)
-
-    const visibleMatches = matchesWithoutParents.filter(element => Cypress.$(element).is(':visible'))
-    if(visibleMatches.length > 0){
-        // Favor visible matches
-        matchesWithoutParents = visibleMatches
-    }
 
     return matchesWithoutParents
 }
