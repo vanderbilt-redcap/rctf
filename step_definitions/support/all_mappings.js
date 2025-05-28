@@ -98,7 +98,6 @@ window.parameterTypes = {
         ' on the Online Designer page',
         ' and cancel the confirmation window',
         ' and accept the confirmation window',
-        ' in the dialog box to request a change in project status',
         ' to rename an instrument',
         ' in the "Add New Field" dialog box',
         ' in the "Edit Field" dialog box',
