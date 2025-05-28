@@ -145,7 +145,7 @@ function retryUntilTimeout(action, start, lastRun) {
 function getShortestMatchingNodeLength(textToFind, element) {
     let text = null
     if (element.tagName === 'INPUT') {
-        if(['button', 'submit'].includes(element.value)){
+        if(['button', 'submit'].includes(element.type)){
             text = element.value
         }
         else{
