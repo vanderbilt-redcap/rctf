@@ -79,6 +79,10 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
     let column_num = 0
     let table_cell = null
 
+    if(column_label === ''){
+        no_col_match_body = true
+    }
+
     function escapeCssSelector(str) {
         // Escape special characters in CSS selectors
         return str.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, "\\$1");
@@ -102,17 +106,31 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
         td_selector = `tr:has(${row_cell_type}:contains('${row_label}'):visible):visible`
     }
 
-    cy.get(selector).first().within(() => {
-        cy.get(`${header_row_type}:contains('${column_label}'):visible`).parent('tr').then(($tr) => {
-            cy.wrap($tr).find(header_row_type).each((thi, th) => {
-                // console.log(Cypress.$(th).text().trim().includes(orig_column_label))
-                // console.log(thi)
-                cy.log(Cypress.$(thi).text().trim())
-                if (Cypress.$(thi).text().trim().includes(orig_column_label) && column_num === 0) column_num = th
-                //if (Cypress.$(thi).text().trim().includes(orig_column_label) && column_num === 0) cy.log(`Column Index: ${th}`)
-                //if (Cypress.$(th).text().trim().includes(column_label) && column_num === 0) console.log(thi)
+    let table
+    cy.top_layer(selector).find(selector).first().then(result => {
+        table = result[0]
+        if(table.closest('.dataTables_scrollHead') !== null){
+            /**
+             * The headers and cells are split into separate tables under the hood.
+             * Return the outer container
+             */
+            table = table.closest('.dataTables_scroll')
+        }
+        
+        return cy.wrap(table)
+    }).within(() => {
+        if(no_col_match_body === false || body_table !== 'table'){
+            cy.get(`${header_row_type}:contains('${column_label}'):visible`).parent('tr').then(($tr) => {
+                cy.wrap($tr).find(header_row_type).each((thi, th) => {
+                    // console.log(Cypress.$(th).text().trim().includes(orig_column_label))
+                    // console.log(thi)
+                    cy.log(Cypress.$(thi).text().trim())
+                    if (Cypress.$(thi).text().trim().includes(orig_column_label) && column_num === 0) column_num = th
+                    //if (Cypress.$(thi).text().trim().includes(orig_column_label) && column_num === 0) cy.log(`Column Index: ${th}`)
+                    //if (Cypress.$(th).text().trim().includes(column_label) && column_num === 0) console.log(thi)
+                })
             })
-        })
+        }
     }).then(() => {
 
         if(body_table !== 'table'){
@@ -123,15 +141,30 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
             }
         }
 
-        let table = Cypress.$("#table-report_list")
-        if(table.length === 1){
-            table = cy.wrap(table)
-        } else { 
-            table = cy.get(selector).first()
+        const flexigrid = table.closest('.flexigrid')
+        if(flexigrid && table.querySelector('td') === null){
+            // We've matched the header table.  Switch to the content table instead
+            table = flexigrid.querySelector('.bDiv table')
+        }
+        else if(body_table === 'table.addFieldMatrixRowParent'){
+            table = Cypress.$(body_table)[0]
         }
 
-        table.within(() => {
-            cy.get(td_selector).eq(row_number).each(($tr, $tri) => {
+        console.log(`table_cell_by_column_and_row_label() - Looking for the \`${td_selector}\` selector in this table: `, table)
+
+        cy.wrap(table).within(() => {
+            row = cy.get(td_selector).eq(row_number)
+
+            if(no_col_match_body && body_table === 'table'){
+                row.then(result =>{
+                    table_cell = result
+                })
+                
+                return
+            }
+
+            row.each(($tr, $tri) => {
+                console.log(`table_cell_by_column_and_row_label() - Looking for the \`${row_cell_type}\` selector in this row: `, $tr)
                 cy.wrap($tr).find(row_cell_type).each((td, tdi) => {
                     // cy.log(`COL: ${column_num}`)
                     // cy.log(`ROW: ${row_number}`)
@@ -142,7 +175,11 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
             })
 
         }).then(() => {
-            cy.wrap(table_cell)
+            table_cell.each((index, value) =>{
+                console.log('table_cell_by_column_and_row_label() - Returning: ', value)
+            })  
+
+            return cy.wrap(table_cell)
         })
     })
 })
@@ -209,5 +246,6 @@ Cypress.Commands.add('customSetTinyMceContent', (fieldId, content) => {
     }).then(editor => {
         // Set the content in the editor
         editor.setContent(content, { format: 'text' })
+        editor.save() // Required to fully simulate user behavior, update the associated textarea, fire events, etc.
     })
 })

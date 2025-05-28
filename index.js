@@ -60,21 +60,46 @@ function rctf_initialize(preprocessor) {
         window.lastAlert = []
     })
 
-    BeforeStep((options) => {
+    const registerEventListeners = () => {
+        if(window.cypressEventListenersRegistered){
+            // Make sure we only register events once per page load.
+            return
+        }
+        
+        window.cypressEventListenersRegistered = true
+
+        const shouldShowAlerts = () => {
+            /**
+             * Cypress normally detects & suppress alerts during automated testing,
+             * but developers sometimes want to interact with the page normally
+             * if a test is paused or finished.  This functionality allows alerts in those cases.
+             */
+            return window.shouldShowAlerts
+        }
 
         //Get last alert
         cy.on('window:alert', (str) => {
-            if(!window.lastAlert.includes(str)){
+            if(shouldShowAlerts()){
+                alert(str)
+            }
+            else if(!window.lastAlert.includes(str)){
                 window.lastAlert.push(str)
             }
         })
 
         //Get last confirmation
         cy.on('window:confirm', (str) => {
-            if(!window.lastAlert.includes(str)){
+            if(shouldShowAlerts()){
+                confirm(str)
+            }
+            else if(!window.lastAlert.includes(str)){
                 window.lastAlert.push(str)
             }
         })
+    }
+
+    BeforeStep((options) => {
+        registerEventListeners()    
     })
 
     beforeEach(() => {
@@ -111,6 +136,15 @@ function rctf_initialize(preprocessor) {
     afterEach(abortEarly);
 
     after(() => {
+        /**
+         * Cypress must unregister events once test complete.
+         * Set cypressEventListenersRegistered to false so that they get re-registered.
+         * This allows users to trigger alert() & confirm() calls after tests finish.
+         */
+        window.cypressEventListenersRegistered = false
+        window.shouldShowAlerts = true
+        registerEventListeners()
+        
         if (Cypress.config('isInteractive')) {
             /**
              * We are a developer likely running a single feature at a time via the Cypress UI.
@@ -137,5 +171,5 @@ function rctf_initialize(preprocessor) {
 
 // // This is what makes these functions available to outside scripts
 module.exports = {
-    rctf_initialize: (Given, BeforeStep, defineParameterType) => { rctf_initialize(Given, BeforeStep, defineParameterType) }
+    rctf_initialize: rctf_initialize
 }

@@ -12,7 +12,7 @@ window.parameterTypes = {
     fileRepoIcons: transformKeysToRegExp(window.fileRepoIcons),
     onlineDesignerFieldIcons: transformKeysToRegExp(window.onlineDesignerFieldIcons),
     participantListIcons: transformKeysToRegExp(window.participantListIcons),
-    action: ['click on the', 'should see a', 'should NOT see a'],
+    action: ['click on', 'should see', 'should NOT see'],
     addEditField: ['Add New Field', 'Edit Field'],
     addField: ['Add Field', 'Add Matrix of Fields', 'Import from Field Bank'],
     addOrSelect: ['add', 'select'],
@@ -81,6 +81,7 @@ window.parameterTypes = {
     shouldOrShouldNot: ['should', 'should NOT'],
     ordering: ['ascending', 'descending'],
     onlineDesignerButtons: ['"Enable"', '"Disable"', '"Choose action"', '"Survey settings"', '"Automated Invitations"', 'enabled survey icon', '"View Report"', '"Export Data"', '"Stats & Charts"', '"Execute"', '"Save"'],
+    optionalLabeledElement: ['button', 'link', 'field', 'section break', 'checkbox', 'toggle button', 'icon'],
     projectStatus: ['Production', 'Development', 'Analysis/Cleanup'],
     projectType: [
         'Practice / Just for fun',

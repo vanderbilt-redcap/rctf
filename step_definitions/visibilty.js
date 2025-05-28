@@ -14,8 +14,8 @@ Given("I {notSee} see {string}{baseElement}", (not_see, text, base_element = '')
     cy.get(window.elementChoices[base_element]).then($elm => {
         /**
          * We use innerText.indexOf() rather than the ':contains()' selector
-         * to avoid matching text within hidden tags and <script> tags
-         * that is not actually displayed.
+         * to avoid matching text within hidden tags and <script> tags,
+         * since they are not actually visible.
          */
         const index = $elm.get(0).innerText.indexOf(text)
         //If we don't detect it anywhere
@@ -30,6 +30,18 @@ Given("I {notSee} see {string}{baseElement}", (not_see, text, base_element = '')
             })
         }
     })
+})
+
+/**
+ * @module Visibility
+ * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
+ * @example I should NOT see {string} {baseElement}
+ * @param {string} text the text visually seen on screen
+ * @param {string} baseElement - available options: ' on the tooltip', ' in the tooltip', ' on the role selector dropdown', ' in the role selector dropdown', ' on the dialog box', ' in the dialog box', ' on the Add/Edit Branching Logic dialog box', ' in the Add/Edit Branching Logic dialog box', ' within the data collection instrument list', ' on the action popup', ' in the action popup', ' in the Edit survey responses column', ' in the open date picker widget', ' in the File Repository breadcrumb', ' in the File Repository table', ' in the View Access section of User Access', ' in the Edit Access section of User Access', ' in the "Main project settings" section', ' in the "Use surveys in this project?" row in the "Main project settings" section', ' in the "Use longitudinal data collection with defined events?" row in the "Main project settings" section', ' in the "Use the MyCap participant-facing mobile app?" row in the "Main project settings" section', ' in the "Enable optional modules and customizations" section', ' in the "Repeating instruments and events" row in the "Enable optional modules and customizations" section', ' in the "Auto-numbering for records" row in the "Enable optional modules and customizations" section', ' in the "Scheduling module (longitudinal only)" row in the "Enable optional modules and customizations" section', ' in the "Randomization module" row in the "Enable optional modules and customizations" section', ' in the "Designate an email field for communications (including survey invitations and alerts)" row in the "Enable optional modules and customizations" section', ' in the "Twilio SMS and Voice Call services for surveys and alerts" row in the "Enable optional modules and customizations" section', ' in the "SendGrid Template email services for Alerts & Notifications" row in the "Enable optional modules and customizations" section', ' in the validation row labeled "Code Postal 5 caracteres (France)"', ' in the validation row labeled "Date (D-M-Y)"', ' in the validation row labeled "Date (M-D-Y)"', ' in the validation row labeled "Date (Y-M-D)"', ' in the validation row labeled "Datetime (D-M-Y H:M)"', ' in the validation row labeled "Datetime (M-D-Y H:M)"', ' in the validation row labeled "Datetime (Y-M-D H:M)"', ' in the validation row labeled "Datetime w/ seconds (D-M-Y H:M:S)"', ' in the validation row labeled "Datetime w/ seconds (M-D-Y H:M:S)"', ' in the validation row labeled "Datetime w/ seconds (Y-M-D H:M:S)"', ' in the validation row labeled "Email"', ' in the validation row labeled "Integer"', ' in the validation row labeled "Letters only"', ' in the validation row labeled "MRN (10 digits)"', ' in the validation row labeled "MRN (generic)"', ' in the validation row labeled "Number"', ' in the validation row labeled "Number (1 decimal place - comma as decimal)"', ' in the validation row labeled "Number (1 decimal place)"', ' in the validation row labeled "Number (2 decimal places - comma as decimal)"', ' in the validation row labeled "Number (2 decimal places)"', ' in the validation row labeled "Number (3 decimal places - comma as decimal)"', ' in the validation row labeled "Number (3 decimal places)"', ' in the validation row labeled "Number (4 decimal places - comma as decimal)"', ' in the validation row labeled "Number (4 decimal places)"', ' in the validation row labeled "Number (comma as decimal)"', ' in the validation row labeled "Phone (Australia)"', ' in the validation row labeled "Phone (North America)"', ' in the validation row labeled "Phone (UK)"', ' in the validation row labeled "Postal Code (Australia)"', ' in the validation row labeled "Postal Code (Canada)"', ' in the validation row labeled "Postal Code (Germany)"', ' in the validation row labeled "Social Security Number (U.S.)"', ' in the validation row labeled "Time (HH:MM:SS)"', ' in the validation row labeled "Time (HH:MM)"', ' in the validation row labeled "Time (MM:SS)"', ' in the validation row labeled "Vanderbilt MRN"', ' in the validation row labeled "Zipcode (U.S.)"'
+ * @description Visually verifies that text does NOT exist within the HTML object.
+ */
+Given("I should NOT see {string} on the( ){ordinal} dropdown field labeled {string}", (option, ordinal, label) => {
+    cy.getLabeledElement('dropdown', label, ordinal).should('not.contain', option)
 })
 
 /**
@@ -412,10 +424,6 @@ Given("I (should )see (a )(an ){string} within the {string} row of the column la
         table_selector = window.tableMappings['participant list'][0]
         table_body = window.tableMappings['participant list'][1]
         no_col_match = true
-    } else if (table === ' of the User Rights table'){
-        table_selector = 'table:visible'
-        table_body = 'table#table-user_rights_roles_table:visible'
-        no_col_match = true
     } else if (table === ' of the Reports table'){
         table_selector = window.tableMappings['report data'][0]
         table_body = window.tableMappings['report data'][1]
@@ -489,7 +497,12 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
 
     let selector = window.tableMappings[table_type]
     let tabular_data = dataTable['rawTable']
-    let html_elements = window.tableHtmlElements
+    let html_elements = structuredClone(window.tableHtmlElements) // Clone it since we modify it in some cases
+
+    if(Cypress.$('#record_display_name').length === 1){
+        // We are on the record homepage, where lock icons are rendered a little differently thatn usual.
+        html_elements['[lock icon]'].selector = 'i.fa-lock'
+    }
 
     let header_table = selector
     let main_table = selector
@@ -759,8 +772,17 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
  * @example I (should) see the pdf has loaded in the iframe
  * @description Allows us to check whether PDF has loaded in iframe
  */
-Given("I (should )see the pdf has loaded in the iframe", () => {
-    cy.frameLoaded()
+Given("I should see the consent pdf has loaded in the iframe", () => {
+    let selector = '.pdfobject'
+    if(Cypress.$('#econsent_confirm_checkbox_div').length === 1){
+        // We're on the survey consent page, and only one pdf can be shown here, so the basic selector is all we need.
+    }
+    else {
+        // We're on the form (survey or data entry). Make sure we find a pdf within the expected parent element.
+        selector = '.consent-form-pdf ' + selector
+    }
+
+    cy.frameLoaded(selector)
 })
 
 /**

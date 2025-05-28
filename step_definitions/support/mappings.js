@@ -184,7 +184,7 @@ for (const category in window.projectModules) {
 }
 
 window.icons = {
-    'enabled survey icon'   : 'img[src*=tick_shield]:visible',
+    'enabled survey icon'   : 'i.fa-clipboard-user:visible',
     'disabled icon'         : `img[src*=delete]:visible`,
     'checkmark icon'        : `img[src*=tick]:visible`,
     'x icon'                : `img[src*=cross]:visible`
@@ -233,6 +233,7 @@ window.recordStatusIcons = {
     'Incomplete (no data saved)' : `img[src*=circle_gray]`,
     'Partial Survey Response' : `img[src*=circle_orange_tick]`,
     'Completed Survey Response' : `img[src*=circle_green_tick]`,
+    'Many Completed Survey Responses' : `img[src*=circle_green_tick_stack]`,
     'Many statuses (all same)' : `img[src*=_stack]`
 }
 

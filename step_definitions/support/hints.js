@@ -25,7 +25,7 @@ defineParameterType({
 
 defineParameterType({
             name: 'recordStatusIcons',
-            regexp: /|Incomplete|Unverified|Complete|Many statuses \(mixed\)|Incomplete \(no data saved\)|Partial Survey Response|Completed Survey Response|Many statuses \(all same\)/,
+            regexp: /|Incomplete|Unverified|Complete|Many statuses \(mixed\)|Incomplete \(no data saved\)|Partial Survey Response|Completed Survey Response|Many Completed Survey Responses|Many statuses \(all same\)/,
         })
 
 defineParameterType({
@@ -45,7 +45,7 @@ defineParameterType({
 
 defineParameterType({
             name: 'action',
-            regexp: /|click on the|should see a|should NOT see a/,
+            regexp: /|click on|should see|should NOT see/,
         })
 
 defineParameterType({
@@ -231,6 +231,11 @@ defineParameterType({
 defineParameterType({
             name: 'onlineDesignerButtons',
             regexp: /(?: ("Enable"|"Disable"|"Choose action"|"Survey settings"|"Automated Invitations"|enabled survey icon|"View Report"|"Export Data"|"Stats & Charts"|"Execute"|"Save"||))?/,
+        })
+
+defineParameterType({
+            name: 'optionalLabeledElement',
+            regexp: /(?: (button|link|field|section break|checkbox|toggle button|icon||))?/,
         })
 
 defineParameterType({
