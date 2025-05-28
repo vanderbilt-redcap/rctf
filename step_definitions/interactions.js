@@ -247,6 +247,10 @@ function filterMatches(text, matches) {
                 matches = matches.filter(match => match !== current)
             }
         }
+        else if(current.tagName === 'SCRIPT'){
+            // Exclude script tag matches, since they were likely language strings that are not actually displayed
+            matches = matches.filter(match => match !== current)
+        }
         
         while (current = current.parentElement) {
             // Remove parents so only leaf node matches are included
