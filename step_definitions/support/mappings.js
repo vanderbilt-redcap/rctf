@@ -266,7 +266,7 @@ window.participantListIcons = {
 window.tableHtmlElements = {
     '[icon]': { selector: 'img', condition: 'exist'},
     '[button]': { selector: 'button,input[type=button]', condition: 'exist'},
-    '[✓]': { selector: 'input[type=checkbox]:checked', condition: 'be.checked'},
+    '[x]': { selector: 'input[type=checkbox]:checked', condition: 'be.checked'},
     '[ ]': { selector: 'input[type=checkbox]', condition: 'not.be.checked'},
     '[text box]': { selector: 'textarea', condition: 'exist'},
     '[lock icon]': { selector: 'img[src*=lock]', condition: 'exist' },
