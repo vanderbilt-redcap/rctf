@@ -23,5 +23,4 @@ Given("I wait for background processes to finish", () => {
         .get('body')
         .contains('Completed all jobs!')
         .go('back')
-        .wait(1000) // Wait for the Data Import Tool "View background imports" tab to populate
 })
