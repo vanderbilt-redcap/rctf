@@ -222,6 +222,9 @@ function filterCoveredElements(matches) {
                  * but have a z-index set .
                  */
                 Cypress.$(current).is(':visible') 
+                &&
+                // Never consider the footer to be a topElement
+                current.id !== 'south'
             ) {
                 topElement = current
             }
