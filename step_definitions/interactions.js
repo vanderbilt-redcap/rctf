@@ -238,19 +238,19 @@ function filterCoveredElements(matches) {
 function filterMatches(text, matches) {
     matches = matches.toArray()
 
-    let matchesWithoutParents = [...matches]
-    matches.forEach(current => {
+    const matchesCopy = [...matches]
+    matchesCopy.forEach(current => {
         if(current.tagName === 'SELECT'){
             const option = Cypress.$(current).find(`:contains(${JSON.stringify(text)})`)[0]
             if(!option.selected){
                 // Exclude matches for options that are not currently selected, as they are not visible and should not be considered labels
-                matchesWithoutParents = matchesWithoutParents.filter(match => match !== current)
+                matches = matches.filter(match => match !== current)
             }
         }
         
         while (current = current.parentElement) {
             // Remove parents so only leaf node matches are included
-            matchesWithoutParents = matchesWithoutParents.filter(match => match !== current)
+            matches = matches.filter(match => match !== current)
         }
     })
 
@@ -262,17 +262,17 @@ function filterMatches(text, matches) {
      * keeping matches within the dialog that require scrolling to become visible.
      * Some examples include B.4.9.0100 and B.6.7.1600.
      */
-    matchesWithoutParents = filterCoveredElements(matchesWithoutParents)
+    matches = filterCoveredElements(matches)
     
-    matchesWithoutParents = filterNonExactMatches(text, matchesWithoutParents)
+    matches = filterNonExactMatches(text, matches)
 
-    const visibleMatches = matchesWithoutParents.filter(element => Cypress.$(element).is(':visible'))
+    const visibleMatches = matches.filter(element => Cypress.$(element).is(':visible'))
     if(visibleMatches.length > 0){
         // Favor visible matches
-        matchesWithoutParents = visibleMatches
+        matches = visibleMatches
     }
 
-    return matchesWithoutParents
+    return matches
 }
 
 /**
