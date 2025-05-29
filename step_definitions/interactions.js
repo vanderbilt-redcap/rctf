@@ -1646,7 +1646,28 @@ Given("I click on the {string} {labeledElement} within (a)(the) {tableTypes} tab
  */
 Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optionalQuotedString}( )in the (column labeled ){optionalQuotedString}( and the )row labeled {string}", (action, articleType, labeledElement, text, columnLabel, rowLabel) => {
     const performActionOnTarget = (target) =>{
-        if(labeledElement){
+        if(action === 'should see'){
+            /**
+             * We use innerText.indexOf() rather than the ':contains()' selector
+             * to avoid matching text within hidden tags and <script> tags,
+             * since they are not actually visible.
+             */
+            if(!target.innerText.includes(text)){
+                throw 'Expected text not found'
+            }
+        }
+        else if(action === 'should NOT see'){
+            debugger
+            /**
+             * We use innerText.indexOf() rather than the ':contains()' selector
+             * to avoid matching text within hidden tags and <script> tags,
+             * since they are not actually visible.
+             */
+            if(target.innerText.includes(text)){
+                throw 'Unexpected text found'
+            }
+        }
+        else if(labeledElement){
             cy.wrap(target).within(() => {
                 if(text){
                     cy.getLabeledElement(labeledElement, text).then(result =>{
@@ -1668,26 +1689,6 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
                     throw 'Unexpected labeledElement and text combo'
                 }
             })
-        }
-        else if(action === 'should see'){
-            /**
-             * We use innerText.indexOf() rather than the ':contains()' selector
-             * to avoid matching text within hidden tags and <script> tags,
-             * since they are not actually visible.
-             */
-            if(!target.innerText.includes(text)){
-                throw 'Expected text not found'
-            }
-        }
-        else if(action === 'should NOT see'){
-            /**
-             * We use innerText.indexOf() rather than the ':contains()' selector
-             * to avoid matching text within hidden tags and <script> tags,
-             * since they are not actually visible.
-             */
-            if(target.innerText.includes(text)){
-                throw 'Unexpected text found'
-            }
         }
         else{
             throw 'Action not found: ' + action
