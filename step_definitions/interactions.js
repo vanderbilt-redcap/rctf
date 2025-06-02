@@ -230,7 +230,7 @@ function filterCoveredElements(matches) {
     })
 
     return matches.filter(element =>
-        // Only include elements withint the top most element (likely a dialog)
+        // Only include elements within the top most element (likely a dialog)
         topElement.contains(element)
     )
 }
