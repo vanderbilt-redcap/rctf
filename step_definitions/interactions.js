@@ -143,7 +143,12 @@ function retryUntilTimeout(action, start, lastRun) {
 function getShortestMatchingNodeLength(textToFind, element) {
     let text = null
     if (element.tagName === 'INPUT') {
-        text = element.placeholder
+        if(['button', 'submit'].includes(element.type)){
+            text = element.value
+        }
+        else{
+            text = element.placeholder
+        }
     }
     else if(element.childNodes.length > 0) {
         // This is required for 'on the dropdown field labeled "to"' syntax
@@ -154,43 +159,25 @@ function getShortestMatchingNodeLength(textToFind, element) {
         })
     }
 
-    if(text === null){
+    if(!text){
         text = element.textContent
+    }
+
+    if(!text){
+        text = element.title
+    }
+
+    if(!text.includes(textToFind)){
+        // This is not a match.  Return a large int to make sure it is excluded.
+        return Number.MAX_SAFE_INTEGER
     }
 
     return text.trim().length
 }
 
-function filterMatches(text, matches) {
-    matches = matches.toArray()
-
-    let topElement = null
-    let matchesWithoutParents = [...matches]
-    matches.forEach(current => {
-        if (
-            topElement === null // This will default to "body" by default, which is fine
-            ||
-            topElement.style.zIndex < current.style.zIndex
-        ) {
-            topElement = current
-        }
-        
-        if(current.tagName === 'SELECT'){
-            const option = Cypress.$(current).find(`:contains(${JSON.stringify(text)})`)[0]
-            if(!option.selected){
-                // Exclude matches for options that are not currently selected, as they are not visible and should not be considered labels
-                matchesWithoutParents = matchesWithoutParents.filter(match => match !== current)
-            }
-        }
-        
-        while (current = current.parentElement) {
-            // Remove parents so only leaf node matches are included
-            matchesWithoutParents = matchesWithoutParents.filter(match => match !== current)
-        }
-    })
-
+function filterNonExactMatches(text, matches) {
     let minChars = null
-    matchesWithoutParents.forEach(element => {
+    matches.forEach(element => {
         const chars = getShortestMatchingNodeLength(text, element)
         if (
             minChars === null
@@ -201,16 +188,95 @@ function filterMatches(text, matches) {
         }
     })
 
-    return matchesWithoutParents.filter(element =>
-        // Only include elements withint the top most element (likely a dialog)
-        topElement.contains(element)
-        &&
+    return matches.filter(element =>
         /**
          * Only include the closest matches as determined by minChars.
          * If we intend to be match longer strings, we should specify them explicitly.
          */
         getShortestMatchingNodeLength(text, element) === minChars
+    )  
+}
+
+function filterCoveredElements(matches) {
+    const getZIndex = (element) => {
+        const zIndex = getComputedStyle(element).zIndex
+        if(isNaN(zIndex)){
+            return 0
+        }
+        else{
+            return zIndex
+        }
+    }
+
+    let topElement = Cypress.$('html')[0]
+    matches.forEach(element => {
+        let current = element
+        while(current = current.parentElement){
+            if (
+                getZIndex(topElement) < getZIndex(current)
+                &&
+                /**
+                 * Don't match bootstrap ".dropdown-menu" elements that aren't actually visible,
+                 * but have a z-index set .
+                 */
+                Cypress.$(current).is(':visible') 
+                &&
+                // Never consider the footer to be a topElement
+                current.id !== 'south'
+            ) {
+                topElement = current
+            }
+        }
+    })
+
+    return matches.filter(element =>
+        // Only include elements within the top most element (likely a dialog)
+        topElement.contains(element)
     )
+}
+
+function filterMatches(text, matches) {
+    matches = matches.toArray()
+
+    const matchesCopy = [...matches]
+    matchesCopy.forEach(current => {
+        if(current.tagName === 'SELECT'){
+            const option = Cypress.$(current).find(`:contains(${JSON.stringify(text)})`)[0]
+            if(!option.selected){
+                // Exclude matches for options that are not currently selected, as they are not visible and should not be considered labels
+                matches = matches.filter(match => match !== current)
+            }
+        }
+        else if(current.tagName === 'SCRIPT'){
+            // Exclude script tag matches, since they were likely language strings that are not actually displayed
+            matches = matches.filter(match => match !== current)
+        }
+        
+        while (current = current.parentElement) {
+            // Remove parents so only leaf node matches are included
+            matches = matches.filter(match => match !== current)
+        }
+    })
+
+    /**
+     * We filter out covered elements after removing parents but before deoing 
+     * aything else. We definitely want this to happen before searching for visible elements
+     * to support the case where there are multiple matches and we want to
+     * exclude matches outside the current dialog that are visible, while 
+     * keeping matches within the dialog that require scrolling to become visible.
+     * Some examples include B.4.9.0100 and B.6.7.1600.
+     */
+    matches = filterCoveredElements(matches)
+    
+    matches = filterNonExactMatches(text, matches)
+
+    const visibleMatches = matches.filter(element => Cypress.$(element).is(':visible'))
+    if(visibleMatches.length > 0){
+        // Favor visible matches
+        matches = visibleMatches
+    }
+
+    return matches
 }
 
 /**
@@ -345,7 +411,15 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
          * We also tried Cypress.$, but it seems to return similar results to cy.get().
          * Example from A.6.4.0200.: I click on the radio labeled "Keep ALL data saved so far." in the dialog box in the iframe
         */
-        let selector = `input[placeholder=${JSON.stringify(text)}],:contains(${JSON.stringify(text)})`
+        let selector = [
+            `input[placeholder=${JSON.stringify(text)}]`,
+            `:contains(${JSON.stringify(text)})`,
+            `[title*=${JSON.stringify(text)}]`,
+            `[data-bs-original-title*=${JSON.stringify(text)}]`,
+            `input[type=button][value*=${JSON.stringify(text)}]`,
+            `input[type=submit][value*=${JSON.stringify(text)}]`,
+        ].join(', ')
+
         if(!lastRun){
             // Favor visible items until the lastRun.  Keep in mind items that must be scrolled into view aren't considered visible.
             selector += ':visible'
@@ -356,8 +430,33 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
             matches = filterMatches(text, matches)
             console.log('getLabeledElement() filtered matches', matches)
 
+            if (type === 'button'){
+                const buttonMatches = matches.filter(element => 
+                    ['BUTTON', 'INPUT'].includes(element.tagName)
+                    ||
+                    element.closest('button') !== null
+                )
+
+                if(buttonMatches.length > 0){
+                    // Favor matches with labels inside the button, rather than outside.
+                    matches = buttonMatches
+                }
+            }
+
             if (ordinal !== undefined) {
-                matches = [matches[window.ordinalChoices[ordinal]]]
+                let match
+                if(ordinal === 'last'){
+                    match = matches[matches.length-1]
+                }
+                else{
+                    match = matches[window.ordinalChoices[ordinal]]
+                }
+                
+                if(!match){
+                    throw 'Specified ordinal not found'
+                }
+
+                matches = [match]
             }
 
             for (let i = 0; i < matches.length; i++){
@@ -378,7 +477,7 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
 
                     let childSelector = null
                     if (type === 'icon') {
-                        childSelector = 'img'
+                        childSelector = 'i, img'
                     }
                     else if (['checkbox', 'radio'].includes(type)) {
                         childSelector = 'input[type=' + type + ']'
@@ -391,8 +490,16 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
                             childSelector = 'select'
                         }
                     }
-                    else if (['input', 'textbox', 'button'].includes(type)){
-                        childSelector = type // Covers input, textbox, button, etc.
+                    else if (type === 'button'){
+                        if(current.tagName === 'BUTTON'){
+                            // We've already found it.  No need to keep searching.
+                            return current
+                        }
+
+                        childSelector = 'input[type=button], input[type=submit], button'
+                    }
+                    else if (['input', 'textbox'].includes(type)){
+                        childSelector = type
                     }
                     else {
                         // Leave childSelector blank.  Catch all for 'link', 'tab', 'instrument', etc.
@@ -603,14 +710,8 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
                 })
 
             } else {
-                let sel = `button:contains("${text}"):visible,input[value*="${text}"]:visible`
-
-                if(outer_element === 'html'){
-                    outer_element = 'div[role=dialog]:visible,html'
-                }
-                
-                cy.top_layer(sel, outer_element).within(() => {
-                    cy.get(sel).eq(ord).then(($button) => {
+                cy.get(outer_element).last().within(() => {
+                    cy.getLabeledElement('button', text, ordinal).then($button => {
                         if(text.includes("Open public survey")){ //Handle the "Open public survey" and "Open public survey + Logout" cases
                             cy.open_survey_in_same_tab($button, !(button_type !== undefined && button_type === " and will leave the tab open when I return to the REDCap project"), (text === 'Log out+ Open survey'))
                         } else {
@@ -1545,7 +1646,28 @@ Given("I click on the {string} {labeledElement} within (a)(the) {tableTypes} tab
  */
 Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optionalQuotedString}( )in the (column labeled ){optionalQuotedString}( and the )row labeled {string}", (action, articleType, labeledElement, text, columnLabel, rowLabel) => {
     const performActionOnTarget = (target) =>{
-        if(labeledElement){
+        if(action === 'should see'){
+            /**
+             * We use innerText.indexOf() rather than the ':contains()' selector
+             * to avoid matching text within hidden tags and <script> tags,
+             * since they are not actually visible.
+             */
+            if(!target.innerText.includes(text)){
+                throw 'Expected text not found'
+            }
+        }
+        else if(action === 'should NOT see'){
+            debugger
+            /**
+             * We use innerText.indexOf() rather than the ':contains()' selector
+             * to avoid matching text within hidden tags and <script> tags,
+             * since they are not actually visible.
+             */
+            if(target.innerText.includes(text)){
+                throw 'Unexpected text found'
+            }
+        }
+        else if(labeledElement){
             cy.wrap(target).within(() => {
                 if(text){
                     cy.getLabeledElement(labeledElement, text).then(result =>{
@@ -1567,26 +1689,6 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
                     throw 'Unexpected labeledElement and text combo'
                 }
             })
-        }
-        else if(action === 'should see'){
-            /**
-             * We use innerText.indexOf() rather than the ':contains()' selector
-             * to avoid matching text within hidden tags and <script> tags,
-             * since they are not actually visible.
-             */
-            if(!target.innerText.includes(text)){
-                throw 'Expected text not found'
-            }
-        }
-        else if(action === 'should NOT see'){
-            /**
-             * We use innerText.indexOf() rather than the ':contains()' selector
-             * to avoid matching text within hidden tags and <script> tags,
-             * since they are not actually visible.
-             */
-            if(target.innerText.includes(text)){
-                throw 'Unexpected text found'
-            }
         }
         else{
             throw 'Action not found: ' + action
@@ -1614,8 +1716,13 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
                 return !(row.closest('table').classList.contains('form-label-table'))
             })
 
-            if(results.length !== 1){
+            results = filterNonExactMatches(text, results.toArray())
+
+            if(results.length === 0){
                 throw 'Row with given label not found'
+            }
+            else if(results.length > 1){
+                throw 'Multiple rows found for the given label'
             }
 
             console.log('Found row:', results[0])
