@@ -190,7 +190,7 @@ defineParameterType({
 
 defineParameterType({
             name: 'labeledExactly',
-            regexp: /|labeled|labeled exactly|in the row labeled|for the instrument row labeled|for the variable|for the File Repository file named|for Data Quality Rule #|within the Record Locking Customization table for the Data Collection Instrument named|the enabled survey icon link for the instrument row|the enabled survey icon link for the instrument row|for the Discrepant field labeled|within the Record Locking Customization table for the Data Collection Instrument named|for the field labeled/,
+            regexp: /|labeled|labeled exactly|for the instrument row labeled|for the variable|for the File Repository file named|for Data Quality Rule #|within the Record Locking Customization table for the Data Collection Instrument named|the enabled survey icon link for the instrument row|the enabled survey icon link for the instrument row|for the Discrepant field labeled|within the Record Locking Customization table for the Data Collection Instrument named|for the field labeled/,
         })
 
 defineParameterType({

@@ -72,7 +72,7 @@ window.parameterTypes = {
         'Save & Add New Instance',
     ],
     labeledElement: ['button', 'link', 'field', 'section break', 'checkbox', 'toggle button', 'icon'],
-    labeledExactly: ['labeled', 'labeled exactly', 'in the row labeled', 'for the instrument row labeled', 'for the variable', 'for the File Repository file named', 'for Data Quality Rule #', 'within the Record Locking Customization table for the Data Collection Instrument named', 'the enabled survey icon link for the instrument row', 'the enabled survey icon link for the instrument row', 'for the Discrepant field labeled', 'within the Record Locking Customization table for the Data Collection Instrument named', 'for the field labeled'],
+    labeledExactly: ['labeled', 'labeled exactly', 'for the instrument row labeled', 'for the variable', 'for the File Repository file named', 'for Data Quality Rule #', 'within the Record Locking Customization table for the Data Collection Instrument named', 'the enabled survey icon link for the instrument row', 'the enabled survey icon link for the instrument row', 'for the Discrepant field labeled', 'within the Record Locking Customization table for the Data Collection Instrument named', 'for the field labeled'],
     linkNames: ['link', 'tab', 'instrument', 'icon'],
     loginTypes: ['attempt to login to REDCap with', 'am still logged in to REDCap with', 'login to REDCap with', 'successfully login to REDCap with', 'provide E-Signature credentials for'],
     projectRequestLabel: ['Create Project', 'Send Request'],
