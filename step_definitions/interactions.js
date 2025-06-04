@@ -14,6 +14,12 @@ function performAction(action, element){
     if(action === 'click on'){
         element.click()
     }
+    else if(action === 'check'){
+        element.check()
+    }
+    else if(action === 'uncheck'){
+        element.uncheck()
+    }
     else if(action === 'should see'){
         element.should('be.visible')
     }
