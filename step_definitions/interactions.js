@@ -12,7 +12,12 @@ function normalizeString(s){
 function performAction(action, element){
     element = cy.wrap(element)
     if(action === 'click on'){
-        element.click()
+        let force = false
+        if(element.closest('.rc-instance-selector-status-icon')){
+            force = true
+        }
+
+        element.click({force: force})
     }
     else if(action === 'check'){
         element.check()
