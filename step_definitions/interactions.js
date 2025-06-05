@@ -445,6 +445,7 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
         }
 
         return cy.get(selector).filterMatches(text).then(matches => {
+            matches = matches.toArray()
             if (type === 'button'){
                 const buttonMatches = matches.filter(element => 
                     ['BUTTON', 'INPUT'].includes(element.tagName)
