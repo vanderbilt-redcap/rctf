@@ -445,7 +445,16 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
         }
 
         return cy.get(selector).filterMatches(text).then(matches => {
-            matches = matches.toArray()
+            if(!Array.isArray(matches)){
+                /**
+                 * It seems like this line should be run all the time,
+                 * but we need the conditional above because a step in C.3.24.0205
+                 * seems to automatically convert the return value from a chainer to an array.
+                 * Is this a bug in Cypress?!?
+                 */
+                matches = matches.toArray()
+            }
+
             if (type === 'button'){
                 const buttonMatches = matches.filter(element => 
                     ['BUTTON', 'INPUT'].includes(element.tagName)
