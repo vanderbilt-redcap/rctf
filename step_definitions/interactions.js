@@ -189,6 +189,10 @@ function getShortestMatchingNodeLength(textToFind, element) {
 }
 
 function filterNonExactMatches(text, matches) {
+    if(!text){
+        return matches
+    }
+
     let minChars = null
     matches.forEach(element => {
         const chars = getShortestMatchingNodeLength(text, element)
@@ -248,12 +252,13 @@ function filterCoveredElements(matches) {
     )
 }
 
-function filterMatches(text, matches) {
+Cypress.Commands.add("filterMatches", {prevSubject: true}, function (matches, text) {
     matches = matches.toArray()
+    console.log('filterMatches before', matches)
 
     const matchesCopy = [...matches]
     matchesCopy.forEach(current => {
-        if(current.tagName === 'SELECT'){
+        if(current.tagName === 'SELECT' && text){
             const option = Cypress.$(current).find(`:contains(${JSON.stringify(text)})`)[0]
             if(!option.selected){
                 // Exclude matches for options that are not currently selected, as they are not visible and should not be considered labels
@@ -289,8 +294,9 @@ function filterMatches(text, matches) {
         matches = visibleMatches
     }
 
+    console.log('filterMatches after', matches)
     return matches
-}
+})
 
 /**
  * This is required to support steps containing the following:
@@ -438,11 +444,8 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
             selector += ':visible'
         }
 
-        return cy.get(selector).then(matches => {
-            console.log('getLabeledElement() unfiltered matches', matches)
-            matches = filterMatches(text, matches)
-            console.log('getLabeledElement() filtered matches', matches)
-
+        return cy.get(selector).filterMatches(text).then(matches => {
+            matches = matches.toArray()
             if (type === 'button'){
                 const buttonMatches = matches.filter(element => 
                     ['BUTTON', 'INPUT'].includes(element.tagName)
@@ -1671,7 +1674,6 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
             }
         }
         else if(action === 'should NOT see'){
-            debugger
             /**
              * We use innerText.indexOf() rather than the ':contains()' selector
              * to avoid matching text within hidden tags and <script> tags,

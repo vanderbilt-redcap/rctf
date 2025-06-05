@@ -93,26 +93,21 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
     column_label = escapeCssSelector(column_label)
     row_label = escapeCssSelector(row_label)
 
-    let selector = `${table_selector}:has(${header_row_type}:contains('${column_label}'):visible):visible`
+    let selector = `th:contains('${column_label}'):visible, td:contains('${column_label}'):visible`
     let td_selector = `tr:has(${row_cell_type}:visible):visible`
 
     if(row_number === 0) {
-        if(table_selector !== body_table){
-            selector = `${table_selector}:has(${header_row_type}:contains('${column_label}'):visible):visible`
-        } else {
-            selector = `${table_selector}:has(${row_cell_type}:contains('${row_label}'):visible,${header_row_type}:contains('${column_label}'):visible):visible`
-        }
-
         td_selector = `tr:has(${row_cell_type}:contains('${row_label}'):visible):visible`
     }
 
     let table
-    /**
-     * We use the last() result to make sure we return only the last child when tables are nexted (e.g. A.6.4.1600.).
-     * If that doesn't support all cases, we could call filterMatches() here instead.
-     */
-    cy.top_layer(selector).find(selector).last().then(result => {
-        table = result[0]
+    cy.top_layer(selector).find(selector).filterMatches().then(results => {
+        if(results.length !== 1){
+            console.log('table_cell_by_column_and_row_label results', results)
+            throw 'Expected a single result but found ' + results.length + '. See console log for details.'
+        }
+
+        table = results[0].closest('table')
         if(table.closest('.dataTables_scrollHead') !== null){
             /**
              * The headers and cells are split into separate tables under the hood.
@@ -124,7 +119,7 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
         return cy.wrap(table)
     }).within(() => {
         if(no_col_match_body === false || body_table !== 'table'){
-            cy.get(`th:contains('${column_label}'):visible, td:contains('${column_label}'):visible`).parent('tr').then(($tr) => {
+            cy.get(selector).parent('tr').then(($tr) => {
                 cy.wrap($tr).find('th, td').each((thi, th) => {
                     // console.log(Cypress.$(th).text().trim().includes(orig_column_label))
                     // console.log(thi)
@@ -135,15 +130,6 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
             })
         }
     }).then(() => {
-
-        if(body_table !== 'table'){
-            if(no_col_match_body) {
-                selector = `${body_table}:visible`
-            } else {
-                selector = `${body_table}:has(${header_row_type}:contains('${column_label}'):visible):visible`
-            }
-        }
-
         const flexigrid = table.closest('.flexigrid')
         if(flexigrid && table.querySelector('td') === null){
             // We've matched the header table.  Switch to the content table instead
