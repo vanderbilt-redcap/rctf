@@ -16,9 +16,9 @@ Given("I {loginTypes} the user {string}", (login_type, user) => {
         cy.set_user_type(user)
         cy.fetch_login(false)
     } else if(login_type === 'provide E-Signature credentials for'){
-        cy.set_user_type(user)
-        cy.get('input[id=esign_username]').invoke('attr', 'value', window.user_info.get_current_user())
-        cy.get('input[id=esign_password]').invoke('attr', 'value', window.user_info.get_current_pass())
+        const credentials = window.user_info.get_users()[user]
+        cy.get('input[id=esign_username]').invoke('attr', 'value', user)
+        cy.get('input[id=esign_password]').invoke('attr', 'value', credentials.pass)
     } else {
         cy.logout()
         cy.set_user_type(user)

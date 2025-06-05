@@ -270,8 +270,8 @@ window.tableHtmlElements = {
     '[x]': { selector: 'input[type=checkbox]:checked', condition: 'be.checked'},
     '[ ]': { selector: 'input[type=checkbox]', condition: 'not.be.checked'},
     '[text box]': { selector: 'textarea', condition: 'exist'},
-    '[lock icon]': { selector: 'img[src*=lock]', condition: 'exist' },
-    '[e-signed icon]': { selector: 'img[src*=shield]', condition: 'exist' }
+    '[lock icon]': { selector: 'img[src*=lock],i.fa-lock', condition: 'exist' },
+    '[e-signed icon]': { selector: 'img[src*=shield],i.fa-file-signature', condition: 'exist' }
 }
 
 window.fieldAction = {
