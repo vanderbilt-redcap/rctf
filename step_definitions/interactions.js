@@ -12,7 +12,20 @@ function normalizeString(s){
 function performAction(action, element){
     element = cy.wrap(element)
     if(action === 'click on'){
-        element.click()
+        element.then(element => {
+            let force = false
+            if(element.closest('.rc-instance-selector-status-icon')){
+                force = true
+            }
+
+            cy.wrap(element).click({force: force})
+        })
+    }
+    else if(action === 'check'){
+        element.check()
+    }
+    else if(action === 'uncheck'){
+        element.uncheck()
     }
     else if(action === 'should see'){
         element.should('be.visible')
@@ -1646,6 +1659,7 @@ Given("I click on the {string} {labeledElement} within (a)(the) {tableTypes} tab
  */
 Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optionalQuotedString}( )in the (column labeled ){optionalQuotedString}( and the )row labeled {string}", (action, articleType, labeledElement, text, columnLabel, rowLabel) => {
     const performActionOnTarget = (target) =>{
+        console.log('performActionOnTarget target', target)
         if(action === 'should see'){
             /**
              * We use innerText.indexOf() rather than the ':contains()' selector
@@ -1674,19 +1688,26 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
                         performAction(action, result)
                     })
                 }
-                else if(labeledElement === 'icon'){
-                    cy.get('i, img').then(results =>{
-                        if(results.length === 1){
-                            performAction(action, results[0])
-                        }
-                        else{
-                            console.log('Icons Found', results)
-                            throw 'Expected to find a single icon in the table cell, but found ' + results.length + ' icons'
-                        }
-                    })
-                }
                 else{
-                    throw 'Unexpected labeledElement and text combo'
+                    let selector
+                    if(labeledElement === 'icon'){
+                        selector = 'i, img'
+                        }
+                    else if(labeledElement === 'checkbox'){
+                        selector = 'input[type="checkbox"]'
+                    }
+                    else{
+                        throw 'Unexpected labeledElement and text combo'
+                    }
+
+                    cy.get(selector).then(results => {
+                        if(results.length != 1){
+                            console.log('performActionOnTarget results', results)
+                            throw 'Expected to find a single element, but found ' + results.length + ' instead.  See console log for details.'
+                        }
+                    
+                        performAction(action, results[0])
+                    })
                 }
             })
         }
@@ -1698,7 +1719,6 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
     if(columnLabel && rowLabel){
         cy.table_cell_by_column_and_row_label(columnLabel, rowLabel).then(($td) => {
             $td = $td[0]
-            console.log('Found cell:', $td)
             performActionOnTarget($td)
         })
     }
@@ -1725,7 +1745,6 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
                 throw 'Multiple rows found for the given label'
             }
 
-            console.log('Found row:', results[0])
             performActionOnTarget(results[0])
         })
     }
