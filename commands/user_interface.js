@@ -107,7 +107,11 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
     }
 
     let table
-    cy.top_layer(selector).find(selector).first().then(result => {
+    /**
+     * We use the last() result to make sure we return only the last child when tables are nexted (e.g. A.6.4.1600.).
+     * If that doesn't support all cases, we could call filterMatches() here instead.
+     */
+    cy.top_layer(selector).find(selector).last().then(result => {
         table = result[0]
         if(table.closest('.dataTables_scrollHead') !== null){
             /**
