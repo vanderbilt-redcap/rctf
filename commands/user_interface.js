@@ -102,7 +102,11 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
 
     let table
     cy.top_layer(selector).find(selector).filterMatches().then(results => {
-        results = results.toArray()
+        results = results.toArray().filter(result => {
+            // Do not consider results in the body div of flexigrids
+            return !result.closest('.flexigrid') || !result.closest('.bDiv')
+        })
+        
         if(results.length !== 1){
             console.log('table_cell_by_column_and_row_label results', results)
             throw 'Expected a single result but found ' + results.length + '. See console log for details.'
