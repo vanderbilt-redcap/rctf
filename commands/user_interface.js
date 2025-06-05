@@ -120,11 +120,10 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
         return cy.wrap(table)
     }).within(() => {
         if(no_col_match_body === false || body_table !== 'table'){
-            cy.get(`${header_row_type}:contains('${column_label}'):visible`).parent('tr').then(($tr) => {
-                cy.wrap($tr).find(header_row_type).each((thi, th) => {
+            cy.get(`th:contains('${column_label}'):visible, td:contains('${column_label}'):visible`).parent('tr').then(($tr) => {
+                cy.wrap($tr).find('th, td').each((thi, th) => {
                     // console.log(Cypress.$(th).text().trim().includes(orig_column_label))
                     // console.log(thi)
-                    cy.log(Cypress.$(thi).text().trim())
                     if (Cypress.$(thi).text().trim().includes(orig_column_label) && column_num === 0) column_num = th
                     //if (Cypress.$(thi).text().trim().includes(orig_column_label) && column_num === 0) cy.log(`Column Index: ${th}`)
                     //if (Cypress.$(th).text().trim().includes(column_label) && column_num === 0) console.log(thi)
