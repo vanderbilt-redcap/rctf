@@ -241,7 +241,7 @@ function filterCoveredElements(matches) {
                 // Never consider the footer to be a topElement
                 current.id !== 'south'
                 &&
-                //
+                // Do not consider tooltips to be top elements, since their zIndex is greater than dialogs (e.g. C.3.24.2200)
                 current.classList.contains('tooltip-inner')
             ) {
                 topElement = current
