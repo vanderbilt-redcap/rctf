@@ -102,7 +102,7 @@ Cypress.Commands.add('select_radio_by_label', ($name, $value, $click = true, $se
                 cy.get(`label[class=mc]:contains(${$value})`).click()
             } else {
                 cy.get(`label[class=mc]:contains(${$value})`).parent().find('input[type=radio]')
-                    .should('have.attr', $selected ? 'checked' : 'unchecked')
+                    .should($selected ? 'be.checked' : 'not.be.checked')
             }
         } else {
             // Fallback to the nearest radio button - whether that is next or previous parent
