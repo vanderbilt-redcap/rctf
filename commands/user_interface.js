@@ -75,6 +75,52 @@ Cypress.Commands.add("dragToTarget", { prevSubject: 'element'}, (subject, target
     })
 })
 
+Cypress.Commands.add("filterTableMatches", { prevSubject: true}, (results) => {
+    // This method is needed for B.2.10.0300.
+
+    const isHeader = (element) => {
+        if(element.closest('.flexigrid')){
+            return element.closest('.hDiv') !== null
+        }
+        else if(element.closest('.dataTables_scroll')){
+            return element.closest('.dataTables_scrollHead') !== null
+        }
+        else{
+            return element.tagName === 'TH'
+        }
+    }
+
+    let likelyMatchRowIndex
+    let likelyMatch = null
+    for(const result of results){
+        const row = result.closest('tr')
+        const rowIndex = [...row.parentNode.children].indexOf(row)
+        if(rowIndex === likelyMatchRowIndex){
+            if(isHeader(likelyMatch) && !isHeader(result)){
+                // Favor the existing header
+            }
+            else if(!isHeader(likelyMatch) && isHeader(result)){
+                // Favor the new header
+                likelyMatch = result
+                likelyMatchRowIndex = rowIndex
+            }
+            else{
+                /**
+                 * Multiple tables had matching columns at the same row index.
+                 * We can't weed anything out.
+                 */
+                return results
+            }
+        }
+        else if(likelyMatch === null || rowIndex < likelyMatchRowIndex){
+            likelyMatch = result
+            likelyMatchRowIndex = rowIndex
+        }
+    }
+
+    return [likelyMatch]
+})
+
 Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_label, table_selector= 'table', header_row_type = 'th', row_cell_type = 'td', row_number = 0, body_table = 'table', no_col_match_body = false) => {
     let column_num = 0
     let table_cell = null
@@ -101,12 +147,9 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
     }
 
     let table
-    cy.top_layer(selector).find(selector).filterMatches().then(results => {
-        results = results.toArray().filter(result => {
-            // Do not consider results in the body div of flexigrids
-            return !result.closest('.flexigrid') || !result.closest('.bDiv')
-        })
-        
+    cy.top_layer(selector).find(selector).filterMatches().filterTableMatches().then(results => {
+        results = results.toArray()
+
         if(results.length !== 1){
             console.log('table_cell_by_column_and_row_label results', results)
             throw 'Expected a single result but found ' + results.length + '. See console log for details.'
@@ -128,7 +171,13 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
                 cy.wrap($tr).find('th, td').each((thi, th) => {
                     // console.log(Cypress.$(th).text().trim().includes(orig_column_label))
                     // console.log(thi)
-                    if (Cypress.$(thi).text().trim().includes(orig_column_label) && column_num === 0) column_num = th
+                    if (Cypress.$(thi).text().trim().includes(orig_column_label) && column_num === 0) {
+                        column_num = th
+                        if(thi.closest('#dag-switcher-table-container')){
+                            // Adjust for indicies being one off due to the rowspan
+                            column_num++
+                        }
+                    }
                     //if (Cypress.$(thi).text().trim().includes(orig_column_label) && column_num === 0) cy.log(`Column Index: ${th}`)
                     //if (Cypress.$(th).text().trim().includes(column_label) && column_num === 0) console.log(thi)
                 })
