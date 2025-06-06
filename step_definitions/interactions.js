@@ -240,6 +240,9 @@ function filterCoveredElements(matches) {
                 &&
                 // Never consider the footer to be a topElement
                 current.id !== 'south'
+                &&
+                //
+                current.classList.contains('tooltip-inner')
             ) {
                 topElement = current
             }
