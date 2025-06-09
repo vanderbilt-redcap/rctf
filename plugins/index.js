@@ -126,6 +126,10 @@ module.exports = (cypressOn, config) => {
             var sql_path = source_location + '/redcap_v' + redcap_version + '/Resources/sql';
             var install_sql = sql_path + '/install.sql';
             var data_sql = sql_path + '/install_data.sql';
+            
+            if (!fs.existsSync(install_sql)) {
+                throw new Error('The following path could not be found: ' + install_sql)
+            }
 
             var user_sql = seeds_location + '/user_info/standard.sql'
             if(advanced_user_info) { user_sql = seeds_location + '/user_info/advanced.sql'; }

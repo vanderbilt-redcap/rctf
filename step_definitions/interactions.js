@@ -12,7 +12,20 @@ function normalizeString(s){
 function performAction(action, element){
     element = cy.wrap(element)
     if(action === 'click on'){
-        element.click()
+        element.then(element => {
+            let force = false
+            if(element.closest('.rc-instance-selector-status-icon')){
+                force = true
+            }
+
+            cy.wrap(element).click({force: force})
+        })
+    }
+    else if(action === 'check'){
+        element.check()
+    }
+    else if(action === 'uncheck'){
+        element.uncheck()
     }
     else if(action === 'should see'){
         element.should('be.visible')
@@ -176,6 +189,10 @@ function getShortestMatchingNodeLength(textToFind, element) {
 }
 
 function filterNonExactMatches(text, matches) {
+    if(!text){
+        return matches
+    }
+
     let minChars = null
     matches.forEach(element => {
         const chars = getShortestMatchingNodeLength(text, element)
@@ -223,6 +240,9 @@ function filterCoveredElements(matches) {
                 &&
                 // Never consider the footer to be a topElement
                 current.id !== 'south'
+                &&
+                // Do not consider tooltips to be top elements, since their zIndex is greater than dialogs (e.g. C.3.24.2200)
+                !current.classList.contains('tooltip-inner')
             ) {
                 topElement = current
             }
@@ -235,12 +255,13 @@ function filterCoveredElements(matches) {
     )
 }
 
-function filterMatches(text, matches) {
+Cypress.Commands.add("filterMatches", {prevSubject: true}, function (matches, text) {
     matches = matches.toArray()
+    console.log('filterMatches before', matches)
 
     const matchesCopy = [...matches]
     matchesCopy.forEach(current => {
-        if(current.tagName === 'SELECT'){
+        if(current.tagName === 'SELECT' && text){
             const option = Cypress.$(current).find(`:contains(${JSON.stringify(text)})`)[0]
             if(!option.selected){
                 // Exclude matches for options that are not currently selected, as they are not visible and should not be considered labels
@@ -276,8 +297,9 @@ function filterMatches(text, matches) {
         matches = visibleMatches
     }
 
+    console.log('filterMatches after', matches)
     return matches
-}
+})
 
 /**
  * This is required to support steps containing the following:
@@ -425,10 +447,16 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
             selector += ':visible'
         }
 
-        return cy.get(selector).then(matches => {
-            console.log('getLabeledElement() unfiltered matches', matches)
-            matches = filterMatches(text, matches)
-            console.log('getLabeledElement() filtered matches', matches)
+        return cy.get(selector).filterMatches(text).then(matches => {
+            if(!Array.isArray(matches)){
+                /**
+                 * It seems like this line should be run all the time,
+                 * but we need the conditional above because a step in C.3.24.0205
+                 * seems to automatically convert the return value from a chainer to an array.
+                 * Is this a bug in Cypress?!?
+                 */
+                matches = matches.toArray()
+            }
 
             if (type === 'button'){
                 const buttonMatches = matches.filter(element => 
@@ -1646,6 +1674,7 @@ Given("I click on the {string} {labeledElement} within (a)(the) {tableTypes} tab
  */
 Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optionalQuotedString}( )in the (column labeled ){optionalQuotedString}( and the )row labeled {string}", (action, articleType, labeledElement, text, columnLabel, rowLabel) => {
     const performActionOnTarget = (target) =>{
+        console.log('performActionOnTarget target', target)
         if(action === 'should see'){
             /**
              * We use innerText.indexOf() rather than the ':contains()' selector
@@ -1657,7 +1686,6 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
             }
         }
         else if(action === 'should NOT see'){
-            debugger
             /**
              * We use innerText.indexOf() rather than the ':contains()' selector
              * to avoid matching text within hidden tags and <script> tags,
@@ -1674,19 +1702,26 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
                         performAction(action, result)
                     })
                 }
-                else if(labeledElement === 'icon'){
-                    cy.get('i, img').then(results =>{
-                        if(results.length === 1){
-                            performAction(action, results[0])
-                        }
-                        else{
-                            console.log('Icons Found', results)
-                            throw 'Expected to find a single icon in the table cell, but found ' + results.length + ' icons'
-                        }
-                    })
-                }
                 else{
-                    throw 'Unexpected labeledElement and text combo'
+                    let selector
+                    if(labeledElement === 'icon'){
+                        selector = 'i, img'
+                        }
+                    else if(labeledElement === 'checkbox'){
+                        selector = 'input[type="checkbox"]'
+                    }
+                    else{
+                        throw 'Unexpected labeledElement and text combo'
+                    }
+
+                    cy.get(selector).then(results => {
+                        if(results.length != 1){
+                            console.log('performActionOnTarget results', results)
+                            throw 'Expected to find a single element, but found ' + results.length + ' instead.  See console log for details.'
+                        }
+                    
+                        performAction(action, results[0])
+                    })
                 }
             })
         }
@@ -1698,7 +1733,6 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
     if(columnLabel && rowLabel){
         cy.table_cell_by_column_and_row_label(columnLabel, rowLabel).then(($td) => {
             $td = $td[0]
-            console.log('Found cell:', $td)
             performActionOnTarget($td)
         })
     }
@@ -1725,7 +1759,6 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
                 throw 'Multiple rows found for the given label'
             }
 
-            console.log('Found row:', results[0])
             performActionOnTarget(results[0])
         })
     }
