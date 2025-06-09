@@ -136,7 +136,7 @@ Cypress.Commands.add('get_record_status_dashboard', (event, instrument, record_i
         }).as('instance_table')
 
         if(click){
-            cy.wrap(link_location).clickAndWaitForPageLoad()
+            cy.wrap(link_location).click()
         } else {
             expect(link_location).to.have.descendants(window.recordStatusIcons[icon])
         }
