@@ -180,6 +180,10 @@ function getShortestMatchingNodeLength(textToFind, element) {
         text = element.title
     }
 
+    if(!text){
+        text = element.getAttribute('data-bs-original-title')
+    }
+
     if(!text.includes(textToFind)){
         // This is not a match.  Return a large int to make sure it is excluded.
         return Number.MAX_SAFE_INTEGER
