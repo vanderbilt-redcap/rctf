@@ -242,7 +242,7 @@ function filterCoveredElements(matches) {
                 current.id !== 'south'
                 &&
                 // Do not consider tooltips to be top elements, since their zIndex is greater than dialogs (e.g. C.3.24.2200)
-                !current.classList.contains('tooltip-inner')
+                !current.classList.contains('tooltip') // Required for C.3.24.2200.
             ) {
                 topElement = current
             }
