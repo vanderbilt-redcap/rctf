@@ -343,3 +343,13 @@ Cypress.Commands.add("closestIncludingChildren", {prevSubject: true}, function (
     
     return null
 })
+
+Cypress.Commands.add("clickAndWaitForPageLoad", {prevSubject: 'element'}, function (subject) {
+    const shouldWait = subject.href && (subject.href.startsWith('/') || subject.href.startsWith('http'))
+
+    cy.wrap(subject).click()
+
+    if(shouldWait){
+        cy.wait('@interceptedRequest').then()
+    }
+})
