@@ -232,7 +232,10 @@ function loadPDF(record, survey, next){
 Given("I should see the following values in the last file downloaded", (dataTable) => {
     cy.task('fetchLatestDownload', { fileExtension: false }).then((path) => {
         const extension = path.split('.').pop()
-        if(extension === 'pdf'){
+        if(!path){
+            throw 'A recently downloaded file could not be found!'
+        }
+        else if(extension === 'pdf'){
             cy.task('readPdf', { pdf_file: path }).assertPDFContainsDataTable(dataTable)
         }
         else{
