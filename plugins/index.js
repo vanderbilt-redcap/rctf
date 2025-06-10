@@ -251,17 +251,19 @@ module.exports = (cypressOn, config) => {
             const downloadsDir = shell.pwd() + '/cypress/downloads/'
 
             // Read the files in the downloads directory
-            const files = fs.readdirSync(downloadsDir)
+            let files = fs.readdirSync(downloadsDir)
 
             // Filter files by extension
-            const filteredFiles = files.filter(file => path.extname(file) === `.${fileExtension}`)
+            if(fileExtension){
+                files = files.filter(file => path.extname(file) === `.${fileExtension}`)
+            }
 
             //If no filtered files are found ...
-            if (filteredFiles.length === 0) {
+            if (files.length === 0) {
                 return ''
             } else {
                 // Sort files by modification time to get the latest one
-                const latestFile = filteredFiles
+                const latestFile = files
                     .map(file => ({ file, mtime: fs.statSync(path.join(downloadsDir, file)).mtime }))
                     .sort((a, b) => b.mtime - a.mtime)[0].file
                 return `${downloadsDir}${latestFile}`

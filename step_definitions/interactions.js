@@ -127,7 +127,7 @@ function after_click_monitor(type){
     }
 }
 
-function retryUntilTimeout(action, start, lastRun) {
+Cypress.Commands.add("retryUntilTimeout", function (action, start, lastRun) {
     if (start === undefined) {
         start = Date.now()
     }
@@ -147,11 +147,11 @@ function retryUntilTimeout(action, start, lastRun) {
         }
         else {
             cy.wait(250).then(() => {
-                retryUntilTimeout(action, start, isAfterTimeout())
+                cy.retryUntilTimeout(action, start, isAfterTimeout())
             })
         }
     })
-}
+})
 
 function getShortestMatchingNodeLength(textToFind, element) {
     let text = null
@@ -430,7 +430,7 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
  * as the root of some of our existing duplicate logic is the lack of built-in "if" support.
  */
 Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectOption) {
-    return retryUntilTimeout((lastRun) => {
+    return cy.retryUntilTimeout((lastRun) => {
         /**
          * We tried using "window().then(win => win.$(`:contains..." to combine the following two cases,
          * but it could not find iframe content like cy.get() can.

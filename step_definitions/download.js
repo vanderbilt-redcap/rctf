@@ -134,6 +134,12 @@ Given("I {shouldOrShouldNot} see a signature for the {string} field in the downl
  * @description Verifies the values within a PDF in the PDF Archive
  */
 Given("I should see the following values in the downloaded PDF for record {string} and survey {string}", (record, survey, dataTable) => {
+    loadPDF(record, survey, (pdf) => {
+        cy.wrap(pdf).assertPDFContainsDataTable(dataTable)
+    })
+})
+
+Cypress.Commands.add("assertPDFContainsDataTable", {prevSubject: true}, function (pdf, dataTable) {
     function findDateFormat(str) {
         for (const format in window.dateFormats) {
             const regex = window.dateFormats[format]
@@ -145,19 +151,17 @@ Given("I should see the following values in the downloaded PDF for record {strin
         }
         return null
     }
-
-    loadPDF(record, survey, (pdf) => {
-        dataTable['rawTable'].forEach((row, row_index) => {
-            row.forEach((dataTableCell) => {
-                const result = findDateFormat(dataTableCell)
-                if (result === null) {
-                    expect(pdf.text).to.include(dataTableCell)
-                } else {
-                    result.split(' ').forEach((item) => {
-                        expect(pdf.text).to.include(item)
-                    })
-                }
-            })
+    
+    dataTable['rawTable'].forEach((row, row_index) => {
+        row.forEach((dataTableCell) => {
+            const result = findDateFormat(dataTableCell)
+            if (result === null) {
+                expect(pdf.text).to.include(dataTableCell)
+            } else {
+                result.split(' ').forEach((item) => {
+                    expect(pdf.text).to.include(item)
+                })
+            }
         })
     })
 })
@@ -216,3 +220,23 @@ function loadPDF(record, survey, next){
 
     })
 }
+
+/**
+ * @module Download
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @example I should see the following values in the last file downloaded
+ * @param {string} record - the ID of the record the PDF is associated with
+ * @param {string} survey - the Survey / Event of the record the PDF is associated with
+ * @description Verifies the values within a PDF in the PDF Archive
+ */
+Given("I should see the following values in the last file downloaded", (dataTable) => {
+    cy.task('fetchLatestDownload', { fileExtension: false }).then((path) => {
+        const extension = path.split('.').pop()
+        if(extension === 'pdf'){
+            cy.task('readPdf', { pdf_file: path }).assertPDFContainsDataTable(dataTable)
+        }
+        else{
+            throw 'This step needs to be expanded to support this file type: ' + path
+        }
+    })
+})
