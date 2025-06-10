@@ -267,7 +267,7 @@ module.exports = (cypressOn, config) => {
                     .map(file => ({ file, mtime: fs.statSync(path.join(downloadsDir, file)).mtime }))
                     .sort((a, b) => b.mtime - a.mtime)
                     .filter(item => {
-                        return item.mtime > threshold && path.extname(item.file) !== 'crdownload'
+                        return item.mtime > threshold && path.extname(item.file) !== '.crdownload'
                     })
 
                 //If no filtered files are found ...
@@ -287,7 +287,6 @@ module.exports = (cypressOn, config) => {
 
             const tries = 10
             for(let i=0; i<tries; i++){
-                console.log('looping----------------')
                 const file = fetchOnce()
                 if(file){
                     return file
