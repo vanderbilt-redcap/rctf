@@ -935,15 +935,14 @@ Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} fi
     } else {
         const elm = cy.getLabeledElement('input', label, ordinal).eq(ord)
 
-        if(enter_type === "enter"){
-            if(text === ''){
-                elm.clear()                
-            }
-            else{
+        if (enter_type === "enter" || enter_type === "clear field and enter") {
+            /**
+             * Clearing is important to replace what is there, but also to support "text === ''"
+             */
+            elm.clear()
+            if(text !== ''){
                 elm.type(text)
             }
-        } else if (enter_type === "clear field and enter") {
-            elm.clear().type(text)
         } else if (enter_type === "verify"){
             if(window.dateFormats.hasOwnProperty(text)){
                 //elm.invoke('val').should('match', window.dateFormats[text])
