@@ -181,7 +181,7 @@ function getShortestMatchingNodeLength(textToFind, element) {
     }
 
     if(!text){
-        text = element.getAttribute('data-bs-original-title')
+        text = element.getAttribute('data-bs-original-title') // Required for C.3.24.2200.
     }
 
     if(!text.includes(textToFind)){
