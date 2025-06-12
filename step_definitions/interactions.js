@@ -973,9 +973,14 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
     let element = `textarea`
 
     //Turns out the logic editor uses a DIV with an "Ace Editor" somehow /shrug
+    let next
     if(label === "Logic Editor") {
         element = `div#rc-ace-editor div.ace_line`
         enter_type = 'clear field and enter'
+        next = cy.get(sel).last()
+    }
+    else{
+        next = cy.getLabeledElement(element, label, ordinal)
     }
 
     //Either the base element as specified or the default
@@ -986,12 +991,12 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
     outer_element.within(() => {
         let elm = null
 
-        cy.get(sel).last().then(($label) => {
-            cy.wrap($label).parent().then(($parent) =>{
+        next.then((elementReference) => {
+            cy.wrap(elementReference).parent().then(($parent) =>{
                 if($parent.find(element).eq(ord).length){
 
                     //If the textarea has a TinyMCE editor applied to it
-                    if($parent.find(element).hasClass('mceEditor')){
+                    if(elementReference.hasClass('mceEditor') && elementReference[0].style.display === 'none'){
                        cy.customSetTinyMceContent($parent.find(element).eq(ord).attr('id'), text)
 
                         //All other cases
