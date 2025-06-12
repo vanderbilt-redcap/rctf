@@ -530,7 +530,7 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
 
                         childSelector = 'input[type=button], input[type=submit], button'
                     }
-                    else if (['input', 'textbox'].includes(type)){
+                    else if (['input', 'textarea'].includes(type)){
                         childSelector = type
                     }
                     else {
