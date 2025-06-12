@@ -530,7 +530,7 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
 
                         childSelector = 'input[type=button], input[type=submit], button'
                     }
-                    else if (['input', 'textarea'].includes(type)){
+                    else if (['input', 'textbox'].includes(type)){
                         childSelector = type
                     }
                     else {
@@ -986,12 +986,12 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
     outer_element.within(() => {
         let elm = null
 
-        cy.getLabeledElement(element, label, ordinal).then((elementReference) => {
-            cy.wrap(elementReference).parent().then(($parent) =>{
+        cy.get(sel).last().then(($label) => {
+            cy.wrap($label).parent().then(($parent) =>{
                 if($parent.find(element).eq(ord).length){
 
                     //If the textarea has a TinyMCE editor applied to it
-                    if(elementReference.hasClass('mceEditor') && elementReference[0].style.display === 'none'){
+                    if($parent.find(element).hasClass('mceEditor')){
                        cy.customSetTinyMceContent($parent.find(element).eq(ord).attr('id'), text)
 
                         //All other cases
