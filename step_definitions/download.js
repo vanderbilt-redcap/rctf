@@ -124,21 +124,6 @@ Given("I {shouldOrShouldNot} see a signature for the {string} field in the downl
     })
 })
 
-
-/**
- * @module Download
- * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I (should) see the following values in the downloaded PDF for Record {string} and Survey {string}
- * @param {string} record - the ID of the record the PDF is associated with
- * @param {string} survey - the Survey / Event of the record the PDF is associated with
- * @description Verifies the values within a PDF in the PDF Archive
- */
-Given("I should see the following values in the downloaded PDF for record {string} and survey {string}", (record, survey, dataTable) => {
-    loadPDF(record, survey, (pdf) => {
-        cy.wrap(pdf).assertPDFContainsDataTable(dataTable)
-    })
-})
-
 Cypress.Commands.add("assertPDFContainsDataTable", {prevSubject: true}, function (pdf, dataTable) {
     function findDateFormat(str) {
         for (const format in window.dateFormats) {
