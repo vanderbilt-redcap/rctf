@@ -530,8 +530,12 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
 
                         childSelector = 'input[type=button], input[type=submit], button'
                     }
-                    else if (['input', 'textarea'].includes(type)){
-                        childSelector = type
+                    else if (type === 'textarea'){
+                        //.tox-editor-container is used for TinyMCE in C.3.24.1500
+                        childSelector = '.tox-editor-container, textarea'
+                    }
+                    else if (type === 'input'){
+                        childSelector = 'input'
                     }
                     else {
                         // Leave childSelector blank.  Catch all for 'link', 'tab', 'instrument', etc.
