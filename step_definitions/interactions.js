@@ -127,7 +127,7 @@ function after_click_monitor(type){
     }
 }
 
-function retryUntilTimeout(action, start, lastRun) {
+Cypress.Commands.add("retryUntilTimeout", function (action, start, lastRun) {
     if (start === undefined) {
         start = Date.now()
     }
@@ -147,11 +147,11 @@ function retryUntilTimeout(action, start, lastRun) {
         }
         else {
             cy.wait(250).then(() => {
-                retryUntilTimeout(action, start, isAfterTimeout())
+                cy.retryUntilTimeout(action, start, isAfterTimeout())
             })
         }
     })
-}
+})
 
 function getShortestMatchingNodeLength(textToFind, element) {
     let text = null
@@ -178,6 +178,10 @@ function getShortestMatchingNodeLength(textToFind, element) {
 
     if(!text){
         text = element.title
+    }
+
+    if(!text){
+        text = element.getAttribute('data-bs-original-title') // Required for C.3.24.2200.
     }
 
     if(!text.includes(textToFind)){
@@ -242,7 +246,7 @@ function filterCoveredElements(matches) {
                 current.id !== 'south'
                 &&
                 // Do not consider tooltips to be top elements, since their zIndex is greater than dialogs (e.g. C.3.24.2200)
-                !current.classList.contains('tooltip-inner')
+                !current.classList.contains('tooltip') // Required for C.3.24.2200.
             ) {
                 topElement = current
             }
@@ -391,7 +395,7 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
             childSelector.replace(':visible', '') === 'input'
             &&
             // Remember, child.type will be 'text' even when type is not set in the DOM.
-            !['text', 'password'].includes(child.type) 
+            !['text', 'password', 'email', 'number', 'search', 'tel', 'url'].includes(child.type)
         ){
             /**
              * We're looking for a text type (like checkbox), but found a non-text type.  Ignore this element.
@@ -426,7 +430,7 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
  * as the root of some of our existing duplicate logic is the lack of built-in "if" support.
  */
 Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectOption) {
-    return retryUntilTimeout((lastRun) => {
+    return cy.retryUntilTimeout((lastRun) => {
         /**
          * We tried using "window().then(win => win.$(`:contains..." to combine the following two cases,
          * but it could not find iframe content like cy.get() can.
@@ -526,8 +530,12 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
 
                         childSelector = 'input[type=button], input[type=submit], button'
                     }
-                    else if (['input', 'textbox'].includes(type)){
-                        childSelector = type
+                    else if (type === 'textarea'){
+                        //.tox-editor-container is used for TinyMCE in C.3.24.1500
+                        childSelector = '.tox-editor-container, textarea'
+                    }
+                    else if (type === 'input'){
+                        childSelector = 'input'
                     }
                     else {
                         // Leave childSelector blank.  Catch all for 'link', 'tab', 'instrument', etc.
@@ -931,15 +939,14 @@ Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} fi
     } else {
         const elm = cy.getLabeledElement('input', label, ordinal).eq(ord)
 
-        if(enter_type === "enter"){
-            if(text === ''){
-                elm.clear()                
-            }
-            else{
+        if (enter_type === "enter" || enter_type === "clear field and enter") {
+            /**
+             * Clearing is important to replace what is there, but also to support "text === ''"
+             */
+            elm.clear()
+            if(text !== ''){
                 elm.type(text)
             }
-        } else if (enter_type === "clear field and enter") {
-            elm.clear().type(text)
         } else if (enter_type === "verify"){
             if(window.dateFormats.hasOwnProperty(text)){
                 //elm.invoke('val').should('match', window.dateFormats[text])
@@ -970,9 +977,14 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
     let element = `textarea`
 
     //Turns out the logic editor uses a DIV with an "Ace Editor" somehow /shrug
+    let next
     if(label === "Logic Editor") {
         element = `div#rc-ace-editor div.ace_line`
         enter_type = 'clear field and enter'
+        next = cy.get(sel).last()
+    }
+    else{
+        next = cy.getLabeledElement(element, label, ordinal)
     }
 
     //Either the base element as specified or the default
@@ -983,12 +995,12 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
     outer_element.within(() => {
         let elm = null
 
-        cy.get(sel).last().then(($label) => {
-            cy.wrap($label).parent().then(($parent) =>{
+        next.then((elementReference) => {
+            cy.wrap(elementReference).parent().then(($parent) =>{
                 if($parent.find(element).eq(ord).length){
 
                     //If the textarea has a TinyMCE editor applied to it
-                    if($parent.find(element).hasClass('mceEditor')){
+                    if(elementReference.hasClass('mceEditor') && elementReference[0].style.display === 'none'){
                        cy.customSetTinyMceContent($parent.find(element).eq(ord).attr('id'), text)
 
                         //All other cases

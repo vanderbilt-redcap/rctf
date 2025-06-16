@@ -100,6 +100,10 @@ Cypress.Commands.add('get_record_status_dashboard', (event, instrument, record_i
 
                                             //console.log(tdi)
 
+                                            if(instrument_location === null){
+                                                throw 'Instrument not found: ' + instrument
+                                            }
+
                                             if (tdi === instrument_location + 1 || (event === null && tdi === instrument_location) ) {
 
                                                 //console.log('instrument location reached')

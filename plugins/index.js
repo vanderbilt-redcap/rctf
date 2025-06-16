@@ -247,25 +247,55 @@ module.exports = (cypressOn, config) => {
             return `${php_path} -r "echo date_default_timezone_get();"`
         },
 
-        fetchLatestDownload({fileExtension}){
-            const downloadsDir = shell.pwd() + '/cypress/downloads/'
+        async fetchLatestDownload({fileExtension}){
+            const threshold = new Date();
+            threshold.setTime(threshold.getTime() - 3000); // Only look for very recent downloads
 
-            // Read the files in the downloads directory
-            const files = fs.readdirSync(downloadsDir)
+            const fetchOnce = () => {
+                const downloadsDir = shell.pwd() + '/cypress/downloads/'
 
-            // Filter files by extension
-            const filteredFiles = files.filter(file => path.extname(file) === `.${fileExtension}`)
+                // Read the files in the downloads directory
+                let files = fs.readdirSync(downloadsDir)
 
-            //If no filtered files are found ...
-            if (filteredFiles.length === 0) {
-                return ''
-            } else {
+                // Filter files by extension
+                if(fileExtension){
+                    files = files.filter(file => path.extname(file) === `.${fileExtension}`)
+                }
+
                 // Sort files by modification time to get the latest one
-                const latestFile = filteredFiles
+                files = files
                     .map(file => ({ file, mtime: fs.statSync(path.join(downloadsDir, file)).mtime }))
-                    .sort((a, b) => b.mtime - a.mtime)[0].file
-                return `${downloadsDir}${latestFile}`
+                    .sort((a, b) => b.mtime - a.mtime)
+                    .filter(item => {
+                        return item.mtime > threshold && path.extname(item.file) !== '.crdownload'
+                    })
+
+                //If no filtered files are found ...
+                if (files.length === 0) {
+                    return ''
+                } else {
+                    const latestFile = files[0].file
+                    return `${downloadsDir}${latestFile}`
+                }
             }
+
+            const sleep = (ms) => {
+                return new Promise((resolve) => {
+                    setTimeout(resolve, ms)
+                })
+            }
+
+            const tries = 10
+            for(let i=0; i<tries; i++){
+                const file = fetchOnce()
+                if(file){
+                    return file
+                }
+
+                await sleep(250)
+            }
+
+            return ''
         },
 
         fileExists(filePath) {
