@@ -22,9 +22,6 @@
     "glob": "^9.3.5",
     "reflect-metadata": "0.2.2"
   },
-  "devDependencies": {
-    "cypress-on-fix": "^1.0.3"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "docs:build": "./node_modules/.bin/documentation build /step_definitions/* -f html --theme node_modules/redcap_cypress_doc_theme/index.js -o docs",
