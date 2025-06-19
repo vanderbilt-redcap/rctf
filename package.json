@@ -3,7 +3,7 @@
   "description": "These are the supporting files that underpin the REDCap Cypress Test Framework.",
   "main": "index.js",
   "dependencies": {
-    "@4tw/cypress-drag-drop": "^2.2.5",
+    "@4tw/cypress-drag-drop": "^2",
     "@badeball/cypress-cucumber-preprocessor": "^22",
     "@bahmutov/cypress-esbuild-preprocessor": "^2",
     "@foreachbe/cypress-tinymce": "^1",
