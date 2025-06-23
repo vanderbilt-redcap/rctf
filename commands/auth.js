@@ -3,7 +3,18 @@
 //#############################################################################
 
 window.adjustInvalidLoginUrls = (url) => {
-    if (
+    const baseUrl = Cypress.config().baseUrl
+    if (!url.startsWith(baseUrl)) {
+        /**
+         * We might be coming back from Mailhog like in this feature:
+         * https://github.com/CCTC-team/redcap_rsvc/blob/redcap_val/Feature%20Tests/D/Two%20Factor%20Authentication_101/D.101.100%20-%20Two%20Factor%20Authentication.feature
+         * 
+         * If you'd like to run this feature, you'll likely need to load this file:
+         * https://github.com/CCTC-team/redcap_cypress/blob/redcap_val/cypress/support/step_definitions/noncore.js
+         */
+        url = baseUrl
+    }
+    else if (
         // This is the first page load from a blank browser windows
         url === 'about:blank'
         ||
