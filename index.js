@@ -40,7 +40,8 @@ function load_support_files(){
 }
 
 
-function rctf_initialize(preprocessor) {
+function rctf_initialize() {
+    preprocessor = require('@badeball/cypress-cucumber-preprocessor')
 
     const { Given, BeforeStep, defineParameterType } = preprocessor
 
