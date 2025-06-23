@@ -1,4 +1,5 @@
 window.compareVersions = require('compare-versions')
+window.escapeStringRegexp = require('escape-string-regexp')
 
 require('@4tw/cypress-drag-drop')
 require('@foreachbe/cypress-tinymce')
