@@ -166,7 +166,10 @@ Cypress.Commands.add('upload_file', (fileName, fileType = ' ', selector = '', bu
     })
 })
 
-Cypress.Commands.add('file_repo_upload', (fileNames, id = 'input#file-repository-file-input', count_of_files = 0) => {
+Cypress.Commands.add('file_repo_upload', (fileNames, expectSuccess = true) => {
+    const id = 'input#file-repository-file-input'
+    const count_of_files = fileNames.length
+
     for(let i = 0; i < count_of_files; i++){
         cy.intercept({
             method: 'POST',
@@ -192,7 +195,9 @@ Cypress.Commands.add('file_repo_upload', (fileNames, id = 'input#file-repository
 
         cy.wrap($id).selectFile(selected_files, {force: true}).then(() => {
             for(let i = 0; i < count_of_files; i++){
-                cy.wait(`@file_repo_upload_${i}`)
+                if(expectSuccess){
+                    cy.wait(`@file_repo_upload_${i}`)
+                }
 
                 if (Cypress.$('.toast.fade.show').length) {
                     cy.get('.toast.fade.show').should('be.visible').then(() => {
