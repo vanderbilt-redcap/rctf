@@ -219,13 +219,10 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
         } else if (prefix === 'an alert box with the following text:'){
             return new Cypress.Promise((resolve) => {
                 (function waitForAlert(i = 0) {
-                    if ((window.lastAlert !== undefined && window.lastAlert.length !== 0) || i > 10) {
-                        window.lastAlert.forEach((alert) => {
-                            if(alert.includes(text)){
-                                expect(alert).to.contain(text)
-                                resolve('done')
-                            }
-                        })
+                    if ((window.lastAlert !== undefined) || i > 10) {
+                        if(window.lastAlert.includes(text)){
+                            resolve('done')
+                        }
                     } else {
                         setTimeout(waitForAlert, 500, (i + 1))
                     }

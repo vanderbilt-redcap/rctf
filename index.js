@@ -58,17 +58,9 @@ function rctf_initialize() {
         intercept_vanderbilt_requests()
         set_timezone()
         reset_database()
-        window.lastAlert = []
     })
 
     const registerEventListeners = () => {
-        if(window.cypressEventListenersRegistered){
-            // Make sure we only register events once per page load.
-            return
-        }
-        
-        window.cypressEventListenersRegistered = true
-
         const shouldShowAlerts = () => {
             /**
              * Cypress normally detects & suppress alerts during automated testing,
@@ -80,21 +72,36 @@ function rctf_initialize() {
 
         //Get last alert
         cy.on('window:alert', (str) => {
+            /**
+             * This will show evidence of multiple event listeners being registered.
+             * This is expected. Cypress event listeners are unregistered at times that can't always be detected.
+             * We attempted to work around this for a while with a window.cypressEventListenersRegistered boolean.
+             * It worked in all cases we found except A.3.28.0300.
+             * We now allow the duplicate registrations to support that feature,
+             * and just try to make any actions within the listeners very simple & efficient.
+             */
+            console.log('detected alert', str)
+
             if(shouldShowAlerts()){
                 alert(str)
             }
-            else if(!window.lastAlert.includes(str)){
-                window.lastAlert.push(str)
+            else{
+                window.lastAlert = str
             }
         })
 
         //Get last confirmation
         cy.on('window:confirm', (str) => {
+            /**
+             * See docblock above for the 'detected alert' log
+             */
+            console.log('detected confirm', str)
+
             if(shouldShowAlerts()){
                 confirm(str)
             }
-            else if(!window.lastAlert.includes(str)){
-                window.lastAlert.push(str)
+            else{
+                window.lastAlert = str
             }
         })
     }
@@ -137,12 +144,6 @@ function rctf_initialize() {
     afterEach(abortEarly);
 
     after(() => {
-        /**
-         * Cypress must unregister events once test complete.
-         * Set cypressEventListenersRegistered to false so that they get re-registered.
-         * This allows users to trigger alert() & confirm() calls after tests finish.
-         */
-        window.cypressEventListenersRegistered = false
         window.shouldShowAlerts = true
         registerEventListeners()
         
