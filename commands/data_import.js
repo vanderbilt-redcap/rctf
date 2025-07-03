@@ -157,6 +157,7 @@ Cypress.Commands.add('upload_file', (fileName, fileType = ' ', selector = '', bu
                     const dataTransfer = new DataTransfer()
                     dataTransfer.items.add(testFile)
                     el.files = dataTransfer.files
+                    Cypress.$(el).change() // Fire any change listeners asssociated with the file field (e.g. A.3.28.0400)
 
                     if(button_label !== '') {
                         cy.wrap(subject).closestIncludingChildren(submit_button_selector).click()
