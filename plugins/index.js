@@ -302,6 +302,10 @@ module.exports = (cypressOn, config) => {
             return fs.existsSync(filePath)
         },
 
+        matchingFileExists({path, partialFilename}) {
+            return fs.readdirSync(path).filter(filename => filename.includes(partialFilename)).length > 0
+        },
+
     })
 
     return config
