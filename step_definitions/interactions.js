@@ -937,7 +937,7 @@ Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} fi
         })
 
     } else {
-        const elm = cy.getLabeledElement('input', label, ordinal).eq(ord)
+        const elm = cy.getLabeledElement('input', label, ordinal)
 
         if (enter_type === "enter" || enter_type === "clear field and enter") {
             /**
