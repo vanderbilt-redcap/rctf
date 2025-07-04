@@ -117,6 +117,15 @@ module.exports = (cypressOn, config) => {
         },
 
         populateStructureAndData({redcap_version, advanced_user_info, source_location}) {
+            /**
+             * We're clearing the DB.  We should clear the filesystem at the same time,
+             * to ensure each test starts with a clean slate.
+             */
+            ;['cypress/downloads', 'cypress/sftp_uploads'].forEach(directory => {
+                for (const file of fs.readdirSync(directory)) {
+                    fs.unlinkSync(path.join(directory, file))
+                }
+            })
 
             // DEFINE OTHER LOCATIONS
             var test_seeds_location = shell.pwd() + '/node_modules/rctf/test_db';
