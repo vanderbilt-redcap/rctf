@@ -171,6 +171,8 @@ module.exports = (cypressOn, config) => {
 
             shell.cat(config_sql).sed('REDCAP_VERSION_MAGIC_STRING', redcap_version).toEnd(structure_and_data_file);
 
+            shell.ShellString("\nUPDATE redcap_config SET value = '1' WHERE field_name = 'database_query_tool_enabled';").toEnd(structure_and_data_file);
+
             shell.ShellString('\nCOMMIT;').toEnd(structure_and_data_file);
 
             if (fs.existsSync(structure_and_data_file)) {
