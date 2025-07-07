@@ -220,9 +220,17 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
             return new Cypress.Promise((resolve) => {
                 (function waitForAlert(i = 0) {
                     if ((window.lastAlert !== undefined) || i > 10) {
-                        if(window.lastAlert.includes(text)){
-                            resolve('done')
-                        }
+                        Object.keys(window.lastAlert).forEach((alert) => {
+                            const age = Date.now() - window.lastAlert[alert]
+                            if(age > 10000){
+                                // This alert is likely from several steps ago and should not be matched
+                                delete window.lastAlert[alert]
+                            }
+
+                            if(alert.includes(text)){
+                                resolve('done')
+                            }
+                        })
                     } else {
                         setTimeout(waitForAlert, 500, (i + 1))
                     }

@@ -58,6 +58,14 @@ function rctf_initialize() {
         intercept_vanderbilt_requests()
         set_timezone()
         reset_database()
+        
+        /**
+         * We must store multiple alerts for cases where multiple appear at once like B.4.9.0100.
+         * We use an object rather than an array so that we can use keys to avoid duplicates without
+         * the need for something like 'lastAlert.includes(str)' for arrays, which can be expensive
+         * since a dozen or so duplicate listeners are registered in some cases due to a quirk of Cypress.
+         */
+        window.lastAlert = {}
     })
 
     const registerEventListeners = () => {
@@ -86,7 +94,7 @@ function rctf_initialize() {
                 alert(str)
             }
             else{
-                window.lastAlert = str
+                window.lastAlert[str] = Date.now()
             }
         })
 
@@ -101,7 +109,7 @@ function rctf_initialize() {
                 confirm(str)
             }
             else{
-                window.lastAlert = str
+                window.lastAlert[str] = Date.now()
             }
         })
     }
