@@ -191,7 +191,7 @@ Cypress.Commands.add('file_repo_upload', (fileNames, expectSuccess = true) => {
          * We used to use aliases from cy.fixture() here,
          * but that failed when uploading the same file multiple times.
          */
-        selected_files.push('cypress/fixtures' + file)
+        selected_files.push('cypress/fixtures/' + file)
     })
 
     //Select the Fixture within the Upload Input Button - no need to do anything else because JavaScript automatically fired within REDCap
