@@ -219,19 +219,29 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
         } else if (prefix === 'an alert box with the following text:'){
             return new Cypress.Promise((resolve) => {
                 (function waitForAlert(i = 0) {
-                    if ((window.lastAlert !== undefined) || i > 10) {
-                        Object.keys(window.lastAlert).forEach((alert) => {
-                            const age = Date.now() - window.lastAlert[alert]
-                            if(age > 10000){
-                                // This alert is likely from several steps ago and should not be matched
-                                delete window.lastAlert[alert]
-                            }
+                    const hasAlertBeenDisplayed = (text) => {
+                        let found = false
+                        if (window.lastAlert !== undefined){
+                            Object.keys(window.lastAlert).forEach((alert) => {
+                                const age = Date.now() - window.lastAlert[alert]
+                                if(age > 10000){
+                                    // This alert is likely from several steps ago and should not be matched
+                                    delete window.lastAlert[alert]
+                                }
 
-                            if(alert.includes(text)){
-                                resolve('done')
-                            }
-                        })
-                    } else {
+                                if(alert.includes(text)){
+                                    found = true
+                                }
+                            })
+                        }
+
+                        return found
+                    }
+
+                    if(hasAlertBeenDisplayed(text)){
+                        resolve('done')
+                    }
+                    else if (i < 10){
                         setTimeout(waitForAlert, 500, (i + 1))
                     }
                 })()
