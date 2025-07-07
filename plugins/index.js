@@ -122,6 +122,7 @@ module.exports = (cypressOn, config) => {
              * to ensure each test starts with a clean slate.
              */
             ;['cypress/downloads', 'cypress/sftp_uploads'].forEach(directory => {
+                fs.mkdirSync(directory) // Make sure the dir exists so the following succeeds
                 for (const file of fs.readdirSync(directory)) {
                     fs.unlinkSync(path.join(directory, file))
                 }
