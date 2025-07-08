@@ -194,7 +194,7 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
     let base
     let subsel = ''
 
-    if(el !== ''){ subsel = {'link': 'a', 'button': 'button', 'field': 'tr', 'section break': 'td.header', 'checkbox': 'input[type=checkbox]'}[el] }
+    if(el !== ''){ subsel = {'link': 'a', 'button': 'button', 'field': 'tr', 'section break': 'td.header', 'checkbox': 'input[type=checkbox]', 'dropdown': 'select'}[el] }
 
     //It's possible for the survey icon to appear even if the instrument itself is not a link
     if(el === 'link' && online_buttons !== undefined && online_buttons.includes('survey icon')){
@@ -353,7 +353,8 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
                     })
 
                     if (disabled_text === "is disabled") {
-                        cy.wrap($elm).find(sel).should('be.disabled')
+                        // We used to use should('be.disabled') here, but it didn't work on C.3.30.0900
+                        cy.wrap($elm).find(sel).should('have.attr', 'disabled')
                     }
                 })
             }
