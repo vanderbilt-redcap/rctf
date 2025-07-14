@@ -117,6 +117,19 @@ module.exports = (cypressOn, config) => {
         },
 
         populateStructureAndData({redcap_version, advanced_user_info, source_location}) {
+            /**
+             * We're clearing the DB.  We should clear the filesystem at the same time,
+             * to ensure each test starts with a clean slate.
+             */
+            ;['cypress/downloads', 'cypress/sftp_uploads'].forEach(directory => {
+                if(!fs.existsSync(directory)){
+                    fs.mkdirSync(directory) // Make sure the dir exists so the following succeeds
+                }
+
+                for (const file of fs.readdirSync(directory)) {
+                    fs.unlinkSync(path.join(directory, file))
+                }
+            })
 
             // DEFINE OTHER LOCATIONS
             var test_seeds_location = shell.pwd() + '/node_modules/rctf/test_db';
@@ -161,6 +174,8 @@ module.exports = (cypressOn, config) => {
             //shell.cat(rights_sql).toEnd(structure_and_data_file);
 
             shell.cat(config_sql).sed('REDCAP_VERSION_MAGIC_STRING', redcap_version).toEnd(structure_and_data_file);
+
+            shell.ShellString("\nUPDATE redcap_config SET value = '1' WHERE field_name = 'database_query_tool_enabled';").toEnd(structure_and_data_file);
 
             shell.ShellString('\nCOMMIT;').toEnd(structure_and_data_file);
 
@@ -300,6 +315,10 @@ module.exports = (cypressOn, config) => {
 
         fileExists(filePath) {
             return fs.existsSync(filePath)
+        },
+
+        matchingFileExists({path, partialFilename}) {
+            return fs.readdirSync(path).filter(filename => filename.includes(partialFilename)).length > 0
         },
 
     })

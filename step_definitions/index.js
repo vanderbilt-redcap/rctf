@@ -34,5 +34,6 @@ require('./csv')
 require('./browse_projects')
 require('./configuration_check')
 require('./logging')
+require('./misc')
 
 console.log('RCTF: Core Step Definitions Loaded')

@@ -105,6 +105,16 @@ Given("I download the PDF by clicking on the link for Record {string} and Survey
     })
 })
 
+/**
+ * @module Download
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @example I should see a signature for the "Participant signature field" field in the downloaded PDF for record "1" and survey "Participant Consent"
+ * @param {string} shouldOrShouldNot - should or should NOT
+ * @param {string} signatureField - the field under which the signature would be stored
+ * @param {string} record - the Survey / Event of the record the PDF is associated with
+ * @param {string} survey - the Survey / Event of the record the PDF is associated with
+ * @description Detects whether or not a signature exists in the specified PDF
+ */
 Given("I {shouldOrShouldNot} see a signature for the {string} field in the downloaded PDF for record {string} and survey {string}", (shouldOrShouldNot, signatureField, record, survey) => {
     loadPDF(record, survey, (pdf) => {
         signatureField += '\n \n'

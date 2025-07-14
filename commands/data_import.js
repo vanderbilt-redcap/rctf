@@ -157,6 +157,7 @@ Cypress.Commands.add('upload_file', (fileName, fileType = ' ', selector = '', bu
                     const dataTransfer = new DataTransfer()
                     dataTransfer.items.add(testFile)
                     el.files = dataTransfer.files
+                    Cypress.$(el).change() // Fire any change listeners asssociated with the file field (e.g. A.3.28.0400)
 
                     if(button_label !== '') {
                         cy.wrap(subject).closestIncludingChildren(submit_button_selector).click()
@@ -166,20 +167,9 @@ Cypress.Commands.add('upload_file', (fileName, fileType = ' ', selector = '', bu
     })
 })
 
-Cypress.Commands.add('file_repo_upload', (fileNames, id = 'input#file-repository-file-input', count_of_files = 0) => {
-    function waitForFileUpload($id, i, retries = 5) {
-        // Wait for the request and get the response
-        cy.wait(`@file_repo_upload_${i}`).then((interception) => {
-            // If the response status is 200, do nothing (success)
-            if (interception.response.statusCode === 200) {
-
-                // If the response status is not 200, perform another action and retry
-            } else {
-                cy.wrap($id).selectFile(selected_files[i], {force: true})
-                waitForFileUpload($id, i, retries - 1)
-            }
-        })
-    }
+Cypress.Commands.add('file_repo_upload', (fileNames, expectSuccess = true) => {
+    const id = 'input#file-repository-file-input'
+    const count_of_files = fileNames.length
 
     for(let i = 0; i < count_of_files; i++){
         cy.intercept({
@@ -197,8 +187,11 @@ Cypress.Commands.add('file_repo_upload', (fileNames, id = 'input#file-repository
 
     //Look for all files
     fileNames.forEach((file, index) => {
-        cy.fixture(`${file}`).as(`fileRepo_${index}`) //Set as a fixture alias
-        selected_files.push(`@fileRepo_${index}`) //Push aliases to an array for use later
+        /**
+         * We used to use aliases from cy.fixture() here,
+         * but that failed when uploading the same file multiple times.
+         */
+        selected_files.push('cypress/fixtures/' + file)
     })
 
     //Select the Fixture within the Upload Input Button - no need to do anything else because JavaScript automatically fired within REDCap
@@ -206,9 +199,9 @@ Cypress.Commands.add('file_repo_upload', (fileNames, id = 'input#file-repository
 
         cy.wrap($id).selectFile(selected_files, {force: true}).then(() => {
             for(let i = 0; i < count_of_files; i++){
-                cy.wait(`@file_repo_upload_${i}`)
-
-                //waitForFileUpload($id, i)
+                if(expectSuccess){
+                    cy.wait(`@file_repo_upload_${i}`)
+                }
 
                 if (Cypress.$('.toast.fade.show').length) {
                     cy.get('.toast.fade.show').should('be.visible').then(() => {

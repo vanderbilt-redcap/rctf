@@ -192,7 +192,7 @@ function getShortestMatchingNodeLength(textToFind, element) {
     return text.trim().length
 }
 
-function filterNonExactMatches(text, matches) {
+function filterNonExactMatches(matches, text) {
     if(!text){
         return matches
     }
@@ -293,7 +293,7 @@ Cypress.Commands.add("filterMatches", {prevSubject: true}, function (matches, te
      */
     matches = filterCoveredElements(matches)
     
-    matches = filterNonExactMatches(text, matches)
+    matches = filterNonExactMatches(matches, text)
 
     const visibleMatches = matches.filter(element => Cypress.$(element).is(':visible'))
     if(visibleMatches.length > 0){
@@ -937,7 +937,7 @@ Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} fi
         })
 
     } else {
-        const elm = cy.getLabeledElement('input', label, ordinal).eq(ord)
+        const elm = cy.getLabeledElement('input', label, ordinal)
 
         if (enter_type === "enter" || enter_type === "clear field and enter") {
             /**
@@ -1694,6 +1694,7 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
              * since they are not actually visible.
              */
             if(!target.innerText.includes(text)){
+                console.log('target', target)
                 throw 'Expected text not found'
             }
         }
@@ -1762,16 +1763,18 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
                 return !(row.closest('table').classList.contains('form-label-table'))
             })
 
-            results = filterNonExactMatches(text, results.toArray())
+            cy.wrap(results).filterMatches(text).then(results => {
 
-            if(results.length === 0){
-                throw 'Row with given label not found'
-            }
-            else if(results.length > 1){
-                throw 'Multiple rows found for the given label'
-            }
+                if(results.length === 0){
+                    throw 'Row with given label not found'
+                }
+                else if(results.length > 1){
+                    console.log('rows found', results)
+                    throw 'Multiple rows found for the given label'
+                }
 
-            performActionOnTarget(results[0])
+                performActionOnTarget(results[0])
+            })
         })
     }
     else{
