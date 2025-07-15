@@ -254,17 +254,35 @@ Given("I should see the following values in the most recent file in the {storage
         const path = locations[location]
 
         let next
+        let cleanup = () => {}
         if(path === 'cypress/azure_uploads'){
             /**
              * Azurite does not simply store files in a directory that we can directly access.
              * We created this method to access them.
              */
-            next = cy.getMostRecentAzureFileContents_notYetImplementedPlaceholder()
+            next = cy.request({
+                url: '/azure/get-most-recent-file.php',
+                encoding: 'binary',
+            }).then((response) => {
+                expect(response.status).to.eq(200);
+
+                const filename = response.headers['content-disposition']
+                    .split('filename=')[1]
+                    .split('"')[1]                    
+
+                cy.task('createTempFile', {filename, content: response.body}).then(path => {
+                    cleanup = () => {
+                        cy.deleteFile(path)
+                    }
+
+                    return path
+                })
+            })
         }
         else{
             next = cy.task('findMostRecentFile', {path})
         }
         
-        next.assertContains(dataTable)
+        next.assertContains(dataTable).then(cleanup)
     })
 })

@@ -19,6 +19,7 @@
 const shell = require('shelljs')
 const sed_lite = require('sed-lite').sed
 const fs = require('fs')
+const os = require('os')
 const csv = require('async-csv')
 const path = require('path')
 const pdf = require('pdf-parse')
@@ -365,10 +366,15 @@ module.exports = (cypressOn, config) => {
             return mostRecent
         },
 
-
         getStorageDirectoryLocations() {
             return rctf.STORAGE_DIRECTORY_LOCATIONS
         },
+
+        createTempFile({filename, content}){
+            const path = os.tmpdir() + '/' + filename
+            fs.writeFileSync(path, content, 'binary')
+            return path
+        }
     })
 
     return config
