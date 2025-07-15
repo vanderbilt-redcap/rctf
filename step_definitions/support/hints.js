@@ -224,6 +224,11 @@ defineParameterType({
         })
 
 defineParameterType({
+            name: 'storageDirectoryLocations',
+            regexp: /|local storage path|downloads directory|sftp server|Azure Blob Storage container|Amazon S3 bucket|Google Cloud Storage bucket|WebDAV server/,
+        })
+
+defineParameterType({
             name: 'ordering',
             regexp: /|ascending|descending/,
         })

@@ -1,3 +1,5 @@
+const rctf = require("../../rctf.js")
+
 function transformKeysToRegExp(variable){
     return Object.keys(variable).filter(key => key !== '')
 }
@@ -79,6 +81,7 @@ window.parameterTypes = {
     notSeeDC: ['should see a Data Collection Instrument named', 'should NOT see a Data Collection Instrument named', 'should no longer see a Data Collection Instrument named'],
     notSee: ['', 'should NOT', 'should no longer', 'no longer'],
     shouldOrShouldNot: ['should', 'should NOT'],
+    storageDirectoryLocations: Object.keys(rctf.STORAGE_DIRECTORY_LOCATIONS),
     ordering: ['ascending', 'descending'],
     onlineDesignerButtons: ['"Enable"', '"Disable"', '"Choose action"', '"Survey settings"', '"Automated Invitations"', 'enabled survey icon', '"View Report"', '"Export Data"', '"Stats & Charts"', '"Execute"', '"Save"'],
     optionalLabeledElement: ['button', 'link', 'field', 'section break', 'checkbox', 'toggle button', 'icon'],

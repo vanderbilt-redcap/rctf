@@ -225,16 +225,46 @@ function loadPDF(record, survey, next){
  * @description Verifies the values within a PDF in the PDF Archive
  */
 Given("I should see the following values in the last file downloaded", (dataTable) => {
-    cy.task('fetchLatestDownload', { fileExtension: false }).then((path) => {
-        const extension = path.split('.').pop()
-        if(!path){
-            throw 'A recently downloaded file could not be found!'
-        }
-        else if(extension === 'pdf'){
-            cy.task('readPdf', { pdf_file: path }).assertPDFContainsDataTable(dataTable)
+    cy.task('fetchLatestDownload', { fileExtension: false }).assertContains(dataTable)
+})
+
+Cypress.Commands.add('assertContains', {prevSubject: true}, (path, dataTable) => {
+    console.log('goose', path)
+    if(!path){
+        throw 'A recent file could not be found!'
+    }
+    
+    const extension = path.split('.').pop()
+    if(extension === 'pdf'){
+        cy.task('readPdf', { pdf_file: path }).assertPDFContainsDataTable(dataTable)
+    }
+    else{
+        throw 'This step needs to be expanded to support this file type: ' + path
+    }
+})
+
+/**
+ * @module Download
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @example Then I should see the following values in the most recent file in the local storage path
+ * @description Verifies whether a file exists in the specified storage location
+ */
+Given("I should see the following values in the most recent file in the {storageDirectoryLocations}", (location, dataTable) => {
+    cy.task('getStorageDirectoryLocations').then(locations => {
+        const path = locations[location]
+
+        let next
+        if(path === 'cypress/azure_uploads'){
+            /**
+             * Azurite does not simply store files in a directory that we can directly access.
+             * We created this method to access them.
+             */
+            next = cy.getMostRecentAzureFileContents_notYetImplementedPlaceholder()
         }
         else{
-            throw 'This step needs to be expanded to support this file type: ' + path
+            next = cy.task('findMostRecentFile', {path})
         }
+        
+        next.assertContains(dataTable)
     })
 })

@@ -31,7 +31,9 @@ const {
     afterSpecHandler,
     afterScreenshotHandler,
 } = require("@badeball/cypress-cucumber-preprocessor")
-const { createEsbuildPlugin }  = require ("@badeball/cypress-cucumber-preprocessor/esbuild")
+const {createEsbuildPlugin}  = require("@badeball/cypress-cucumber-preprocessor/esbuild")
+const {glob} = require("glob")
+const rctf = require("../rctf.js")
 
 module.exports = (cypressOn, config) => {
     let on = cypressOn
@@ -121,15 +123,24 @@ module.exports = (cypressOn, config) => {
              * We're clearing the DB.  We should clear the filesystem at the same time,
              * to ensure each test starts with a clean slate.
              */
-            ;['cypress/downloads', 'cypress/sftp_uploads'].forEach(directory => {
+            for (const [name, directory] of Object.entries(rctf.STORAGE_DIRECTORY_LOCATIONS)) {
+                if(directory === 'cypress/azure_uploads'){
+                    /**
+                     * We stared by mapping azurites uploads to this directory, but decided against it
+                     * since they're not stored in a way we can easily parse.
+                     * We use alternate API calls to verify azure files instead.
+                     */
+                    return
+                }
+
                 if(!fs.existsSync(directory)){
                     fs.mkdirSync(directory) // Make sure the dir exists so the following succeeds
                 }
 
                 for (const file of fs.readdirSync(directory)) {
-                    fs.unlinkSync(path.join(directory, file))
+                    fs.rmSync(path.join(directory, file), { recursive: true })
                 }
-            })
+            }
 
             // DEFINE OTHER LOCATIONS
             var test_seeds_location = shell.pwd() + '/node_modules/rctf/test_db';
@@ -321,6 +332,42 @@ module.exports = (cypressOn, config) => {
             return fs.readdirSync(path).filter(filename => filename.includes(partialFilename)).length > 0
         },
 
+        findMostRecentFile({path}) {
+            let mostRecent
+            glob.sync(path + '/**').forEach(current => {
+                
+                // Use forward slashed instead to prevent backslashes from incorrectly being interpretted as escapes in thrown error messages interpreted by cypress.
+                current = current.replaceAll('\\', '/')
+                
+                if(current.includes('/__azur')){
+                    // Ignore azurite metadata files
+                    return
+                }
+
+                const stats = fs.statSync(current)
+                if(stats.isDirectory()){
+                    return
+                }
+                else if(
+                    !mostRecent
+                    ||
+                    stats.ctime > fs.statSync(mostRecent).ctime
+                ){
+                    mostRecent = current
+                }
+            })
+
+            if(!mostRecent){
+                throw new Error('Recent file not found!')
+            }
+     
+            return mostRecent
+        },
+
+
+        getStorageDirectoryLocations() {
+            return rctf.STORAGE_DIRECTORY_LOCATIONS
+        },
     })
 
     return config
