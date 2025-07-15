@@ -130,7 +130,7 @@ module.exports = (cypressOn, config) => {
                      * since they're not stored in a way we can easily parse.
                      * We use alternate API calls to verify azure files instead.
                      */
-                    return
+                    continue
                 }
 
                 if(!fs.existsSync(directory)){
