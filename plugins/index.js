@@ -345,7 +345,12 @@ module.exports = (cypressOn, config) => {
                 }
 
                 const stats = fs.statSync(current)
-                if(stats.isDirectory()){
+                const age = Date.now() - stats.ctime
+                if(
+                    stats.isDirectory()
+                    ||
+                    age > 10000 // Anything older than this is likely left over from an unrelated step, and could be a false match.
+                ){
                     return
                 }
                 else if(
