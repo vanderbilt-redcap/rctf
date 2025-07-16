@@ -317,3 +317,20 @@ Given("I should see the following values in the most recent file in the {storage
         })
     })
 })
+
+/**
+ * @module Download
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @example Then if running via automation, start external storage services
+ * @description Starts or stops services required to test external storage 
+*/
+Given(/^if running via automation, (start|stop) external storage services/, (action) => {
+    const commandPrefix = 'docker compose --project-directory ../redcap_docker/ --profile external-storage'
+
+    // Even when starting services we stop them first to clear any old files from previous runs
+    cy.exec(commandPrefix + ' stop azurite minio fake-gcs-server webdav')
+    
+    if(action === 'start'){
+        cy.exec(commandPrefix + ' up -d')
+    }
+})
