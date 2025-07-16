@@ -243,6 +243,47 @@ Cypress.Commands.add('assertContains', {prevSubject: true}, (path, dataTable) =>
     }
 })
 
+Cypress.Commands.add('findMostRecentAzureFile', () => {
+    /**
+     * Azurite does not simply store files in a directory that we can directly access.
+     * We created this method to access them.
+     */
+    return cy.request({
+        url: '/azure/get-most-recent-file.php',
+        encoding: 'binary',
+    }).then((response) => {
+        expect(response.status).to.eq(200);
+
+        const filename = response.headers['content-disposition']
+            .split('filename=')[1]
+            .split('"')[1]                    
+
+        cy.task('createTempFile', {filename, content: response.body})
+    })
+})
+
+Cypress.Commands.add('findMostRecentS3File', () => {
+    cy.exec('docker exec mybucket.minio.local mc ls --json /data/mybucket/').then(result => {
+        const lines = result.stdout.split('\n')
+        let mostRecent = null
+        lines.forEach(line => {
+            const fileInfo = JSON.parse(line)
+            fileInfo.lastModified = new Date(fileInfo.lastModified)
+            if(mostRecent === null || fileInfo.lastModified > mostRecent.lastModified){
+                mostRecent = fileInfo
+            }
+        })
+
+        const filename = mostRecent.key.split('/')[0]
+        cy.exec('docker exec mybucket.minio.local mc cp local/mybucket/' + filename + ' /tmp').then(() => {
+            const path = '../tmp/' + filename
+            cy.exec('docker cp mybucket.minio.local:/tmp/' + filename + ' ' + path).then(() => {
+                return path
+            })
+        })
+    })
+})
+
 /**
  * @module Download
  * @author Mark McEver <mark.mcever@vumc.org>
@@ -254,35 +295,25 @@ Given("I should see the following values in the most recent file in the {storage
         const path = locations[location]
 
         let next
-        let cleanup = () => {}
+        let deleteTempFile = false
         if(path === 'cypress/azure_uploads'){
-            /**
-             * Azurite does not simply store files in a directory that we can directly access.
-             * We created this method to access them.
-             */
-            next = cy.request({
-                url: '/azure/get-most-recent-file.php',
-                encoding: 'binary',
-            }).then((response) => {
-                expect(response.status).to.eq(200);
-
-                const filename = response.headers['content-disposition']
-                    .split('filename=')[1]
-                    .split('"')[1]                    
-
-                cy.task('createTempFile', {filename, content: response.body}).then(path => {
-                    cleanup = () => {
-                        cy.deleteFile(path)
-                    }
-
-                    return path
-                })
-            })
+            deleteTempFile = true
+            next = cy.findMostRecentAzureFile()
+        }
+        else if(path === 'cypress/s3_uploads'){
+            deleteTempFile = true
+            next = cy.findMostRecentS3File()
         }
         else{
             next = cy.task('findMostRecentFile', {path})
         }
         
-        next.assertContains(dataTable).then(cleanup)
+        next.then(path => {
+            cy.wrap(path).assertContains(dataTable).then(() => {
+                if(deleteTempFile){
+                    cy.task('deleteFile', {path})
+                }
+            })
+        })
     })
 })
