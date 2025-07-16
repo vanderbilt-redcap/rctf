@@ -318,6 +318,8 @@ Given("I should see the following values in the most recent file in the {storage
     })
 })
 
+const DOCKER_COMMAND_PREFIX = 'docker compose --project-directory ../redcap_docker/ '
+
 /**
  * @module Download
  * @author Mark McEver <mark.mcever@vumc.org>
@@ -325,12 +327,25 @@ Given("I should see the following values in the most recent file in the {storage
  * @description Starts or stops services required to test external storage 
 */
 Given(/^if running via automation, (start|stop) external storage services/, (action) => {
-    const commandPrefix = 'docker compose --project-directory ../redcap_docker/ '
-
     // Even when starting services we stop them first to clear any old files from previous runs
-    cy.exec(commandPrefix + 'stop azurite minio fake-gcs-server webdav')
+    cy.exec(DOCKER_COMMAND_PREFIX + 'stop azurite minio fake-gcs-server webdav')
     
     if(action === 'start'){
-        cy.exec(commandPrefix + '--profile external-storage up -d')
+        cy.exec(DOCKER_COMMAND_PREFIX + '--profile external-storage up -d')
+    }
+})
+
+/**
+ * @module Download
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @example Then if running via automation, start sftp server
+ * @description Starts or stops the sftp server 
+*/
+Given(/^if running via automation, (start|stop) sftp server/, (action) => {
+    if(action === 'start'){
+        cy.exec(DOCKER_COMMAND_PREFIX + '--profile sftp up -d')
+    }
+    else{
+        cy.exec(DOCKER_COMMAND_PREFIX + 'stop sftp')
     }
 })
