@@ -349,3 +349,27 @@ Given(/^if running via automation, (start|stop) sftp server/, (action) => {
         cy.exec(DOCKER_COMMAND_PREFIX + 'stop sftp')
     }
 })
+
+/**
+ * @module Download
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @example Then if running via automation, start sftp server
+ * @description Starts or stops the sftp server 
+*/
+Given("I populate \"webdav_connection.php\" with the appropriate WebDAV credentials", () => {
+    const tmpPath = '../tmp/webdav_connection.php'
+    cy.writeFile(tmpPath, `<?php
+        /**********************************************************
+         Replace the values inside the single quotes below with 
+        the values for your WebDAV configuration. Do not change
+        anything else in this file.
+        **********************************************************/
+
+        $webdav_hostname = 'redcap_docker-webdav-1'; // e.g., ebldav.mc.vanderbilt.edu
+        $webdav_username = 'webdav-user';
+        $webdav_password = 'webdav-pass';
+        $webdav_port 	 = '80'; // '80' is default. If REDCap web server is exposed to the web, you MUST use SSL (default port '443').
+        $webdav_path	 = '/'; // Set path where REDCap files will be stored. Must end with a slash or back slash, depending on your OS.
+        $webdav_ssl		 = '0'; // '0' is default. If REDCap web server is exposed to the web, you MUST use SSL (set to '1').
+    `).exec('docker cp ' + tmpPath + ' redcap_docker-app-1:/var/www/html/webtools2/webdav/webdav_connection.php')
+})
