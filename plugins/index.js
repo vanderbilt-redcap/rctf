@@ -125,12 +125,7 @@ module.exports = (cypressOn, config) => {
              * to ensure each test starts with a clean slate.
              */
             for (const [name, directory] of Object.entries(rctf.STORAGE_DIRECTORY_LOCATIONS)) {
-                if(directory === 'cypress/azure_uploads'){
-                    /**
-                     * We stared by mapping azurites uploads to this directory, but decided against it
-                     * since they're not stored in a way we can easily parse.
-                     * We use alternate API calls to verify azure files instead.
-                     */
+                if(directory === false){
                     continue
                 }
 

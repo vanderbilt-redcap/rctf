@@ -296,11 +296,11 @@ Given("I should see the following values in the most recent file in the {storage
 
         let next
         let deleteTempFile = false
-        if(path === 'cypress/azure_uploads'){
+        if(location === 'Azure Blob Storage container'){
             deleteTempFile = true
             next = cy.findMostRecentAzureFile()
         }
-        else if(path === 'cypress/s3_uploads'){
+        else if(location === 'Amazon S3 bucket'){
             deleteTempFile = true
             next = cy.findMostRecentS3File()
         }
