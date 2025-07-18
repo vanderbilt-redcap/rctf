@@ -4,6 +4,8 @@ function transformKeysToRegExp(variable){
     return Object.keys(variable).filter(key => key !== '')
 }
 
+const labeledElementTypes = ['button', 'link', 'field', 'section break', 'checkbox', 'toggle button', 'icon', 'dropdown', 'radio']
+
 window.parameterTypes = {
     tableTypes: transformKeysToRegExp(window.tableMappings),
     baseElement: transformKeysToRegExp(window.elementChoices),
@@ -73,7 +75,7 @@ window.parameterTypes = {
         'Save & Go To Next Instance',
         'Save & Add New Instance',
     ],
-    labeledElement: ['button', 'link', 'field', 'section break', 'checkbox', 'toggle button', 'icon', 'dropdown'],
+    labeledElement: labeledElementTypes,
     labeledExactly: ['labeled', 'labeled exactly', 'for the instrument row labeled', 'for the variable', 'for the File Repository file named', 'for Data Quality Rule #', 'within the Record Locking Customization table for the Data Collection Instrument named', 'the enabled survey icon link for the instrument row', 'the enabled survey icon link for the instrument row', 'for the Discrepant field labeled', 'within the Record Locking Customization table for the Data Collection Instrument named', 'for the field labeled'],
     linkNames: ['link', 'tab', 'instrument', 'icon'],
     loginTypes: ['attempt to login to REDCap with', 'am still logged in to REDCap with', 'login to REDCap with', 'successfully login to REDCap with', 'provide E-Signature credentials for'],
@@ -84,7 +86,7 @@ window.parameterTypes = {
     storageDirectoryLocations: Object.keys(rctf.STORAGE_DIRECTORY_LOCATIONS),
     ordering: ['ascending', 'descending'],
     onlineDesignerButtons: ['"Enable"', '"Disable"', '"Choose action"', '"Survey settings"', '"Automated Invitations"', 'enabled survey icon', '"View Report"', '"Export Data"', '"Stats & Charts"', '"Execute"', '"Save"'],
-    optionalLabeledElement: ['button', 'link', 'field', 'section break', 'checkbox', 'toggle button', 'icon'],
+    optionalLabeledElement: labeledElementTypes,
     projectStatus: ['Production', 'Development', 'Analysis/Cleanup'],
     projectType: [
         'Practice / Just for fun',
