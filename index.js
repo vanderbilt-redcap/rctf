@@ -175,6 +175,12 @@ function rctf_initialize() {
                     redcap_url_pre_survey: window.redcap_url_pre_survey
                 }))
             })
+
+            Notification.requestPermission().then((permission) => {
+                if (permission === "granted") {
+                    new Notification("Cypress test run completed");
+                }
+            })
         }
     })
 }
