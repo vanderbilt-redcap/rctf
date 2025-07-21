@@ -271,7 +271,7 @@ module.exports = (cypressOn, config) => {
 
         async fetchLatestDownload({fileExtension}){
             const threshold = new Date();
-            threshold.setTime(threshold.getTime() - 3000); // Only look for very recent downloads
+            threshold.setTime(threshold.getTime() - 10000); // Only look for very recent downloads
 
             const fetchOnce = () => {
                 const downloadsDir = shell.pwd() + '/cypress/downloads/'
