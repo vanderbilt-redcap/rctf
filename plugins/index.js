@@ -307,14 +307,14 @@ module.exports = (cypressOn, config) => {
                 })
             }
 
-            const tries = 10
+            const tries = 100
             for(let i=0; i<tries; i++){
                 const file = fetchOnce()
                 if(file){
                     return file
                 }
 
-                await sleep(250)
+                await sleep(100)
             }
 
             return ''
