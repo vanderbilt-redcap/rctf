@@ -178,7 +178,16 @@ function rctf_initialize() {
 
             Notification.requestPermission().then((permission) => {
                 if (permission === "granted") {
-                    new Notification("Cypress test run completed");
+                    const getStatus = () => {
+                        if(lastFailingFeature){
+                            return 'failed'
+                        }
+                        else{
+                            return 'suceeded'
+                        }
+                    }
+
+                    new Notification("Cypress test run " + getStatus())
                 }
             })
         }
