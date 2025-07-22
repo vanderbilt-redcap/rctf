@@ -1691,7 +1691,17 @@ Given("I click on the {string} {labeledElement} within (a)(the) {tableTypes} tab
 Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optionalQuotedString}( )in the (column labeled ){optionalQuotedString}( and the )row labeled {string}( that){disabled}", (action, articleType, labeledElement, text, columnLabel, rowLabel, disabled_text) => {
     const performActionOnTarget = (target) =>{
         console.log('performActionOnTarget target', target)
-        if(labeledElement){
+        if(action === 'should NOT see'){
+            /**
+             * We use innerText.indexOf() rather than the ':contains()' selector
+             * to avoid matching text within hidden tags and <script> tags,
+             * since they are not actually visible.
+             */
+            if(target.innerText.includes(text)){
+                throw 'Unexpected text found'
+            }
+        }
+        else if(labeledElement){
             cy.wrap(target).within(() => {
                 const next = (action, result) =>{
                     performAction(action, result, disabled_text)
@@ -1734,16 +1744,6 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
             if(!target.innerText.includes(text)){
                 console.log('target', target)
                 throw 'Expected text not found'
-            }
-        }
-        else if(action === 'should NOT see'){
-            /**
-             * We use innerText.indexOf() rather than the ':contains()' selector
-             * to avoid matching text within hidden tags and <script> tags,
-             * since they are not actually visible.
-             */
-            if(target.innerText.includes(text)){
-                throw 'Unexpected text found'
             }
         }
         else{
