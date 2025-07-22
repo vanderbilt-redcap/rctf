@@ -16,8 +16,7 @@ Cypress.Commands.add('wait_to_hide_or_detach', (selector, options = {}) => {
             const elapsedTime = now - startTime
 
             if (elapsedTime >= timeout) {
-                reject(new Error(`Element ${selector} did not become detached within ${timeout}ms`))
-                return
+                throw new Error(`Element ${selector} did not become detached within ${timeout}ms`)
             }
 
             cy.get(selector, { timeout: 0 }).then(($element) => {
