@@ -327,6 +327,17 @@ const DOCKER_COMMAND_PREFIX = 'docker compose --project-directory ../redcap_dock
  * @description Starts or stops services required to test external storage 
 */
 Given(/^if running via automation, (start|stop) external storage services/, (action) => {
+    // Hack the REDCap source to point to redcap_docker-fake-gcs-server-1 instead of storage.googleapis.com
+    const remoteScriptPath = '/tmp/override-google-cloud-endpoint.sh'
+    const localScriptPath = '..' + remoteScriptPath
+    cy
+        .writeFile(localScriptPath, `
+            cd /var/www/html/redcap_v${Cypress.env('redcap_version')}
+            sed -i "s/googleClient = new StorageClient(\\['keyFile'/googleClient = new StorageClient(\\['apiEndpoint' => 'http:\\/\\/redcap_docker-fake-gcs-server-1', 'keyFile'/g" Classes/Files.php
+        `)
+        .exec(`docker cp ${localScriptPath} redcap_docker-app-1:${remoteScriptPath}`)
+        .exec(`docker exec redcap_docker-app-1 sh -c "sh ${remoteScriptPath}"`)
+
     // Even when starting services we stop them first to clear any old files from previous runs
     cy.exec(DOCKER_COMMAND_PREFIX + 'stop azurite minio fake-gcs-server webdav')
     
