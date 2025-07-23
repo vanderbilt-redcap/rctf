@@ -305,6 +305,20 @@ Given("I should see the following values in the most recent file in the {storage
             next = cy.findMostRecentS3File()
         }
         else{
+            if(location === 'Google Cloud Storage bucket'){
+                cy.exec('echo $USER').then(result =>{
+                    if(result.stdout === 'circleci'){
+                        /**
+                         * On circleci fake-gcs-server is run as root,
+                         * making any files it creates inaccessible to
+                         * the cypress process run by the "circleci" user by default.
+                         * The following allows access.
+                         */
+                        cy.exec('sudo chmod -R 777 ' + path)
+                    }
+                })
+            }
+
             next = cy.task('findMostRecentFile', {path})
         }
         
