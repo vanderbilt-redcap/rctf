@@ -1,3 +1,9 @@
+/**
+ * The parameter definitions must be duplicated in this file,
+ * because the file is not actually executed, but is instead
+ * parsed like a configuration file.
+ */
+
 defineParameterType({
             name: 'tableTypes',
             regexp: /|a|logging|browse users|file repository|administrators|reports|report data|define events|data access groups|DAGs Switcher|record status dashboard|data collection instruments|codebook|import data display|participant list|user rights|record locking|e-signature and locking management|record home page/,
