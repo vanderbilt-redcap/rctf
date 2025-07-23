@@ -313,7 +313,9 @@ Given("I should see the following values in the most recent file in the {storage
                          * the cypress process run by the "circleci" user by default.
                          * The following allows access.
                          */
-                        cy.exec('sudo chmod -R 777 ' + path)
+                        cy.exec('sudo chmod -R 777 ' + path).then(result => {
+                            cy.log('chmod result', JSON.stringify(result, null, 2))
+                        })
                     }
                 })
             }
