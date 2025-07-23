@@ -229,7 +229,6 @@ Given("I should see the following values in the last file downloaded", (dataTabl
 })
 
 Cypress.Commands.add('assertContains', {prevSubject: true}, (path, dataTable) => {
-    console.log('goose', path)
     if(!path){
         throw 'A recent file could not be found!'
     }
