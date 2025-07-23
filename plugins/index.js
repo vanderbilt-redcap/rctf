@@ -286,10 +286,13 @@ module.exports = (cypressOn, config) => {
 
                 // Sort files by modification time to get the latest one
                 files = files
+                    .filter(file => {
+                        return path.extname(file) !== '.crdownload'
+                    })
                     .map(file => ({ file, mtime: fs.statSync(path.join(downloadsDir, file)).mtime }))
                     .sort((a, b) => b.mtime - a.mtime)
                     .filter(item => {
-                        return item.mtime > threshold && path.extname(item.file) !== '.crdownload'
+                        return item.mtime > threshold
                     })
 
                 //If no filtered files are found ...
