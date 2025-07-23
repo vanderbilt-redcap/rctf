@@ -1682,10 +1682,12 @@ Given("I click on the {string} {labeledElement} within (a)(the) {tableTypes} tab
  * @example I click on the icon in the column labeled "Setup" and the row labeled "1"
  * @example I should see a button labeled "Edit" in the column labeled "Management Options" and the row labeled "1"
  * @param {action} action - the type of action to perform
- * @param {labeledElement} type - the type of element we're looking for
- * @param {string} text - the label for the element
- * @param {string} columnLabel - the label of the table column
+ * @param {articleType} articleType - available options: 'a', 'the'
+ * @param {optionalLabeledElement} type - the type of element we're looking for
+ * @param {optionalQuotedString} text - the label for the element
+ * @param {optionalQuotedString} columnLabel - the label of the table column
  * @param {string} rowLabel - the label of the table row
+ * @param {disabled} disabled_text - optional "is disabeld" text
  * @description Performs an action on a labeled element in the specified table row and/or column
  */
 Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optionalQuotedString}( )in the (column labeled ){optionalQuotedString}( and the )row labeled {string}( that){disabled}", (action, articleType, labeledElement, text, columnLabel, rowLabel, disabled_text) => {

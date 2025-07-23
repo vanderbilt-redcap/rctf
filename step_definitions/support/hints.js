@@ -185,7 +185,7 @@ defineParameterType({
 
 defineParameterType({
             name: 'labeledElement',
-            regexp: /|button|link|field|section break|checkbox|toggle button|icon|dropdown/,
+            regexp: /|button|link|field|section break|checkbox|toggle button|icon|dropdown|radio/,
         })
 
 defineParameterType({
@@ -240,7 +240,7 @@ defineParameterType({
 
 defineParameterType({
             name: 'optionalLabeledElement',
-            regexp: /(?: (button|link|field|section break|checkbox|toggle button|icon||))?/,
+            regexp: /(?: (button|link|field|section break|checkbox|toggle button|icon|dropdown|radio||))?/,
         })
 
 defineParameterType({
