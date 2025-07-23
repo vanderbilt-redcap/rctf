@@ -129,10 +129,8 @@ module.exports = (cypressOn, config) => {
                     continue
                 }
 
-                if(!fs.existsSync(directory)){
-                    fs.mkdirSync(directory) // Make sure the dir exists so the following succeeds
-                }
-
+                fs.mkdirSync(directory, {recursive: true}) // Make sure the dir exists so the following succeeds
+                
                 for (const file of fs.readdirSync(directory)) {
                     fs.rmSync(path.join(directory, file), { recursive: true })
                 }
