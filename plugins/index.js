@@ -334,17 +334,10 @@ module.exports = (cypressOn, config) => {
         findMostRecentFile({path}) {
             let mostRecent
             glob.sync(path + '/**').forEach(current => {
-                
                 // Use forward slashed instead to prevent backslashes from incorrectly being interpretted as escapes in thrown error messages interpreted by cypress.
                 current = current.replaceAll('\\', '/')
-                
-                if(current.includes('/__azur')){
-                    // Ignore azurite metadata files
-                    return
-                }
 
                 const stats = fs.statSync(current)
-                const age = Date.now() - stats.ctime
                 if(stats.isDirectory()){
                     return
                 }
