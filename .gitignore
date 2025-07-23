@@ -3,3 +3,4 @@
 .DS_Store
 /test_db/structure_and_data.sql
 /test_db/*.tmp
+/step_definitions/support/hints.js
