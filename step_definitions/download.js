@@ -379,8 +379,8 @@ Given(/^if running via automation, (start|stop) sftp server/, (action) => {
 /**
  * @module Download
  * @author Mark McEver <mark.mcever@vumc.org>
- * @example Then if running via automation, start sftp server
- * @description Starts or stops the sftp server 
+ * @example Then I populate "webdav_connection.php" with the appropriate WebDAV credentials
+ * @description Populates the <redcap-root>/webtools2/webdav/webdav_connection.php file with test credentials
 */
 Given("I populate \"webdav_connection.php\" with the appropriate WebDAV credentials", () => {
     const tmpPath = '../tmp/webdav_connection.php'
