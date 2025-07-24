@@ -1,4 +1,5 @@
 const { Given } = require('@badeball/cypress-cucumber-preprocessor')
+const rctf = require("../rctf.js")
 
 /**
  * @module Misc
@@ -11,7 +12,7 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 Given("I {shouldOrShouldNot} see a file on the External Storage server whose name contains {string}", (shouldOrShouldNot, partialFilename) => {
     const expected = shouldOrShouldNot === 'should'
     cy.task('matchingFileExists', {
-        dirPath: 'cypress/sftp_uploads',
+        dirPath: rctf.STORAGE_DIRECTORY_LOCATIONS['sftp server'],
         partialFilename: partialFilename
     }).then(actual => {
         expect(actual).to.equal(expected)
