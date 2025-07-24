@@ -325,13 +325,13 @@ module.exports = (cypressOn, config) => {
             return fs.existsSync(filePath)
         },
 
-        matchingFileExists({path, partialFilename}) {
-            return fs.readdirSync(path).filter(filename => filename.includes(partialFilename)).length > 0
+        matchingFileExists({dirPath, partialFilename}) {
+            return fs.readdirSync(dirPath).filter(filename => filename.includes(partialFilename)).length > 0
         },
 
-        findMostRecentFile({path}) {
+        findMostRecentFile({dirPath}) {
             let mostRecent
-            glob.sync(path + '/**').forEach(current => {
+            glob.sync(dirPath + '/**').forEach(current => {
                 // Use forward slashed instead to prevent backslashes from incorrectly being interpretted as escapes in thrown error messages interpreted by cypress.
                 current = current.replaceAll('\\', '/')
 

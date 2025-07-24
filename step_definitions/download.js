@@ -291,7 +291,7 @@ Cypress.Commands.add('findMostRecentS3File', () => {
  */
 Given("I should see the following values in the most recent file in the {storageDirectoryLocations}", (location, dataTable) => {
     cy.task('getStorageDirectoryLocations').then(locations => {
-        const path = locations[location]
+        const dirPath = locations[location]
 
         let next
         let deleteTempFile = false
@@ -313,14 +313,14 @@ Given("I should see the following values in the most recent file in the {storage
                          * the cypress process run by the "circleci" user by default.
                          * The following allows access.
                          */
-                        cy.exec('sudo chmod -R 777 ' + path).then(result => {
+                        cy.exec('sudo chmod -R 777 ' + dirPath).then(result => {
                             cy.log('chmod result', JSON.stringify(result, null, 2))
                         })
                     }
                 })
             }
 
-            next = cy.task('findMostRecentFile', {path})
+            next = cy.task('findMostRecentFile', {dirPath})
         }
         
         next.then(path => {

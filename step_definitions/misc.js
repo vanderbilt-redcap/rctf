@@ -11,7 +11,7 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 Given("I {shouldOrShouldNot} see a file on the External Storage server whose name contains {string}", (shouldOrShouldNot, partialFilename) => {
     const expected = shouldOrShouldNot === 'should'
     cy.task('matchingFileExists', {
-        path: 'cypress/sftp_uploads',
+        dirPath: 'cypress/sftp_uploads',
         partialFilename: partialFilename
     }).then(actual => {
         expect(actual).to.equal(expected)
