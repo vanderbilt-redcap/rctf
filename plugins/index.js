@@ -282,10 +282,15 @@ module.exports = (cypressOn, config) => {
                     files = files.filter(file => path.extname(file) === `.${fileExtension}`)
                 }
 
+                const ignoredExtensions = [
+                    '.crdownload', // Partial downloads in Chrome
+                    '.bucketMetadata', // Bucket metadata files in fake-gcs-server
+                ]
+
                 // Sort files by modification time to get the latest one
                 files = files
                     .filter(file => {
-                        return path.extname(file) !== '.crdownload'
+                        return !ignoredExtensions.includes(path.extname(file))
                     })
                     .map(file => ({ file, mtime: fs.statSync(path.join(downloadsDir, file)).mtime }))
                     .sort((a, b) => b.mtime - a.mtime)
