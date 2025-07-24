@@ -336,7 +336,11 @@ module.exports = (cypressOn, config) => {
                 current = current.replaceAll('\\', '/')
 
                 const stats = fs.statSync(current)
-                if(stats.isDirectory()){
+                if(path.extname(current) === '.bucketMetadata'){
+                    // Ignore bucket metadata files on fake-gcs-server
+                    return
+                }
+                else if(stats.isDirectory()){
                     return
                 }
                 else if(
