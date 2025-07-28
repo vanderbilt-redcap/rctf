@@ -129,6 +129,11 @@ module.exports = (cypressOn, config) => {
                     continue
                 }
 
+                if(name === 'WebDAV server'){
+                    // There is currently a bug with permissions preventing deletion of WedDAV files in the cloud.  Skip that step for now.
+                    continue
+                }
+
                 fs.mkdirSync(directory, {recursive: true}) // Make sure the dir exists so the following succeeds
                 
                 for (const file of fs.readdirSync(directory)) {
