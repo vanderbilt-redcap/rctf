@@ -225,16 +225,177 @@ function loadPDF(record, survey, next){
  * @description Verifies the values within a PDF in the PDF Archive
  */
 Given("I should see the following values in the last file downloaded", (dataTable) => {
-    cy.task('fetchLatestDownload', { fileExtension: false }).then((path) => {
-        const extension = path.split('.').pop()
-        if(!path){
-            throw 'A recently downloaded file could not be found!'
+    cy.task('fetchLatestDownload', { fileExtension: false }).assertContains(dataTable)
+})
+
+Cypress.Commands.add('assertContains', {prevSubject: true}, (path, dataTable) => {
+    if(!path){
+        throw 'A recent file could not be found!'
+    }
+    
+    const extension = path.split('.').pop()
+    if(extension === 'pdf'){
+        cy.task('readPdf', { pdf_file: path }).assertPDFContainsDataTable(dataTable)
+    }
+    else{
+        throw 'This step needs to be expanded to support this file type: ' + path
+    }
+})
+
+Cypress.Commands.add('findMostRecentAzureFile', () => {
+    /**
+     * Azurite does not simply store files in a directory that we can directly access.
+     * We created this method to access them.
+     */
+    return cy.request({
+        url: '/azure/get-most-recent-file.php',
+        encoding: 'binary',
+    }).then((response) => {
+        expect(response.status).to.eq(200);
+
+        const filename = response.headers['content-disposition']
+            .split('filename=')[1]
+            .split('"')[1]                    
+
+        cy.task('createTempFile', {filename, content: response.body})
+    })
+})
+
+Cypress.Commands.add('findMostRecentS3File', () => {
+    cy.exec('docker exec mybucket.minio.local mc ls --json /data/mybucket/').then(result => {
+        const lines = result.stdout.split('\n')
+        let mostRecent = null
+        lines.forEach(line => {
+            const fileInfo = JSON.parse(line)
+            fileInfo.lastModified = new Date(fileInfo.lastModified)
+            if(mostRecent === null || fileInfo.lastModified > mostRecent.lastModified){
+                mostRecent = fileInfo
+            }
+        })
+
+        const filename = mostRecent.key.split('/')[0]
+        cy.exec('docker exec mybucket.minio.local mc cp local/mybucket/' + filename + ' /tmp').then(() => {
+            const path = '../tmp/' + filename
+            cy.exec('docker cp mybucket.minio.local:/tmp/' + filename + ' ' + path).then(() => {
+                return path
+            })
+        })
+    })
+})
+
+/**
+ * @module Download
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @example Then I should see the following values in the most recent file in the local storage path
+ * @description Verifies whether a file exists in the specified storage location
+ */
+Given("I should see the following values in the most recent file in the {storageDirectoryLocations}", (location, dataTable) => {
+    cy.task('getStorageDirectoryLocations').then(locations => {
+        const dirPath = locations[location]
+
+        let next
+        let deleteTempFile = false
+        if(location === 'Azure Blob Storage container'){
+            deleteTempFile = true
+            next = cy.findMostRecentAzureFile()
         }
-        else if(extension === 'pdf'){
-            cy.task('readPdf', { pdf_file: path }).assertPDFContainsDataTable(dataTable)
+        else if(location === 'Amazon S3 bucket'){
+            deleteTempFile = true
+            next = cy.findMostRecentS3File()
         }
         else{
-            throw 'This step needs to be expanded to support this file type: ' + path
+            if(location === 'Google Cloud Storage bucket'){
+                cy.exec('echo $USER').then(result =>{
+                    if(result.stdout === 'circleci'){
+                        /**
+                         * On circleci fake-gcs-server is run as root,
+                         * making any files it creates inaccessible to
+                         * the cypress process run by the "circleci" user by default.
+                         * The following allows access.
+                         */
+                        cy.exec('sudo chmod -R 777 ' + dirPath).then(result => {
+                            cy.log('chmod result', JSON.stringify(result, null, 2))
+                        })
+                    }
+                })
+            }
+
+            next = cy.task('findMostRecentFile', {dirPath})
         }
+        
+        next.then(path => {
+            cy.wrap(path).assertContains(dataTable).then(() => {
+                if(deleteTempFile){
+                    cy.task('deleteFile', {path})
+                }
+            })
+        })
     })
+})
+
+const DOCKER_COMMAND_PREFIX = 'docker compose --project-directory ../redcap_docker/ '
+
+/**
+ * @module Download
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @example Then if running via automation, start external storage services
+ * @description Starts or stops services required to test external storage 
+*/
+Given(/^if running via automation, (start|stop) external storage services/, (action) => {
+    // Hack the REDCap source to point to redcap_docker-fake-gcs-server-1 instead of storage.googleapis.com
+    const remoteScriptPath = '/tmp/override-google-cloud-endpoint.sh'
+    const localScriptPath = '..' + remoteScriptPath
+    cy
+        .writeFile(localScriptPath, `
+            cd /var/www/html/redcap_v${Cypress.env('redcap_version')}
+            sed -i "s/googleClient = new StorageClient(\\['keyFile'/googleClient = new StorageClient(\\['apiEndpoint' => 'http:\\/\\/redcap_docker-fake-gcs-server-1', 'keyFile'/g" Classes/Files.php
+        `)
+        .exec(`docker cp ${localScriptPath} redcap_docker-app-1:${remoteScriptPath}`)
+        .exec(`docker exec redcap_docker-app-1 sh -c "sh ${remoteScriptPath}"`)
+
+    // Even when starting services we stop them first to clear any old files from previous runs
+    cy.exec(DOCKER_COMMAND_PREFIX + 'stop azurite minio fake-gcs-server webdav')
+    
+    if(action === 'start'){
+        cy.exec(DOCKER_COMMAND_PREFIX + '--profile external-storage up -d')
+    }
+})
+
+/**
+ * @module Download
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @example Then if running via automation, start sftp server
+ * @description Starts or stops the sftp server 
+*/
+Given(/^if running via automation, (start|stop) sftp server/, (action) => {
+    if(action === 'start'){
+        cy.exec(DOCKER_COMMAND_PREFIX + '--profile sftp up -d')
+    }
+    else{
+        cy.exec(DOCKER_COMMAND_PREFIX + 'stop sftp')
+    }
+})
+
+/**
+ * @module Download
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @example Then I populate "webdav_connection.php" with the appropriate WebDAV credentials
+ * @description Populates the <redcap-root>/webtools2/webdav/webdav_connection.php file with test credentials
+*/
+Given("I populate \"webdav_connection.php\" with the appropriate WebDAV credentials", () => {
+    const tmpPath = '../tmp/webdav_connection.php'
+    cy.writeFile(tmpPath, `<?php
+        /**********************************************************
+         Replace the values inside the single quotes below with 
+        the values for your WebDAV configuration. Do not change
+        anything else in this file.
+        **********************************************************/
+
+        $webdav_hostname = 'redcap_docker-webdav-1'; // e.g., ebldav.mc.vanderbilt.edu
+        $webdav_username = 'webdav-user';
+        $webdav_password = 'webdav-pass';
+        $webdav_port 	 = '80'; // '80' is default. If REDCap web server is exposed to the web, you MUST use SSL (default port '443').
+        $webdav_path	 = '/'; // Set path where REDCap files will be stored. Must end with a slash or back slash, depending on your OS.
+        $webdav_ssl		 = '0'; // '0' is default. If REDCap web server is exposed to the web, you MUST use SSL (set to '1').
+    `).exec('docker cp ' + tmpPath + ' redcap_docker-app-1:/var/www/html/webtools2/webdav/webdav_connection.php')
 })

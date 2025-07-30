@@ -8,7 +8,13 @@ const transform = require('./step_definitions/support/transform_reg_ex_keys')
 require('./step_definitions/support/mappings')
 require('./step_definitions/support/all_mappings')
 
-let output_str = ''
+let output_str = `/**
+ * The parameter definitions must be duplicated in this file,
+ * because the file is not actually executed, but is instead
+ * parsed like a configuration file.
+ */
+
+`
 
 for (const key in window.parameterTypes) {
     if(transform.optional_parameters.includes(key)) {

@@ -154,26 +154,37 @@ function rctf_initialize() {
     after(() => {
         window.shouldShowAlerts = true
         registerEventListeners()
+
+        cy.url().then((url) => {
+            if(url === 'about:blank'){
+                /**
+                 * There was likely some error restoring the previosly saved url.
+                 * Leave the previously saved url in places for troubleshooting.
+                 */
+                return
+            }
+
+            cy.task('saveCurrentURL', ({
+                url: url,
+                redcap_url_pre_survey: window.redcap_url_pre_survey
+            }))
+        })
+
         
         if (Cypress.config('isInteractive')) {
-            /**
-             * We are a developer likely running a single feature at a time via the Cypress UI.
-             * Automatically save the user & page in case the developer wants to load "Continue Last Run.feature"
-             * and pick up where they left off.
-             */
-            cy.url().then((url) => {
-                if(url === 'about:blank'){
-                    /**
-                     * There was likely some error restoring the previosly saved url.
-                     * Leave the previously saved url in places for troubleshooting.
-                     */
-                    return
-                }
+            Notification.requestPermission().then((permission) => {
+                if (permission === "granted") {
+                    const getStatus = () => {
+                        if(lastFailingFeature){
+                            return 'failed'
+                        }
+                        else{
+                            return 'suceeded'
+                        }
+                    }
 
-                cy.task('saveCurrentURL', ({
-                    url: url,
-                    redcap_url_pre_survey: window.redcap_url_pre_survey
-                }))
+                    new Notification("Cypress test run " + getStatus())
+                }
             })
         }
     })

@@ -19,6 +19,7 @@
 const shell = require('shelljs')
 const sed_lite = require('sed-lite').sed
 const fs = require('fs')
+const os = require('os')
 const csv = require('async-csv')
 const path = require('path')
 const pdf = require('pdf-parse')
@@ -31,7 +32,9 @@ const {
     afterSpecHandler,
     afterScreenshotHandler,
 } = require("@badeball/cypress-cucumber-preprocessor")
-const { createEsbuildPlugin }  = require ("@badeball/cypress-cucumber-preprocessor/esbuild")
+const {createEsbuildPlugin}  = require("@badeball/cypress-cucumber-preprocessor/esbuild")
+const {glob} = require("glob")
+const rctf = require("../rctf.js")
 
 module.exports = (cypressOn, config) => {
     let on = cypressOn
@@ -121,15 +124,22 @@ module.exports = (cypressOn, config) => {
              * We're clearing the DB.  We should clear the filesystem at the same time,
              * to ensure each test starts with a clean slate.
              */
-            ;['cypress/downloads', 'cypress/sftp_uploads'].forEach(directory => {
-                if(!fs.existsSync(directory)){
-                    fs.mkdirSync(directory) // Make sure the dir exists so the following succeeds
+            for (const [name, directory] of Object.entries(rctf.STORAGE_DIRECTORY_LOCATIONS)) {
+                if(directory === false){
+                    continue
                 }
 
-                for (const file of fs.readdirSync(directory)) {
-                    fs.unlinkSync(path.join(directory, file))
+                if(name === 'WebDAV server'){
+                    // There is currently a bug with permissions preventing deletion of WedDAV files in the cloud.  Skip that step for now.
+                    continue
                 }
-            })
+
+                fs.mkdirSync(directory, {recursive: true}) // Make sure the dir exists so the following succeeds
+                
+                for (const file of fs.readdirSync(directory)) {
+                    fs.rmSync(path.join(directory, file), { recursive: true })
+                }
+            }
 
             // DEFINE OTHER LOCATIONS
             var test_seeds_location = shell.pwd() + '/node_modules/rctf/test_db';
@@ -264,7 +274,7 @@ module.exports = (cypressOn, config) => {
 
         async fetchLatestDownload({fileExtension}){
             const threshold = new Date();
-            threshold.setTime(threshold.getTime() - 3000); // Only look for very recent downloads
+            threshold.setTime(threshold.getTime() - 10000); // Only look for very recent downloads
 
             const fetchOnce = () => {
                 const downloadsDir = shell.pwd() + '/cypress/downloads/'
@@ -279,10 +289,13 @@ module.exports = (cypressOn, config) => {
 
                 // Sort files by modification time to get the latest one
                 files = files
+                    .filter(file => {
+                        return path.extname(file) !== '.crdownload'
+                    })
                     .map(file => ({ file, mtime: fs.statSync(path.join(downloadsDir, file)).mtime }))
                     .sort((a, b) => b.mtime - a.mtime)
                     .filter(item => {
-                        return item.mtime > threshold && path.extname(item.file) !== '.crdownload'
+                        return item.mtime > threshold
                     })
 
                 //If no filtered files are found ...
@@ -300,14 +313,14 @@ module.exports = (cypressOn, config) => {
                 })
             }
 
-            const tries = 10
+            const tries = 100
             for(let i=0; i<tries; i++){
                 const file = fetchOnce()
                 if(file){
                     return file
                 }
 
-                await sleep(250)
+                await sleep(100)
             }
 
             return ''
@@ -317,10 +330,49 @@ module.exports = (cypressOn, config) => {
             return fs.existsSync(filePath)
         },
 
-        matchingFileExists({path, partialFilename}) {
-            return fs.readdirSync(path).filter(filename => filename.includes(partialFilename)).length > 0
+        matchingFileExists({dirPath, partialFilename}) {
+            return fs.readdirSync(dirPath).filter(filename => filename.includes(partialFilename)).length > 0
         },
 
+        findMostRecentFile({dirPath}) {
+            let mostRecent
+            glob.sync(dirPath + '/**').forEach(current => {
+                // Use forward slashed instead to prevent backslashes from incorrectly being interpretted as escapes in thrown error messages interpreted by cypress.
+                current = current.replaceAll('\\', '/')
+
+                const stats = fs.statSync(current)
+                if(path.extname(current) === '.bucketMetadata'){
+                    // Ignore bucket metadata files on fake-gcs-server
+                    return
+                }
+                else if(stats.isDirectory()){
+                    return
+                }
+                else if(
+                    !mostRecent
+                    ||
+                    stats.ctime > fs.statSync(mostRecent).ctime
+                ){
+                    mostRecent = current
+                }
+            })
+
+            if(!mostRecent){
+                throw new Error('Recent file not found!')
+            }
+     
+            return mostRecent
+        },
+
+        getStorageDirectoryLocations() {
+            return rctf.STORAGE_DIRECTORY_LOCATIONS
+        },
+
+        createTempFile({filename, content}){
+            const path = os.tmpdir() + '/' + filename
+            fs.writeFileSync(path, content, 'binary')
+            return path
+        }
     })
 
     return config
