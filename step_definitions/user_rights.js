@@ -1,4 +1,5 @@
 const { Given } = require('@badeball/cypress-cucumber-preprocessor')
+const escapeStringRegexp = require('escape-string-regexp')
 
 /**
  * @module UserRights
@@ -78,7 +79,7 @@ Given("I select the User Right named {string} and choose {string}", (text, optio
             parent().
             within(() => {
                 cy.get('div').
-                contains(new RegExp(window.escapeStringRegexp(option))).
+                contains(new RegExp(escapeStringRegexp(option))).
                 find('input').
                 scrollIntoView().
                 should('be.visible').
