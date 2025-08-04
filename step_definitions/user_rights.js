@@ -78,7 +78,7 @@ Given("I select the User Right named {string} and choose {string}", (text, optio
             parent().
             within(() => {
                 cy.get('div').
-                contains(new RegExp(RegExp.escape(option))).
+                contains(new RegExp(window.RegExp.escape(option))).
                 find('input').
                 scrollIntoView().
                 should('be.visible').
