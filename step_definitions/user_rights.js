@@ -1,4 +1,23 @@
 const { Given } = require('@badeball/cypress-cucumber-preprocessor')
+if(RegExp.escape === undefined){
+    /**
+     * Poly fill copied from https://github.com/sindresorhus/escape-string-regexp/blob/main/index.js
+     * We cannot use require('escape-string-regexp') here because we need the method available in the browser.
+     * For some reason Cypress on the cloud is running Chrome 131 that does not include RegExp.escape().
+     * Once it is updated to at lease Chrome 136, this polyfill can be removed.
+     */
+    RegExp.escape = function(string) {
+        if (typeof string !== 'string') {
+            throw new TypeError('Expected a string');
+        }
+
+        // Escape characters with special meaning either inside or outside character sets.
+        // Use a simple backslash escape when it’s always valid, and a `\xnn` escape when the simpler form would be disallowed by Unicode patterns’ stricter grammar.
+        return string
+            .replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
+            .replace(/-/g, '\\x2d');
+    }
+}
 
 /**
  * @module UserRights
@@ -78,7 +97,7 @@ Given("I select the User Right named {string} and choose {string}", (text, optio
             parent().
             within(() => {
                 cy.get('div').
-                contains(new RegExp(window.RegExp.escape(option))).
+                contains(new RegExp(RegExp.escape(option))).
                 find('input').
                 scrollIntoView().
                 should('be.visible').
