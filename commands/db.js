@@ -5,14 +5,10 @@
 Cypress.Commands.add('base_db_seed', () => {
 
     /**
-     * This path used to be set via Cypress.env('redcap_source_path'),
-     * but that became unecessary when we decided to standardize cloud vs. local setups.
+     * The `redcap_source_path` setting in cypress.env.json can be omitted in most cases.
+     * This setting may only currently be used by Adam De Fouw at UW Madison.
      */
-    let redcap_source_path = '../redcap_source'
-
-    if(redcap_source_path === undefined){
-        alert('redcap_source_path, which defines where your REDCap source code exists, is missing in cypress.env.json.  Please configure it before proceeding.')
-    }
+    let redcap_source_path = Cypress.env('redcap_source_path') ?? '../redcap_source'
 
     //Get MySQL array from Environment Variables
     let mysql = Cypress.env('mysql')
