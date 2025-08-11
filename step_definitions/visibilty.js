@@ -188,8 +188,6 @@ Given("I should see {string} in the data entry form field {string}", function (f
  * @description Verifies that a visible element of the specified type containing `text` exists
  */
 Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButtons}( ){labeledElement}( ){labeledExactly}( ){string}{baseElement}{iframeVisibility}( )( that){disabled}", (article_type, prefix, online_buttons, el, labeled_exactly, text, base_element, iframe, disabled_text) => {
-    cy.not_loading()
-
     let opt_str = prefix
     let base
     let subsel = ''
