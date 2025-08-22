@@ -3,11 +3,11 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 /**
  * @module BrowseProjects
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I (should) see {int} row(s) displayed in the projects table
- * @param {int} num_rows - number of rows expected to be displayed in the Projects Table
+ * @example I (should) see {int} row(s) displayed in the projects table1
+ * @param {int} num_rows - number of rows expected to be displayed in the Projects Table2
  * @description Verifies the number of rows in the Browse Projects table.
  */
-Given('I (should )see {int} row(s) displayed in the projects table', (num_rows) => {
+Given('I (should )see {int} row(s) displayed in the projects table3', (num_rows) => {
     if(num_rows === 0){
         cy.get('table#table-proj_table').find('tr:visible').should('have.length', 0)
     } else {
