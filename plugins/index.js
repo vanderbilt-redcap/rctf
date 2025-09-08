@@ -33,12 +33,16 @@ const {
     afterScreenshotHandler,
 } = require("@badeball/cypress-cucumber-preprocessor")
 const {createEsbuildPlugin}  = require("@badeball/cypress-cucumber-preprocessor/esbuild")
-const {glob} = require("glob")
-const rctf = require("../rctf.js")
+const glob = require('glob')
 
 module.exports = (cypressOn, config) => {
     let on = cypressOn
     on = require('cypress-on-fix')(cypressOn)
+
+    const getRCTF = async () =>{
+        const imported = await import('../rctf.js') 
+        return imported.rctf
+    }
 
     addCucumberPreprocessorPlugin(on, config, {
         omitBeforeRunHandler: true,
@@ -119,12 +123,12 @@ module.exports = (cypressOn, config) => {
             return fs.existsSync(snapshot_file)
         },
 
-        populateStructureAndData({redcap_version, advanced_user_info, source_location}) {
+        async populateStructureAndData({redcap_version, advanced_user_info, source_location}) {
             /**
              * We're clearing the DB.  We should clear the filesystem at the same time,
              * to ensure each test starts with a clean slate.
              */
-            for (const [name, directory] of Object.entries(rctf.STORAGE_DIRECTORY_LOCATIONS)) {
+            for (const [name, directory] of Object.entries((await getRCTF()).STORAGE_DIRECTORY_LOCATIONS)) {
                 if(directory === false){
                     continue
                 }
@@ -364,8 +368,8 @@ module.exports = (cypressOn, config) => {
             return mostRecent
         },
 
-        getStorageDirectoryLocations() {
-            return rctf.STORAGE_DIRECTORY_LOCATIONS
+        async getStorageDirectoryLocations() {
+            return (await getRCTF()).STORAGE_DIRECTORY_LOCATIONS
         },
 
         createTempFile({filename, content}){

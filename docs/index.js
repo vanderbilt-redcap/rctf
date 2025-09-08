@@ -5,7 +5,7 @@ import GithubSlugger from 'github-slugger';
 import { util } from 'documentation/src/index.js';
 import hljs from 'highlight.js';
 import { fileURLToPath } from 'url';
-import rctfPackageJson from '../redcap_cypress/node_modules/rctf/package.json' assert { type: "json" }
+import rctfPackageJson from '../package.json' with { type: "json" }
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -131,12 +131,9 @@ export default async function (comments, config) {
     await fs.readFile(path.join(__dirname, 'index._'), 'utf8'),
     sharedImports
   );
-
-  // IMPORTANT: THIS IS THE KEY TO ALL GHERKIN GENERATOR MAGIC WORKING!  DO NOT DELETE!
-  await fs.copyFile('./node_modules/rctf/step_definitions/support/mappings.js', __dirname + '/assets/mappings.js')
-  await fs.copyFile('./node_modules/rctf/step_definitions/support/all_mappings.js', __dirname + '/assets/all_mappings.js')
-
-  await copyDir(__dirname + '/assets/', config.output + '/assets/');
+  // Do I even need to copy these if they're in the same repo?
+  // await fs.copyFile('../rctf/step_definitions/support/mappings.js', __dirname + '/assets/mappings.js')
+  // await fs.copyFile('../rctf/step_definitions/support/all_mappings.js', __dirname + '/assets/all_mappings.js')
 
   //Fetch the files currently in the docs directory
   let current_doc_files = await fs.readdir(config.output);

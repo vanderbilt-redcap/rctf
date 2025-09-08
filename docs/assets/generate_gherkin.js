@@ -1,3 +1,6 @@
+import {parameterTypes} from '../../step_definitions/support/all_mappings.js'
+window.parameterTypes = parameterTypes
+
 function countStringInstances(gherkinStep) {
     const regex = /\{string\}/g;
     const matches = gherkinStep.match(regex);
@@ -15,7 +18,7 @@ function extractOptionalText(text) {
     return optionalTextMatch ? optionalTextMatch[1] : '';
 }
 
-function outputStepGenerator(index){
+export function outputStepGenerator(index){
     const stepDefinition = window.all_steps[index - 1]
 
     // Function to replace placeholders with dropdowns and display in the output div
