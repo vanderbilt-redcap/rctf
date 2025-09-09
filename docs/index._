@@ -166,7 +166,14 @@
                   } )
               })
 
-              uniq_tags = [... new Set(all_tags)]
+              uniq_tags = [... new Set(all_tags)].sort((a, b) => {
+                let value = a.name.localeCompare(b.name)
+                if(value === 0){
+                    value = a.description.localeCompare(b.description)
+                }
+
+                return value
+              })
 
               let previous_tag = ''
 
