@@ -92,7 +92,7 @@
         <div class='py1 px2'>
           <h3 class='mb0 no-anchor'>rctf</h3>
           <div id='commit-and-version' class='mb1'>
-            This documentation was generated from <b>rctf</b> commit <b>add1c4a</b>,<br>
+            This documentation was generated from <b>rctf</b> commit <b>e7e9965</b>,<br>
             which was tested against REDCap <b>v15.5.7</b>.
           </div>
           <input
@@ -203,6 +203,10 @@
                     
                       <h2 class="mt1 mb1">Download</h2>
                     
+                    <li><a href='#i-shouldorshouldnot-see-a-signature-for-the-string-field-in-the-downloaded-pdf-for-record-string-and-survey-string'>I {shouldOrShouldNot} see a signature for the {string} field in the downloaded PDF for record {string} and survey {string}</a></li>
+                    
+              
+                    
                     <li><a href='#i-download-a-file-by-clicking-on-the-link-labeled-string'>I download a file by clicking on the link labeled {string}</a></li>
                     
               
@@ -211,7 +215,7 @@
                     
               
                     
-                    <li><a href='#i-should-see-a-signature-for-the-participant-signature-field-field-in-the-downloaded-pdf-for-record-1-and-survey-participant-consent'>I should see a signature for the &quot;Participant signature field&quot; field in the downloaded PDF for record &quot;1&quot; and survey &quot;Participant Consent&quot;</a></li>
+                    <li><a href='#i-populate-webdav_connectionphp-with-the-appropriate-webdav-credentials'>I populate &quot;webdav_connection.php&quot; with the appropriate WebDAV credentials</a></li>
                     
               
                     
@@ -219,11 +223,7 @@
                     
               
                     
-                    <li><a href='#then-i-populate-webdav_connectionphp-with-the-appropriate-webdav-credentials'>Then I populate &quot;webdav_connection.php&quot; with the appropriate WebDAV credentials</a></li>
-                    
-              
-                    
-                    <li><a href='#then-i-should-see-the-following-values-in-the-most-recent-file-in-the-local-storage-path'>Then I should see the following values in the most recent file in the local storage path</a></li>
+                    <li><a href='#i-should-see-the-following-values-in-the-most-recent-file-in-the-storagedirectorylocations'>I should see the following values in the most recent file in the {storageDirectoryLocations}</a></li>
                     
               
                     
@@ -3345,12 +3345,12 @@
       
         
           
-          <h2 class='fl mb0 mt0' id='i-download-a-file-by-clicking-on-the-link-labeled-string'>
-          I download a file by clicking on the link labeled {string}
+          <h2 class='fl mb0 mt0' id='i-shouldorshouldnot-see-a-signature-for-the-string-field-in-the-downloaded-pdf-for-record-string-and-survey-string'>
+          I {shouldOrShouldNot} see a signature <span class="hljs-keyword">for</span> the {string} field <span class="hljs-keyword">in</span> the downloaded <span class="hljs-variable constant_">PDF</span> <span class="hljs-keyword">for</span> record {string} and survey {string}
           </h2>
-          <div class="gherkin_step" id="i-download-a-file-by-clicking-on-the-link-labeled-string_gherkin"></div>
+          <div class="gherkin_step" id="i-shouldorshouldnot-see-a-signature-for-the-string-field-in-the-downloaded-pdf-for-record-string-and-survey-string_gherkin"></div>
           <script>
-                window.all_steps.push(`I download a file by clicking on the link labeled {string}`)
+                window.all_steps.push(`I {shouldOrShouldNot} see a signature for the {string} field in the downloaded PDF for record {string} and survey {string}`)
           </script>
         
       
@@ -3359,213 +3359,8 @@
       
           
               <script type="module">
-                document.getElementById(`i-download-a-file-by-clicking-on-the-link-labeled-string_gherkin`).innerHTML = `<div id="input21"></div><button onclick="generateText(21)" class="btn">Generate Step</button><br /><br /><div id="output21"></div>`
+                document.getElementById(`i-shouldorshouldnot-see-a-signature-for-the-string-field-in-the-downloaded-pdf-for-record-string-and-survey-string_gherkin`).innerHTML = `<div id="input21"></div><button onclick="generateText(21)" class="btn">Generate Step</button><br /><br /><div id="output21"></div>`
                 outputStepGenerator(21)
-              </script>
-          
-      
-    
-
-    
-  </div>
-  
-
-  
-      <div class='py1 quiet mt1 prose-big'>Parameters</div>
-      <div class='prose'>
-        
-          <div class='space-bottom0'>
-            <div>
-              <span class='code bold'>text</span>
-
-            
-
-                    <code class='quiet'>
-                        (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
-
-                  the text on the anchor element you want to click
-
-              
-
-            </div>
-            
-          </div>
-        
-      </div>
-    
-
-
-  <p>Downloads a file from an anchor element with a specific text label.</p>
-
-
-  
-  
-
-  
-  
-  
-  <p class='mb0'><strong>Author:</strong> <a href="mailto:aldefouw@medicine.wisc.edu">Adam De Fouw</a></p>
-  
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-</section>
-
-            
-        
-            
-
-            
-<section class='p2 mb2 clearfix bg-white minishadow'>
-
-  
-  <div class='clearfix'>
-    
-
-      
-        
-          
-          <h2 class='fl mb0 mt0' id='i-download-the-pdf-by-clicking-on-the-link-for-record-string-and-survey-string-in-the-file-repository-table'>
-          I download the <span class="hljs-variable constant_">PDF</span> by clicking on the link <span class="hljs-keyword">for</span> <span class="hljs-title class_">Record</span> {string} and <span class="hljs-title class_">Survey</span> {string} <span class="hljs-keyword">in</span> the <span class="hljs-title class_">File</span> <span class="hljs-title class_">Repository</span> table
-          </h2>
-          <div class="gherkin_step" id="i-download-the-pdf-by-clicking-on-the-link-for-record-string-and-survey-string-in-the-file-repository-table_gherkin"></div>
-          <script>
-                window.all_steps.push(`I download the PDF by clicking on the link for Record {string} and Survey {string} in the File Repository table`)
-          </script>
-        
-      
-
-
-      
-          
-              <script type="module">
-                document.getElementById(`i-download-the-pdf-by-clicking-on-the-link-for-record-string-and-survey-string-in-the-file-repository-table_gherkin`).innerHTML = `<div id="input22"></div><button onclick="generateText(22)" class="btn">Generate Step</button><br /><br /><div id="output22"></div>`
-                outputStepGenerator(22)
-              </script>
-          
-      
-    
-
-    
-  </div>
-  
-
-  
-      <div class='py1 quiet mt1 prose-big'>Parameters</div>
-      <div class='prose'>
-        
-          <div class='space-bottom0'>
-            <div>
-              <span class='code bold'>record</span>
-
-            
-
-                    <code class='quiet'>
-                        (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
-
-                  the ID of the record the PDF is associated with
-
-              
-
-            </div>
-            
-          </div>
-        
-          <div class='space-bottom0'>
-            <div>
-              <span class='code bold'>survey</span>
-
-            
-
-                    <code class='quiet'>
-                        (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
-
-                  the Survey / Event of the record the PDF is associated with
-
-              
-
-            </div>
-            
-          </div>
-        
-      </div>
-    
-
-
-  <p>Downloads a PDF file from the PDF Archive for a particular record ID and survey</p>
-
-
-  
-  
-
-  
-  
-  
-  <p class='mb0'><strong>Author:</strong> <a href="mailto:aldefouw@medicine.wisc.edu">Adam De Fouw</a></p>
-  
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-</section>
-
-            
-        
-            
-
-            
-<section class='p2 mb2 clearfix bg-white minishadow'>
-
-  
-  <div class='clearfix'>
-    
-
-      
-        
-          
-          <h2 class='fl mb0 mt0' id='i-should-see-a-signature-for-the-participant-signature-field-field-in-the-downloaded-pdf-for-record-1-and-survey-participant-consent'>
-          I should see a signature <span class="hljs-keyword">for</span> the <span class="hljs-string">&quot;Participant signature field&quot;</span> field <span class="hljs-keyword">in</span> the downloaded <span class="hljs-variable constant_">PDF</span> <span class="hljs-keyword">for</span> record <span class="hljs-string">&quot;1&quot;</span> and survey <span class="hljs-string">&quot;Participant Consent&quot;</span>
-          </h2>
-          <div class="gherkin_step" id="i-should-see-a-signature-for-the-participant-signature-field-field-in-the-downloaded-pdf-for-record-1-and-survey-participant-consent_gherkin"></div>
-          <script>
-                window.all_steps.push(`I should see a signature for the "Participant signature field" field in the downloaded PDF for record "1" and survey "Participant Consent"`)
-          </script>
-        
-      
-
-
-      
-          
-              <script type="module">
-                document.getElementById(`i-should-see-a-signature-for-the-participant-signature-field-field-in-the-downloaded-pdf-for-record-1-and-survey-participant-consent_gherkin`).innerHTML = `<div id="input23"></div><button onclick="generateText(23)" class="btn">Generate Step</button><br /><br /><div id="output23"></div>`
-                outputStepGenerator(23)
               </script>
           
       
@@ -3695,6 +3490,283 @@
       
         
           
+          <h2 class='fl mb0 mt0' id='i-download-a-file-by-clicking-on-the-link-labeled-string'>
+          I download a file by clicking on the link labeled {string}
+          </h2>
+          <div class="gherkin_step" id="i-download-a-file-by-clicking-on-the-link-labeled-string_gherkin"></div>
+          <script>
+                window.all_steps.push(`I download a file by clicking on the link labeled {string}`)
+          </script>
+        
+      
+
+
+      
+          
+              <script type="module">
+                document.getElementById(`i-download-a-file-by-clicking-on-the-link-labeled-string_gherkin`).innerHTML = `<div id="input22"></div><button onclick="generateText(22)" class="btn">Generate Step</button><br /><br /><div id="output22"></div>`
+                outputStepGenerator(22)
+              </script>
+          
+      
+    
+
+    
+  </div>
+  
+
+  
+      <div class='py1 quiet mt1 prose-big'>Parameters</div>
+      <div class='prose'>
+        
+          <div class='space-bottom0'>
+            <div>
+              <span class='code bold'>text</span>
+
+            
+
+                    <code class='quiet'>
+                        (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+
+                  the text on the anchor element you want to click
+
+              
+
+            </div>
+            
+          </div>
+        
+      </div>
+    
+
+
+  <p>Downloads a file from an anchor element with a specific text label.</p>
+
+
+  
+  
+
+  
+  
+  
+  <p class='mb0'><strong>Author:</strong> <a href="mailto:aldefouw@medicine.wisc.edu">Adam De Fouw</a></p>
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+            
+        
+            
+
+            
+<section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+
+      
+        
+          
+          <h2 class='fl mb0 mt0' id='i-download-the-pdf-by-clicking-on-the-link-for-record-string-and-survey-string-in-the-file-repository-table'>
+          I download the <span class="hljs-variable constant_">PDF</span> by clicking on the link <span class="hljs-keyword">for</span> <span class="hljs-title class_">Record</span> {string} and <span class="hljs-title class_">Survey</span> {string} <span class="hljs-keyword">in</span> the <span class="hljs-title class_">File</span> <span class="hljs-title class_">Repository</span> table
+          </h2>
+          <div class="gherkin_step" id="i-download-the-pdf-by-clicking-on-the-link-for-record-string-and-survey-string-in-the-file-repository-table_gherkin"></div>
+          <script>
+                window.all_steps.push(`I download the PDF by clicking on the link for Record {string} and Survey {string} in the File Repository table`)
+          </script>
+        
+      
+
+
+      
+          
+              <script type="module">
+                document.getElementById(`i-download-the-pdf-by-clicking-on-the-link-for-record-string-and-survey-string-in-the-file-repository-table_gherkin`).innerHTML = `<div id="input23"></div><button onclick="generateText(23)" class="btn">Generate Step</button><br /><br /><div id="output23"></div>`
+                outputStepGenerator(23)
+              </script>
+          
+      
+    
+
+    
+  </div>
+  
+
+  
+      <div class='py1 quiet mt1 prose-big'>Parameters</div>
+      <div class='prose'>
+        
+          <div class='space-bottom0'>
+            <div>
+              <span class='code bold'>record</span>
+
+            
+
+                    <code class='quiet'>
+                        (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+
+                  the ID of the record the PDF is associated with
+
+              
+
+            </div>
+            
+          </div>
+        
+          <div class='space-bottom0'>
+            <div>
+              <span class='code bold'>survey</span>
+
+            
+
+                    <code class='quiet'>
+                        (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+
+                  the Survey / Event of the record the PDF is associated with
+
+              
+
+            </div>
+            
+          </div>
+        
+      </div>
+    
+
+
+  <p>Downloads a PDF file from the PDF Archive for a particular record ID and survey</p>
+
+
+  
+  
+
+  
+  
+  
+  <p class='mb0'><strong>Author:</strong> <a href="mailto:aldefouw@medicine.wisc.edu">Adam De Fouw</a></p>
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+            
+        
+            
+
+            
+<section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+
+      
+        
+          
+          <h2 class='fl mb0 mt0' id='i-populate-webdav_connectionphp-with-the-appropriate-webdav-credentials'>
+          I populate <span class="hljs-string">&quot;webdav_connection.php&quot;</span> <span class="hljs-keyword">with</span> the appropriate <span class="hljs-title class_">WebDAV</span> credentials
+          </h2>
+          <div class="gherkin_step" id="i-populate-webdav_connectionphp-with-the-appropriate-webdav-credentials_gherkin"></div>
+          <script>
+                window.all_steps.push(`I populate "webdav_connection.php" with the appropriate WebDAV credentials`)
+          </script>
+        
+      
+
+
+      
+          
+              <script type="module">
+                document.getElementById(`i-populate-webdav_connectionphp-with-the-appropriate-webdav-credentials_gherkin`).innerHTML = `<div id="input24"></div><button onclick="generateText(24)" class="btn">Generate Step</button><br /><br /><div id="output24"></div>`
+                outputStepGenerator(24)
+              </script>
+          
+      
+    
+
+    
+  </div>
+  
+
+  
+
+
+  <p>Populates the /webtools2/webdav/webdav_connection.php file with test credentials</p>
+
+
+  
+  
+
+  
+  
+  
+  <p class='mb0'><strong>Author:</strong> <a href="mailto:mark.mcever@vumc.org">Mark McEver</a></p>
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+            
+        
+            
+
+            
+<section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+
+      
+        
+          
           <h2 class='fl mb0 mt0' id='i-should-see-the-following-values-in-the-last-file-downloaded'>
           I should see the following values <span class="hljs-keyword">in</span> the last file downloaded
           </h2>
@@ -3709,8 +3781,8 @@
       
           
               <script type="module">
-                document.getElementById(`i-should-see-the-following-values-in-the-last-file-downloaded_gherkin`).innerHTML = `<div id="input24"></div><button onclick="generateText(24)" class="btn">Generate Step</button><br /><br /><div id="output24"></div>`
-                outputStepGenerator(24)
+                document.getElementById(`i-should-see-the-following-values-in-the-last-file-downloaded_gherkin`).innerHTML = `<div id="input25"></div><button onclick="generateText(25)" class="btn">Generate Step</button><br /><br /><div id="output25"></div>`
+                outputStepGenerator(25)
               </script>
           
       
@@ -3806,12 +3878,12 @@
       
         
           
-          <h2 class='fl mb0 mt0' id='then-i-populate-webdav_connectionphp-with-the-appropriate-webdav-credentials'>
-          <span class="hljs-title class_">Then</span> I populate <span class="hljs-string">&quot;webdav_connection.php&quot;</span> <span class="hljs-keyword">with</span> the appropriate <span class="hljs-title class_">WebDAV</span> credentials
+          <h2 class='fl mb0 mt0' id='i-should-see-the-following-values-in-the-most-recent-file-in-the-storagedirectorylocations'>
+          I should see the following values <span class="hljs-keyword">in</span> the most recent file <span class="hljs-keyword">in</span> the {storageDirectoryLocations}
           </h2>
-          <div class="gherkin_step" id="then-i-populate-webdav_connectionphp-with-the-appropriate-webdav-credentials_gherkin"></div>
+          <div class="gherkin_step" id="i-should-see-the-following-values-in-the-most-recent-file-in-the-storagedirectorylocations_gherkin"></div>
           <script>
-                window.all_steps.push(`Then I populate "webdav_connection.php" with the appropriate WebDAV credentials`)
+                window.all_steps.push(`I should see the following values in the most recent file in the {storageDirectoryLocations}`)
           </script>
         
       
@@ -3820,79 +3892,7 @@
       
           
               <script type="module">
-                document.getElementById(`then-i-populate-webdav_connectionphp-with-the-appropriate-webdav-credentials_gherkin`).innerHTML = `<div id="input25"></div><button onclick="generateText(25)" class="btn">Generate Step</button><br /><br /><div id="output25"></div>`
-                outputStepGenerator(25)
-              </script>
-          
-      
-    
-
-    
-  </div>
-  
-
-  
-
-
-  <p>Populates the /webtools2/webdav/webdav_connection.php file with test credentials</p>
-
-
-  
-  
-
-  
-  
-  
-  <p class='mb0'><strong>Author:</strong> <a href="mailto:mark.mcever@vumc.org">Mark McEver</a></p>
-  
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-</section>
-
-            
-        
-            
-
-            
-<section class='p2 mb2 clearfix bg-white minishadow'>
-
-  
-  <div class='clearfix'>
-    
-
-      
-        
-          
-          <h2 class='fl mb0 mt0' id='then-i-should-see-the-following-values-in-the-most-recent-file-in-the-local-storage-path'>
-          <span class="hljs-title class_">Then</span> I should see the following values <span class="hljs-keyword">in</span> the most recent file <span class="hljs-keyword">in</span> the local storage path
-          </h2>
-          <div class="gherkin_step" id="then-i-should-see-the-following-values-in-the-most-recent-file-in-the-local-storage-path_gherkin"></div>
-          <script>
-                window.all_steps.push(`Then I should see the following values in the most recent file in the local storage path`)
-          </script>
-        
-      
-
-
-      
-          
-              <script type="module">
-                document.getElementById(`then-i-should-see-the-following-values-in-the-most-recent-file-in-the-local-storage-path_gherkin`).innerHTML = `<div id="input26"></div><button onclick="generateText(26)" class="btn">Generate Step</button><br /><br /><div id="output26"></div>`
+                document.getElementById(`i-should-see-the-following-values-in-the-most-recent-file-in-the-storagedirectorylocations_gherkin`).innerHTML = `<div id="input26"></div><button onclick="generateText(26)" class="btn">Generate Step</button><br /><br /><div id="output26"></div>`
                 outputStepGenerator(26)
               </script>
           

@@ -62,7 +62,6 @@ function shouldOrShouldNotToBoolean(shouldOrShouldNot){
 /**
  * @module Download
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I download a file by clicking on the link labeled {string}
  * @param {string} text - the text on the anchor element you want to click
  * @description Downloads a file from an anchor element with a specific text label.
  */
@@ -74,7 +73,6 @@ Given("I download a file by clicking on the link labeled {string}", (text) => {
 /**
  * @module Download
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I download the PDF by clicking on the link for Record {string} and Survey {string} in the File Repository table
  * @param {string} record - the ID of the record the PDF is associated with
  * @param {string} survey - the Survey / Event of the record the PDF is associated with
  * @description Downloads a PDF file from the PDF Archive for a particular record ID and survey
@@ -108,7 +106,6 @@ Given("I download the PDF by clicking on the link for Record {string} and Survey
 /**
  * @module Download
  * @author Mark McEver <mark.mcever@vumc.org>
- * @example I should see a signature for the "Participant signature field" field in the downloaded PDF for record "1" and survey "Participant Consent"
  * @param {string} shouldOrShouldNot - should or should NOT
  * @param {string} signatureField - the field under which the signature would be stored
  * @param {string} record - the Survey / Event of the record the PDF is associated with
@@ -219,7 +216,6 @@ function loadPDF(record, survey, next){
 /**
  * @module Download
  * @author Mark McEver <mark.mcever@vumc.org>
- * @example I should see the following values in the last file downloaded
  * @param {string} record - the ID of the record the PDF is associated with
  * @param {string} survey - the Survey / Event of the record the PDF is associated with
  * @description Verifies the values within a PDF in the PDF Archive
@@ -286,7 +282,6 @@ Cypress.Commands.add('findMostRecentS3File', () => {
 /**
  * @module Download
  * @author Mark McEver <mark.mcever@vumc.org>
- * @example Then I should see the following values in the most recent file in the local storage path
  * @description Verifies whether a file exists in the specified storage location
  */
 Given("I should see the following values in the most recent file in the {storageDirectoryLocations}", (location, dataTable) => {
@@ -379,7 +374,6 @@ Given(/^if running via automation, (start|stop) sftp server/, (action) => {
 /**
  * @module Download
  * @author Mark McEver <mark.mcever@vumc.org>
- * @example Then I populate "webdav_connection.php" with the appropriate WebDAV credentials
  * @description Populates the <redcap-root>/webtools2/webdav/webdav_connection.php file with test credentials
 */
 Given("I populate \"webdav_connection.php\" with the appropriate WebDAV credentials", () => {
