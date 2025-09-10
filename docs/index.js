@@ -10,15 +10,15 @@ import child_process from 'child_process'
 
 const prompt = PromptSync()
 
-const redcapVersion = child_process.execSync(`grep REDCAP_VERSION: ../redcap_cypress_docker/redcap_cypress/.circleci/config.yml |cut -d'"' -f 2`, { encoding: 'utf8' }).trim()
-if(prompt(`Is ${redcapVersion} the recently validated REDCap version (y/n)? `) !== 'y'){
-  console.log('In the redcap_cypress directory, please check out the commit used for validation.')
+const rctfCommit = child_process.execSync(`git log -1 --format=%h`, { encoding: 'utf8' }).trim()
+if(prompt(`Are you sure ${rctfCommit} is working as expected against recent cloud builds (y/n)? `) !== 'y'){
+  console.log(`Please check out the rctf branch working against recent cloud builds in order to update the docs.`)
   process.exit()
 }
 
-const rctfCommit = child_process.execSync(`git log -1 --format=%h`, { encoding: 'utf8' }).trim()
-if(prompt(`Is ${rctfCommit} the rctf commit used to validate that REDCap version (y/n)? `) !== 'y'){
-  console.log('Please check out the rctf commit used for validation.')
+const redcapVersion = child_process.execSync(`grep REDCAP_VERSION: ../redcap_cypress_docker/redcap_cypress/.circleci/config.yml |cut -d'"' -f 2`, { encoding: 'utf8' }).trim()
+if(prompt(`Are cloud builds currently running against REDCap ${redcapVersion} (y/n)? `) !== 'y'){
+  console.log(`In the redcap_cypress directory, please check out the branch from which recent successful cloud builds have run.`)
   process.exit()
 }
 
