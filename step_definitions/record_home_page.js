@@ -3,7 +3,6 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 /**
  * @module RecordHomePage
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I click the (bubble) ("X" icon) (to) {addOrSelect} (a record for the) (for the row labeled) {string} (longitudinal) (instrument) on (the) (event) (column labeled) {string}{cellAction}
  * @param {string} addOrSelect - available options: 'add', 'select'
  * @param {string} instrument - the name of the instrument you want to add a record to
  * @param {string} event - the name of the event you want to add a record to

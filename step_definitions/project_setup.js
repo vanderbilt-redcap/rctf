@@ -3,7 +3,6 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 /**
  * @module ProjectSetup
  * @author Corey Debacker <debacker@wisc.edu>
- * @example I (should) see that repeatable instruments are {repeatability}
  * @param {string} repeatability - available options: 'enabled', 'disabled', 'modifiable', 'unchangeable'
  * @description Visually verifies Repeatable Instrument functionality is enabled or disabled in the project.
  */
@@ -31,7 +30,6 @@ Given("I (should )see that repeatable instruments are {repeatability}", (state) 
 /**
  * @module ProjectSetup
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I open the dialog box for the Repeatable Instruments and Events module
  * @description Opens the dialog box for the Repeatable Instruments and Events module on the Project Setup page.
  */
 Given("I open the dialog box for the Repeatable Instruments and Events module", () => {

@@ -3,7 +3,6 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 /**
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I {enterType} Choice(s) of {string} in(to) the open "{addEditField}" dialog box
  * @param {string} enterType - available options: 'verify', 'enter', 'clear field and enter', 'click on'
  * @param {string} choices - the choices in string format
  * @param {string} addEditField - available options: 'Add New Field', 'Edit Field'
@@ -25,7 +24,6 @@ Given('I {enterType} Choice(s) of {string} in(to) the open "{addEditField}" dial
 /**
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I enter {string} into the Field Label of the open "{addEditField}" dialog box
  * @param {string} label - the label of the field to edit
  * @param {string} addEditField - available options: 'Add New Field', 'Edit Field'
  * @description Edits the field label of the open dialog box
@@ -37,7 +35,6 @@ Given('I enter {string} into the Field Label of the open "{addEditField}" dialog
 /**
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I enter {string} into the Variable Name of the open "{addEditField}" dialog box
  * @param {string} variable_name - the variable_name of the field to edit
  * @param {string} addEditField - available options: 'Add New Field', 'Edit Field'
  * @description Edits the variable name of the open dialog box
@@ -49,7 +46,6 @@ Given('I enter {string} into the Variable Name of the open "{addEditField}" dial
 /**
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I enter the equation {string} into Calculation Equation of the open "{addEditField}" dialog box
  * @param {string} equation - the equation to enter
  * @param {string} addEditField - available options: 'Add New Field', 'Edit Field'
  * @description Enters specified equation into a Calculated Field within an open "Edit Field" dialog box
@@ -63,7 +59,6 @@ Given('I enter the equation {string} into Calculation Equation of the open "{add
 /**
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I select {string} from the Field Type dropdown of the open "{addEditField}" dialog box
  * @param {string} label - the label of the field to edit
  * @param {string} addEditField - available options: 'Add New Field', 'Edit Field'
  * @description Selects option from the Field Type dropdown in open "Edit Field" dialog box
@@ -75,7 +70,6 @@ Given('I select {string} from the Field Type dropdown of the open "{addEditField
 /**
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I select {string} from the Validation dropdown of the open "{addEditField}" dialog box
  * @param {string} label - the label of the field to edit
  * @param {string} addEditField - available options: 'Add New Field', 'Edit Field'
  * @description Selects option from the Validation dropdown in open "Edit Field" dialog box
@@ -87,7 +81,6 @@ Given('I select {string} from the Validation dropdown of the open "{addEditField
 /**
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I mark the field required
  * @description Marks a field as required within the Online Designer.
  */
 Given("I mark the field required", () => {
@@ -97,7 +90,6 @@ Given("I mark the field required", () => {
 /**
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I mark the field as NOT required
  * @description Marks a field as NOT required within the Online Designer.
  */
 Given("I mark the field as NOT required", () => {
@@ -107,7 +99,6 @@ Given("I mark the field as NOT required", () => {
 /**
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I mark the field as an identifier
  * @description Marks a field as required within the Online Designer.
  */
 Given("I mark the field as an identifier", () => {
@@ -117,7 +108,6 @@ Given("I mark the field as an identifier", () => {
 /**
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I mark the field as NOT an identifier
  * @description Marks a field as NOT an identifier within the Online Designer.
  */
 Given("I mark the field as NOT an identifier", () => {
@@ -127,7 +117,6 @@ Given("I mark the field as NOT an identifier", () => {
 /**
  * @module OnlineDesigner
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I add an instrument below the instrument named {string}
  * @param {string} instrument - the name of the instrument you are adding an instrument below
  * @description Interactions - Clicks the Add Instrument Here button below a specific Instrument name
  */
@@ -141,7 +130,6 @@ Given("I add an instrument below the instrument named {string}", (instrument) =>
 /**
  * @module OnlineDesigner
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I click on the Instrument Action {string} for the instrument named {string}
  * @param {string} action - the action label of the link that should be clicked
  * @param {string} instrument - the name of the instrument that a form should be added below
  * @description Interactions - Clicks the "choose action" button and clicks an anchor link
@@ -156,7 +144,6 @@ Given("I click on the Instrument Action {string} for the instrument named {strin
 /**
  * @module OnlineDesigner
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I drag on the instrument named {string} to the position {int}
  * @param {string} instrument - the naame of the instrument being drag-n-dropped
  * @param {int} position - the position (index starting from 0) where the instrument should be placed
  * @description Interactions - Drag and drop the instrument to the int position
@@ -171,7 +158,6 @@ Given("I drag on the instrument named {string} to position {int}", (instrument, 
 /**
  * @module OnlineDesigner
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I click on the {addField} input button below the field named {string}
  * @param {string} addField - available options: 'Add Field', 'Add Matrix of Fields', 'Import from Field Bank'
  * @param {string} target - the name of the field you want to add a field below
  * @description Clicks on one of the add field options below a specified field name
@@ -186,7 +172,6 @@ Given("I click on the {addField} input button below the field named {string}", (
 /**
  * @module OnlineDesigner
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I click on the {editField} image for the field named {string}
  * @param {string} editField - available options: 'Edit', 'Edit Matrix', 'Branching Logic', 'Copy', 'Move', 'Delete Field'
  * @param {string} field - the name of the field you want to edit
  * @description Clicks on the image link of the action you want to perform on a field
@@ -199,7 +184,6 @@ Given("I click on the {editField} image for the field named {string}", (type, fi
 /**
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I delete the field named {string}
  * @param {string} type - the type of edit action you want to perform on a field
  * @description Interactions - Clicks on the image link of the action you want to perform on a field
  */
@@ -225,7 +209,6 @@ Given("I delete the field named {string}", (field_name) => {
 /**
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I move the field named {string} after the field named {string}
  * @param {string} field_name - name of field you want to move
  * @param {string} after_field - name of field you want to move AFTER
  * @description Moves a field AFTER the field specified
@@ -254,7 +237,6 @@ Given("I move the field named {string} after the field named {string}", (field_n
 /**
  * @module OnlineDesigner
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I drag (on) the field variable named {string} {aboveBelow} the field variable named {string}
  * @param {string} field - the name of the field being drag-n-dropped
  * @param {int} position - the position (index starting from 0) where the instrument should be placed
  * @description Interactions - Drag and drop the field to the int position
@@ -281,7 +263,6 @@ Given("I drag (on )the field variable named {string} {aboveBelow} the field vari
 /**
  * @module OnlineDesigner
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I should see a field named {string} {beforeAfter} field named {string}
  * @param {string} fieldBefore - the field name that comes before
  * @param {string} beforeAfter - available options: 'before', 'after'
  * @description Visually verifies that the fieldBefore is before fieldAfter
@@ -298,7 +279,6 @@ Given("I should see (a )(the )field named {string} {beforeAfter} field named {st
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @author Madilynn Peterson <mmpeterson24@wisc.edu>
- * @example I add a new {fieldType} field labeled {string} with variable name {string}
  * @param {string} fieldType - available options: 'Text Box', 'Notes Box', 'Drop-down List', 'Radio Buttons', 'Checkboxes', 'Yes - No', 'True - False', 'Signature', 'File Upload', 'Slider', 'Descriptive Text', 'Begin New Section', 'Calculated Field'
  * @param {string} variable_name - variable name
  * @description Creates a new field in the Online Designer
@@ -331,7 +311,6 @@ Given("I add a new {fieldType} field labeled {string} with variable name {string
 /**
  * @module OnlineDesigner
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I drag the instrument named {string} to the {ordinal} row
  * @param {string} instrument - the naame of the instrument being drag-n-dropped
  * @param {string} ordinal - available options: 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth', 'twentieth', 'last'
  * @description Interactions - Drag and drop the instrument to the int position
@@ -346,7 +325,6 @@ Given("I drag the instrument named {string} to the{ordinal} row", (instrument, p
 /**
  * @module OnlineDesigner
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I (should) see the instrument named {string} in the {ordinal} row
  * @param {string} instrument - the naame of the instrument being drag-n-dropped
  * @param {string} ordinal - available options: 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'last'
  * @description Interactions - Drag and drop the instrument to the int position
@@ -364,7 +342,6 @@ Given("I (should) see the instrument named {string} in the{ordinal} row", (instr
 /**
  * @module OnlineDesigner
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I drag the field named {string} to the {ordinal} row
  * @param {string} field - the name of the field being drag-n-dropped
  * @param {string} ordinal - available options: 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'last'
  * @description Interactions - Drag and drop the field to the int position
@@ -379,7 +356,6 @@ Given("I drag the field named {string} to the{ordinal} row", (field, position) =
 /**
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I click the "reset" link for the field labeled {string}
  * @param {string} field_label - the label of the field
  * @description Interactions - Clicks the reset link for a specific field label
  */
@@ -392,7 +368,6 @@ Given('I click the "reset" link for the field labeled {string}', (label) => {
 /**
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I (should )see {string} within the field with variable name {string}
  * @param {string} text - available options: 'Add Field', 'Add Matrix of Fields', 'Import from Field Bank'
  * @param {string} variable_name - the name of the field you want to add a field below
  * @description Clicks on one of the add field options below a specified field name
