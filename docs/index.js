@@ -47,7 +47,41 @@ function getSlug(str) {
   return slugs[str];
 }
 
+async function addExamples(comments) {
+  const fileContentByPath = {}
+  const Given = (s) => {
+    return s
+  }
+
+  for (const comment of comments) {
+    if(comment.examples.length > 0){
+      // One or more examples have been explicitly set.  Use those instead generate of generating an example from string passed to Given().
+      continue;
+    }
+
+    let content = fileContentByPath[comment.context.file]
+    if(!content){
+        content = await fs.readFile(comment.context.file, 'utf8')
+        fileContentByPath[comment.context.file] = content
+    }
+
+    const endIndex = content.indexOf('\n', comment.context.loc.start.index)
+    const firstContextLine = content.substring(comment.context.loc.start.index, endIndex)
+    if(firstContextLine.trim().startsWith('Given')){
+      const firstArg = eval(firstContextLine + '})')
+      if(typeof firstArg === 'string'){
+        comment.examples.push({description: firstArg})
+      }
+      else{
+        // We're likely dealing with a regex.  Do nothing.
+      }
+    }
+  }
+}
+
 export default async function (comments, config) {
+  await addExamples(comments)
+
   var linkerStack = new LinkerStack(config).namespaceResolver(
     comments,
     function (namespace) {
