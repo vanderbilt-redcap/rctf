@@ -3,7 +3,6 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 /**
  * @module ControlCenter
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I {enableDisable} the Administrator Privilege {string} for the administrator {string}
  * @param {string} enableDisable - available options: 'enable', 'disable'
  * @param {string} admin_user - the name of the user you are setting the privilege for
  * @description Enables the privilege for the administrator based upon user.
@@ -48,7 +47,6 @@ Given('I {enableDisable} the Administrator Privilege {string} for the administra
 /**
  * @module ControlCenter
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I enable the Administrator Privilege {string} for a new administrator
  * @param {string} privilege - the label of the privilege you want for the user
  * @description Enables the privilege for the administrator based upon user.
  */
@@ -77,7 +75,6 @@ Given('I enable the Administrator Privilege {string} for a new administrator', (
 /**
  * @module ControlCenter
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I click on the "{toDoTableIcons}" icon for the {toDoRequestTypes} request created for the project named {string} within the "{toDoTableTypes}" table
  * @param {string} toDoTableIcons - available options: 'process request', 'get more information', 'add or edit a comment', 'Move to low priority section', 'archive request notification'
  * @param {string} toDoRequestTypes - available options: 'Move to prod', 'Approve draft changes', 'Copy project', 'Delete project'
  * @param {string} project_name - the text value of project name you want to target
@@ -95,7 +92,6 @@ Given('I click on the "{toDoTableIcons}" icon for the "{toDoRequestTypes}" reque
 /**
  * @module ControlCenter
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I (should) see the "{toDoRequestTypes}" request created for the project named {string} within the "{toDoTableTypes}" table
  * @param {string} toDoRequestTypes - available options: 'Move to prod', 'Approve draft changes', 'Copy project'
  * @param {string} project_name - the text value of project name you want to target
  * @param {string} toDoTableTypes - available options: 'Pending Requests', 'Low Priority Pending Requests', 'Completed & Archived Requests'
