@@ -168,10 +168,9 @@
               let all_tags = []
 
               docs.forEach(function(doc) {
-                  doc.tags.forEach(function(tag) {
-                  if(tag['title'] === 'example'){
-                      all_tags.push( { name: doc.name, description: tag['description'], doc: doc } ) }
-                  } )
+                doc.examples.forEach(tag => {
+                  all_tags.push( { name: doc.name, description: tag['description'], doc: doc } )
+                })
               })
 
               uniq_tags = [... new Set(all_tags)].sort((a, b) => {
