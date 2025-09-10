@@ -1,0 +1,233 @@
+<% const handlePreserveConsecutiveUppercase = (decamelized, separator) => {
+       // Lowercase all single uppercase characters. As we
+       // want to preserve uppercase sequences, we cannot
+       // simply lowercase the separated string at the end.
+       // `data_For_USACounties` → `data_for_USACounties`
+       decamelized = decamelized.replace(
+           /((?<![\p{Uppercase_Letter}\d])[\p{Uppercase_Letter}\d](?![\p{Uppercase_Letter}\d]))/gu,
+           $0 => $0.toUpperCase(),
+       );
+
+       // Remaining uppercase sequences will be separated from lowercase sequences.
+       // `data_For_USACounties` → `data_for_USA_counties`
+       return decamelized.replace(
+           /(\p{Uppercase_Letter}+)(\p{Uppercase_Letter}\p{Lowercase_Letter}+)/gu,
+           (_, $1, $2) => $1 + separator + $2.toUpperCase(),
+       );
+   };
+
+  function decamelize(
+       text,
+       {
+           separator = '_',
+           preserveConsecutiveUppercase = false,
+       } = {},
+   ) {
+       if (!(typeof text === 'string' && typeof separator === 'string')) {
+           throw new TypeError(
+               'The `text` and `separator` arguments should be of type `string`',
+           );
+       }
+
+       // Checking the second character is done later on. Therefore process shorter strings here.
+       if (text.length < 2) {
+           return preserveConsecutiveUppercase ? text : text.toLowerCase();
+       }
+
+       const replacement = `$1${separator}$2`;
+
+       // Split lowercase sequences followed by uppercase character.
+       // `dataForUSACounties` → `data_For_USACounties`
+       // `myURLstring → `my_URLstring`
+       const decamelized = text.replace(
+           /([\p{Lowercase_Letter}\d])(\p{Uppercase_Letter})/gu,
+           replacement,
+       );
+
+       if (preserveConsecutiveUppercase) {
+           return handlePreserveConsecutiveUppercase(decamelized, separator);
+       }
+
+       // Split multiple uppercase characters followed by one or more lowercase characters.
+       // `my_URLstring` → `my_ur_lstring`
+       return decamelized
+           .replace(
+               /(\p{Uppercase_Letter})(\p{Uppercase_Letter}\p{Lowercase_Letter}+)/gu,
+               replacement,
+           )
+           .toLowerCase();
+   } %>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset='utf-8'>
+    <title><%- config['project-name'] %> <%- config['project-version'] %> | Documentation</title><% if (config['project-description']) { %>
+    <meta name='description' content='<%- config['project-description'] %>'><% } %>
+    <meta name='viewport' content='width=device-width,initial-scale=1'>
+    <link href='assets/bass.css' rel='stylesheet'>
+    <link href='assets/style.css' rel='stylesheet'>
+    <link href='assets/github.css' rel='stylesheet'>
+    <link href='assets/split.css' rel='stylesheet'><% if (config['favicon']) { %>
+    <link href='<%- config['favicon'] %>' rel='icon' ><% } %>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <script type="module" src="../step_definitions/support/mappings.js"></script>
+    <script type="module" src="../step_definitions/support/all_mappings.js"></script>
+    <script type="module" src="assets/generate_gherkin.js"></script>
+    <style>
+        #commit-and-version {
+            font-size: 13px;
+        }
+
+        /* Apply rounded corners to input text boxes */
+        input[type="text"] {
+            margin-top: 3px;
+            border-radius: 4px;
+            min-height: 10px;
+            border: 1px solid #ccc; /* Add a border for better visibility */
+            padding: 8px; /* Adjust padding for better appearance */
+        }
+
+        .select2 {
+            width: 200px;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .error-message {
+            color: red;
+            font-size: 12px;
+            padding: 5px;
+            font-weight: bold;
+        }
+
+        .gherkin_step {
+            background: #ccc;
+            padding: 20px;
+            border: 1px solid #ccc; /* Add a border for better visibility */
+            border-radius: 5px;
+        }
+
+        .gherkin_step .step{
+            background: #eee;
+            padding: 20px;
+            border: 1px solid #ccc; /* Add a border for better visibility */
+            border-radius: 5px
+        }
+
+        .gherkin_step .generated_step{
+            background: #eee;
+            padding: 20px;
+            border: 1px solid #ccc; /* Add a border for better visibility */
+            border-radius: 5px
+        }
+
+        pre {
+            margin: 0;
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body class='documentation m0'>
+
+    <div class='flex'>
+      <div id='split-left' class='overflow-auto fs0 height-viewport-100'>
+        <div class='py1 px2'>
+          <h3 class='mb0 no-anchor'><%- config['project-name'] %></h3>
+          <div id='commit-and-version' class='mb1'>
+            This documentation was generated from <b><%- config['project-name'] %></b> commit <b><%- rctfCommit %></b>,<br>
+            which was tested against REDCap <b>v<%- redcapVersion %></b>.
+          </div>
+          <input
+            placeholder='Filter'
+            id='filter-input'
+            class='col12 block input'
+            spellcheck='false'
+            autocapitalize='off'
+            autocorrect='off'
+            type='text' />
+          <div id='toc'>
+            <ul class='list-reset h5 py1-ul'>
+              <%
+              let all_tags = []
+
+              docs.forEach(function(doc) {
+                doc.examples.forEach(tag => {
+                  all_tags.push( { name: doc.name, description: tag['description'], doc: doc } )
+                })
+              })
+
+              uniq_tags = [... new Set(all_tags)].sort((a, b) => {
+                let value = a.name.localeCompare(b.name)
+                if(value === 0){
+                    value = a.description.localeCompare(b.description)
+                }
+
+                return value
+              })
+
+              let previous_tag = ''
+
+              uniq_tags.forEach(function(tag){ %>
+                    <% if (tag['name'] != previous_tag){ %>
+                      <h2 class="mt1 mb1"><%- decamelize(tag['name'], {separator: ' ', preserveConsecutiveUppercase: true}) %></h2>
+                    <% }%>
+                    <li><a href='#<%=slug(tag['description'])%>'><%- tag['description'] %></a></li>
+                    <% previous_tag = tag['name'] %>
+              <% }) %>
+            </ul>
+          </div>
+          <div class='mt1 h6 quiet'>
+            <a href='https://documentation.js.org/reading-documentation.html'>Need help reading this?</a>
+          </div>
+        </div>
+      </div>
+      <div id='split-right' class='relative overflow-auto height-viewport-100'>
+          <% var previous_section = '' %>
+
+          <script>
+              window.all_steps = []
+          </script>
+
+        <% var step_counter = 0 %>
+
+        <% uniq_tags.forEach(function(tag){ %>
+            <% if (tag['name'] != previous_section){ %>
+            <h2 class='fl mt3 mb2' id='<%- slug(tag['name']) %>'><%- decamelize(tag['name'], {separator: ' ', preserveConsecutiveUppercase: true}) %></h3>
+            <% }%>
+
+            <%= renderSection({
+                    section: tag['doc'],
+                    renderSection: renderSection,
+                    renderSectionList: renderSectionList,
+                    renderParamProperty: renderParamProperty,
+                    step_counter: step_counter += 1
+            }) %>
+            <% previous_section = tag['name'] %>
+        <% }) %>
+
+      </div>
+    </div>
+
+  <script src='assets/anchor.js'></script>
+  <script src='assets/split.js'></script>
+  <script src='assets/site.js'></script>
+
+</body>
+</html>

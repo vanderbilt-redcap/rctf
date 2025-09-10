@@ -12,16 +12,16 @@
     "cypress": "^14",
     "cypress-on-fix": "^1",
     "cypress-wait-until": "^3",
-    "sed-lite": "^0",
-    "pdf-parse": "^1"
-  },
-  "overrides": {
-    "glob": "^10"
+    "documentation": "github:documentationjs/documentation",
+    "glob": "^9.3.5",
+    "pdf-parse": "^1",
+    "prompt-sync": "^4.2.0",
+    "sed-lite": "^0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "docs:build": "./node_modules/.bin/documentation build /step_definitions/* -f html --theme node_modules/redcap_cypress_doc_theme/index.js -o docs",
-    "generate:hints": "node write_hints.js",
+    "docs:build": "./node_modules/.bin/documentation build -f html --theme docs/index.js -o docs",
+    "generate:hints": "node --no-warnings write_hints.js",
     "install:dev": "NODE_ENV=development npm install --save-dev @cypress/browserify-preprocessor",
     "install:prod": "NODE_ENV=production npm install --omit=optional"
   },

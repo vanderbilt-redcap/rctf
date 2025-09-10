@@ -1,21 +1,21 @@
-const rctf = require("../../rctf.js")
+import {rctf} from '../../rctf.js'
+import {mappings} from './mappings.js'
 
 function transformKeysToRegExp(variable){
     return Object.keys(variable).filter(key => key !== '')
 }
 
 const labeledElementTypes = ['button', 'link', 'field', 'section break', 'checkbox', 'toggle button', 'icon', 'dropdown', 'radio']
-
-window.parameterTypes = {
-    tableTypes: transformKeysToRegExp(window.tableMappings),
-    baseElement: transformKeysToRegExp(window.elementChoices),
-    toDoTableTypes: transformKeysToRegExp(window.toDoListTables),
-    userRightsChecks: transformKeysToRegExp(window.userRightChecks),
-    ordinal: transformKeysToRegExp(window.ordinalChoices),
-    recordStatusIcons: transformKeysToRegExp(window.recordStatusIcons),
-    fileRepoIcons: transformKeysToRegExp(window.fileRepoIcons),
-    onlineDesignerFieldIcons: transformKeysToRegExp(window.onlineDesignerFieldIcons),
-    participantListIcons: transformKeysToRegExp(window.participantListIcons),
+export const parameterTypes = {
+    tableTypes: transformKeysToRegExp(mappings.tableMappings),
+    baseElement: transformKeysToRegExp(mappings.elementChoices),
+    toDoTableTypes: transformKeysToRegExp(mappings.toDoListTables),
+    userRightsChecks: transformKeysToRegExp(mappings.userRightChecks),
+    ordinal: transformKeysToRegExp(mappings.ordinalChoices),
+    recordStatusIcons: transformKeysToRegExp(mappings.recordStatusIcons),
+    fileRepoIcons: transformKeysToRegExp(mappings.fileRepoIcons),
+    onlineDesignerFieldIcons: transformKeysToRegExp(mappings.onlineDesignerFieldIcons),
+    participantListIcons: transformKeysToRegExp(mappings.participantListIcons),
     action: ['click on', 'check', 'uncheck', 'should see', 'should NOT see'],
     addEditField: ['Add New Field', 'Edit Field'],
     addField: ['Add Field', 'Add Matrix of Fields', 'Import from Field Bank'],

@@ -1,4 +1,6 @@
-window.userRightChecks = {
+export const mappings = {}
+
+mappings.userRightChecks = {
     'Project Setup & Design' : 'design',
     'User Rights' : 'user_rights',
     'Data Access Groups' : 'data_access_groups',
@@ -27,21 +29,21 @@ window.userRightChecks = {
     'Email Logging' : 'email_logging'
 }
 
-window.singleChoiceMappings = {
+mappings.singleChoiceMappings = {
     'Data Exports' : 'data_export_tool',
     'API' : 'data_access_groups',
     'Lock/Unlock Records' : 'lock_record'
 }
 
 //These apply to REDCap v12+
-window.dataExportMappings = {
+mappings.dataExportMappings = {
     'No Access' : '0',
     'De-Identified' : '2',
     'Remove All Identifier Fields' : '3',
     'Full Data Set' : '1'
 }
 
-window.tableMappings = {
+mappings.tableMappings = {
     'a' :'table',
     'logging' : 'table.form_border',
     'browse users' : 'table#sponsorUsers-table',
@@ -63,7 +65,7 @@ window.tableMappings = {
     'record home page': 'table#event_grid_table'
 }
 
-window.dateFormats = {
+mappings.dateFormats = {
     'mm-dd-yyyy': /\d{2}-\d{2}-\d{4}/,
     'yyyy-mm-dd': /\d{4}-\d{2}-\d{2}/,
     'mm-dd-yyyy hh:mm': /\d{2}-\d{2}-\d{4} \d{1,2}:\d{2}(?:am|pm)?/,
@@ -81,7 +83,7 @@ window.dateFormats = {
     'hh:mm:ss.ms': /\d{1,2}:\d{2}:\d{2}\.\d{3}(?:am|pm)?/
 }
 
-window.exportMappings = {
+mappings.exportMappings = {
     'CSV / Microsoft Excel (raw data)'  :    'csv',
     'CSV / Microsoft Excel (labels)'    :    'csv',
     'SPSS Statistical Software'         :    'sps',
@@ -91,7 +93,7 @@ window.exportMappings = {
     'CDISC ODM (XML)'                   :    'odm'
 }
 
-window.validationTypes = {
+mappings.validationTypes = {
     'Code Postal 5 caracteres (France)'             : 'postalcode_french',
     'Date (D-M-Y)'                                  : 'date_dmy',
     'Date (M-D-Y)'                                  : 'date_mdy',
@@ -131,7 +133,7 @@ window.validationTypes = {
     'Zipcode (U.S.)'                                : 'zipcode',
 }
 
-window.projectModules = {
+mappings.projectModules = {
     'Main project settings': [
                               'Use surveys in this project?',
                               'Use longitudinal data collection with defined events?',
@@ -151,7 +153,7 @@ window.projectModules = {
 }
 
 //Make sure to keep the blank choice - we want to default to first option
-window.elementChoices = {
+mappings.elementChoices = {
     '' : 'html',
     ' on the tooltip' : 'div[class*=tooltip]:visible,div[id*=Tooltip]:visible',
     ' in the tooltip' : 'div[class*=tooltip]:visible,div[id*=Tooltip]:visible',
@@ -173,17 +175,17 @@ window.elementChoices = {
 }
 
 //IMPORTANT: Programmatically add the projectModules as element choices
-for (const category in window.projectModules) {
-    if (window.projectModules.hasOwnProperty(category)) {
-        window.elementChoices[` in the "${category}" section`] = `div:contains("${category}"):visible`
+for (const category in mappings.projectModules) {
+    if (mappings.projectModules.hasOwnProperty(category)) {
+        mappings.elementChoices[` in the "${category}" section`] = `div:contains("${category}"):visible`
 
-        window.projectModules[category].forEach((element) => {
-            window.elementChoices[` in the "${element}" row in the "${category}" section`] = `div:contains("${element}"):visible`
+        mappings.projectModules[category].forEach((element) => {
+            mappings.elementChoices[` in the "${element}" row in the "${category}" section`] = `div:contains("${element}"):visible`
         })
     }
 }
 
-window.icons = {
+mappings.icons = {
     'enabled survey icon'   : 'i.fa-clipboard-user:visible',
     'disabled icon'         : `img[src*=delete]:visible`,
     'checkmark icon'        : `img[src*=tick]:visible`,
@@ -191,11 +193,11 @@ window.icons = {
 }
 
 //IMPORTANT: Programmatically add the validationTypes as element choices
-for (const validation_desc in window.validationTypes) {
-    window.elementChoices[` in the validation row labeled "${validation_desc}"`] = `tr[id=${window.validationTypes[validation_desc]}]`
+for (const validation_desc in mappings.validationTypes) {
+    mappings.elementChoices[` in the validation row labeled "${validation_desc}"`] = `tr[id=${mappings.validationTypes[validation_desc]}]`
 }
 
-window.ordinalChoices = {
+mappings.ordinalChoices = {
     first: 0,
     second: 1,
     third: 2,
@@ -219,13 +221,13 @@ window.ordinalChoices = {
     last: -1
 }
 
-window.toDoListTables = {
+mappings.toDoListTables = {
     'Pending Requests': 'pending-container',
     'Low Priority Pending Requests': 'complete-ignore-container',
     'Completed & Archived Requests': 'archived-container',
 }
 
-window.recordStatusIcons = {
+mappings.recordStatusIcons = {
     'Incomplete' : `img[src*=circle_red]`,
     'Unverified' : `img[src*=circle_yellow]`,
     'Complete' : `img[src*=circle_green]`,
@@ -237,14 +239,14 @@ window.recordStatusIcons = {
     'Many statuses (all same)' : `img[src*=_stack]`
 }
 
-window.fileRepoIcons = {
+mappings.fileRepoIcons = {
     'File Share' : `i[class*=fa-arrow-up]`,
     'Restore' : `i[class*=fa-file-circle-plus]`,
     'Delete' : `i[class*=fa-times]`,
     'Delete Permanently' : `i[class*=fa-trash-can]`
 }
 
-window.onlineDesignerFieldIcons = {
+mappings.onlineDesignerFieldIcons = {
     'Edit' : `a[data-field-action=edit-field],img[src*=pencil]`,
     'Branching Logic': `a[data-field-action=branchinglogic],img[src*=branch]`,
     'Copy' : `a[data-field-action=copy-field],img[src*=copy]`,
@@ -259,12 +261,12 @@ window.onlineDesignerFieldIcons = {
     '"Add signature"' : 'a:visible:contains("Add signature")'
 }
 
-window.participantListIcons = {
+mappings.participantListIcons = {
     'green checkmark' : `img[src*=circle_green_tick]`,
     'gray bubble': `img[src*=stop_gray]`
 }
 
-window.tableHtmlElements = {
+mappings.tableHtmlElements = {
     '[icon]': { selector: 'img', condition: 'exist'},
     '[button]': { selector: 'button,input[type=button]', condition: 'exist'},
     '[x]': { selector: 'input[type=checkbox]:checked', condition: 'be.checked'},
@@ -274,7 +276,7 @@ window.tableHtmlElements = {
     '[e-signed icon]': { selector: 'img[src*=shield],i.fa-file-signature', condition: 'exist' }
 }
 
-window.fieldAction = {
+mappings.fieldAction = {
     'edit': 'edit-field',
     'edit matrix': 'edit-matrix',
     'branching logic': 'branchinglogic',
@@ -283,7 +285,7 @@ window.fieldAction = {
     'delete field': 'delete-field'
 }
 
-window.checkBoxAliases = {
+mappings.checkBoxAliases = {
     'in the enabled state': 'checked',
     'in the disabled state': 'unchecked',
     'toggle button': 'checkbox',

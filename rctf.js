@@ -1,4 +1,4 @@
-module.exports = {
+export const rctf = {
     STORAGE_DIRECTORY_LOCATIONS: {
         'local storage path': '../edocs',
         'downloads directory': 'cypress/downloads',

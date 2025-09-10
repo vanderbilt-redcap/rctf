@@ -3,7 +3,6 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 /**
  * @module CSV
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example the downloaded CSV with filename {string}( should have)( has) {int} row(s)
  * @param {string} filename - the filename the downloaded CSV
  * @param {int} num_rows - the number of row sthe CSV file should have
  * @description Verifies number of rows the CSV file should have.
@@ -19,7 +18,6 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 /**
  * @module CSV
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example the downloaded CSV with filename {string}( should have)( has) the( ){headerOrNot}( row)(s) below
  * @param {string} filename - the filename the downloaded CSV
  * @param {string} headerOrNot - available options: 'header and', 'header'
  * @param {DataTable} headings the DataTable of headings this file should have
@@ -63,7 +61,6 @@ Given("the downloaded CSV with filename {string}( should have)( has) the( ){head
 /**
  * @module CSV
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example the downloaded CSV with filename {string}( should have)( has) a value {string} for column {string}
  * @param {string} filename - the filename the downloaded CSV
  * @param {string} value - the value of the column data we are verifying
  * @param {string} column - the text name of the column data we are verifying
@@ -120,7 +117,6 @@ Given("the downloaded CSV with filename {string}( should have)( has) the( ){head
 /**
  * @module CSV
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I verify the {dateTimeType} in column labeled {string} for record {string} has shifted in the latest downloaded "csv"
  * @param {string} column_label - column in the CSV file
  * @param {string} record_name - name of the record in the CSV file
  * @description Verifies that a date has shifted from today's date
