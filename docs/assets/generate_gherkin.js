@@ -18,7 +18,7 @@ function extractOptionalText(text) {
     return optionalTextMatch ? optionalTextMatch[1] : '';
 }
 
-export function outputStepGenerator(index){
+window.outputStepGenerator = (index) => {
     const stepDefinition = window.all_steps[index - 1]
 
     // Function to replace placeholders with dropdowns and display in the output div
@@ -66,7 +66,7 @@ export function outputStepGenerator(index){
     document.getElementById(`input${index}`).innerHTML = `<div class="step"><strong>Gherkin Generator:</strong><br />${replacedStepDefinition}</div>`
 }
 
-function generateText(index) {
+window.generateText = (index) => {
     const stepDefinition = window.all_steps[index - 1]
 
     const placeholders = stepDefinition.match(/\((.*?)\)/g) || [];

@@ -38,11 +38,9 @@
 
       <% if (section.examples && section.examples.length) { %>
           <% section.examples.forEach(function(example) { %>
-              <script>
-                  import('./assets/generate_gherkin.js').then(module => {
-                      document.getElementById(`<%= slug(example.description) %>_gherkin`).innerHTML = `<div id="input${step_counter}"></div><button onclick="generateText(${step_counter})" class="btn">Generate Step</button><br /><br /><div id="output${step_counter}"></div>`
-                      module.outputStepGenerator(<%= step_counter %>)
-                  })
+              <script type="module">
+                document.getElementById(`<%= slug(example.description) %>_gherkin`).innerHTML = `<div id="input${step_counter}"></div><button onclick="generateText(${step_counter})" class="btn">Generate Step</button><br /><br /><div id="output${step_counter}"></div>`
+                outputStepGenerator(<%= step_counter %>)
               </script>
           <% }) %>
       <% } %>
