@@ -17,6 +17,10 @@
     <script type="module" src="../step_definitions/support/all_mappings.js"></script>
     <script type="module" src="assets/generate_gherkin.js"></script>
     <style>
+        #commit-and-version {
+            font-size: 13px;
+        }
+
         /* Apply rounded corners to input text boxes */
         input[type="text"] {
             margin-top: 3px;
@@ -87,6 +91,10 @@
       <div id='split-left' class='overflow-auto fs0 height-viewport-100'>
         <div class='py1 px2'>
           <h3 class='mb0 no-anchor'>rctf</h3>
+          <div id='commit-and-version' class='mb1'>
+            This documentation was generated via <b>rctf</b> commit <b>2f582c9</b>,
+            which was used to validate REDCap <b>v15.5.7</b>.
+          </div>
           <input
             placeholder='Filter'
             id='filter-input'

@@ -5,6 +5,22 @@ import GithubSlugger from 'github-slugger';
 import { util } from 'documentation/src/index.js';
 import hljs from 'highlight.js';
 import { fileURLToPath } from 'url';
+import PromptSync from 'prompt-sync';
+import child_process from 'child_process'
+
+const prompt = PromptSync()
+
+const redcapVersion = child_process.execSync(`grep REDCAP_VERSION: ../redcap_cypress_docker/redcap_cypress/.circleci/config.yml |cut -d'"' -f 2`, { encoding: 'utf8' }).trim()
+if(prompt(`Is ${redcapVersion} the recently validated REDCap version (y/n)? `) !== 'y'){
+  console.log('In the redcap_cypress directory, please check out the commit used for validation.')
+  process.exit()
+}
+
+const rctfCommit = child_process.execSync(`git log -1 --format=%h`, { encoding: 'utf8' }).trim()
+if(prompt(`Is ${rctfCommit} the rctf commit used to validate that REDCap version (y/n)? `) !== 'y'){
+  console.log('Please check out the rctf commit used for validation.')
+  process.exit()
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -117,7 +133,7 @@ export default async function (comments, config) {
     sharedImports
   );
 
-  const string = pageTemplate({ docs: comments, config });
+  const string = pageTemplate({ docs: comments, config, redcapVersion, rctfCommit });
 
   if (!config.output) {
     return string;
