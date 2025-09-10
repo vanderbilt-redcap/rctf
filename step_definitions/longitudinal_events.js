@@ -3,7 +3,6 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 /**
  * @module LongitudinalEvents
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I change the current Event Name from {string} to {string}
  * @param {string} currentName - the name of the event when this step is reached
  * @param {string} proposedName - the name of the event to change the current event name to
  * @description Changes the name of an event on the "Define My Events" page for a Longitudinal Project
@@ -15,7 +14,6 @@ Given("I change the current Event Name from {string} to {string}", (current_name
 /**
  * @module LongitudinalEvents
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I verify I cannot change the Event Name of {string} while in production
  * @param {string} currentName - the name of the event when this step is reached
  * @description Verifies the event name cannot be changed in production mode
  */
@@ -26,7 +24,6 @@ Given("I verify I cannot change the Event Name of {string} while in production",
 /**
  * @module LongitudinalEvents
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I add an event named {string} with offset of {int} day(s) into the currently selected arm
  * @param {string} eventName - the name of the event
  * @param {int} days - number of days offset
  * @description Adds an event via the "Define My Events" page for a Longitudinal Project
@@ -72,7 +69,6 @@ Given("I add an event named {string} with offset of {int} day(s) into the curren
 /**
  * @module LongitudinalEvents
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I click on the {editField} image for the event named {string}
  * @param {string} editEvent - available options: 'Edit', 'Delete'
  * @param {string} eventName - name of the Event targeted
  * @description Clicks on the image link of the action you want to perform on a event
@@ -88,7 +84,6 @@ Given("I click on the {editEvent} image for the event named {string}", (type, ev
 /**
  * @module LongitudinalEvents
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I (should) (not) see a Data Collection Instrument named {string} for the Event named {string}
  * @param {string} instrumentName - the name of the instrument
  * @param {string} eventName - the name of the event
  * @description Verifies an instrument exists within an event on a longitudinal project
@@ -130,7 +125,6 @@ Given("I {notSeeDC} {string} for the Event named {string}", (not_see, instrument
 /**
  * @module LongitudinalEvents
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I (should) see the {string} icon for the {string} longitudinal instrument (for instance) {optionalString} on event {string}
  * @param {string} icon - the name of the icon expected
  * @param {string} instrumentName - the name of the Data Collection Instrument targeted
  * @param {string} instance - (optional) the name of the instance, if using repeating instruments
@@ -171,7 +165,6 @@ Given( /I (?:should )?see the "(.*)" icon for the "(.*)" (?:longitudinal )?instr
 /**
  * @module LongitudinalEvents
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I enable the Data Collection Instrument named {string} for the Event named {string}
  * @param {string} instrumentName - the name of the Data Collection Instrument we are enabling for a specific event
  * @param {string} eventName - the name of the event to enable the Data Collection Instrument for
  * @description Enables a Data Collection Instrument for a specific Event within a Longitudinal Project.  (Assumption: User is on "Designate Instruments for My Events" page.)
@@ -183,7 +176,6 @@ Given("I enable the Data Collection Instrument named {string} for the Event name
 /**
  * @module LongitudinalEvents
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I disable the Data Collection Instrument named {string} for the Event named {string}
  * @param {string} instrumentName - the name of the Data Collection Instrument we are disabling for a specific event
  * @param {string} eventName - the name of the event to disable the Data Collection Instrument for
  * @description Disables a Data Collection Instrument for a specific Event within a Longitudinal Project. (Assumption: User is on "Designate Instruments for My Events" page.)
@@ -195,7 +187,6 @@ Given("I disable the Data Collection Instrument named {string} for the Event nam
 /**
  * @module LongitudinalEvents
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I verify the Data Collection Instrument named {string} is enabled for the Event named {string}
  * @param {string} instrumentName - the name of the Data Collection Instrument we are disabling for a specific event
  * @param {string} eventName - the name of the event to disable the Data Collection Instrument for
  * @description Verifies a Data Collection Instrument is enabled for a specific Event within a Longitudinal Project. (Assumption: User is on "Designate Instruments for My Events" page.)
@@ -207,7 +198,6 @@ Given("I verify the Data Collection Instrument named {string} is enabled for the
 /**
  * @module LongitudinalEvents
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I verify the Data Collection Instrument named {string} is disabled for the Event named {string}
  * @param {string} instrumentName - the name of the Data Collection Instrument we are disabling for a specific event
  * @param {string} eventName - the name of the event to disable the Data Collection Instrument for
  * @description Verifies a Data Collection Instrument is disabled for a specific Event within a Longitudinal Project. (Assumption: User is on "Designate Instruments for My Events" page.)
@@ -219,7 +209,6 @@ Given("I verify the Data Collection Instrument named {string} is disabled for th
 /**
  * @module LongitudinalEvents
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I verify the Data Collection Instrument named {string} is unmodifiable for the Event named {string}
  * @param {string} instrumentName - the name of the Data Collection Instrument we are disabling for a specific event
  * @param {string} eventName - the name of the event to disable the Data Collection Instrument for
  * @description Verifies a Data Collection Instrument is unmodifiable for a specific Event within a Longitudinal Project. (Assumption: User is on "Designate Instruments for My Events" page.)
@@ -231,7 +220,6 @@ Given("I verify the Data Collection Instrument named {string} is unmodifiable fo
 /**
  * @module LongitudinalProjectSetup
  * @author Mintoo Xavier <min2xavier@gmail.com>
- * @example I should NOT see the Delete image for the event named {string}
  * @param {string} eventName - name of event in row where X would be
  * @description Verifies the Delete image for the event is not present
  */

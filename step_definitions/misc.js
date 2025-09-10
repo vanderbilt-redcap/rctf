@@ -4,7 +4,6 @@ const rctf = require("../rctf.js")
 /**
  * @module Misc
  * @author Mark McEver <mark.mcever@vumc.org>
- * @example Then I verify that the External Storage server has a file whose name contains "pid13_formParticipantConsent_id1"
  * @param {shouldOrShouldNot} action - should or should NOT
  * @param {string} partialFilename - a filename or portion of a filename to check
  * @description Verifies whether a file exists on the External Storage server 

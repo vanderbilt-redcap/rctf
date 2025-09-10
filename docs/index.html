@@ -92,7 +92,7 @@
         <div class='py1 px2'>
           <h3 class='mb0 no-anchor'>rctf</h3>
           <div id='commit-and-version' class='mb1'>
-            This documentation was generated from <b>rctf</b> commit <b>3a86937</b>,<br>
+            This documentation was generated from <b>rctf</b> commit <b>677770a</b>,<br>
             which was tested against REDCap <b>v15.5.7</b>.
           </div>
           <input
@@ -377,7 +377,7 @@
                     
                       <h2 class="mt1 mb1">Login</h2>
                     
-                    <li><a href='#i-attempt-to-am-still-login-logged-in-to-redcap-with-the-user-string'>I (attempt to) (am still) (login) (logged in) to REDCap with the user {string}</a></li>
+                    <li><a href='#i-logintypes-the-user-string'>I {loginTypes} the user {string}</a></li>
                     
               
                     
@@ -387,15 +387,15 @@
                     
                       <h2 class="mt1 mb1">Longitudinal Events</h2>
                     
-                    <li><a href='#i-should-not-see-a-data-collection-instrument-named-string-for-the-event-named-string'>I (should) (not) see a Data Collection Instrument named {string} for the Event named {string}</a></li>
-                    
-              
-                    
-                    <li><a href='#i-should-see-the-string-icon-for-the-string-longitudinal-instrument-for-instance-optionalstring-on-event-string'>I (should) see the {string} icon for the {string} longitudinal instrument (for instance) {optionalString} on event {string}</a></li>
+                    <li><a href='#i-should-see-the-string-icon-for-the-string-longitudinal-instrument-for-instance-optionalstring-on-event-string'>I (should )see the {string} icon for the {string} longitudinal instrument( for instance ){optionalString} on event {string}</a></li>
                     
               
                     
                     <li><a href='#i-should-see-the-string-icon-for-the-string-longitudinal-instrument-on-event-string-for-record-string'>I (should) see the {string} icon for the {string} longitudinal instrument on event {string} for record {string}</a></li>
+                    
+              
+                    
+                    <li><a href='#i-notseedc-string-for-the-event-named-string'>I {notSeeDC} {string} for the Event named {string}</a></li>
                     
               
                     
@@ -407,7 +407,7 @@
                     
               
                     
-                    <li><a href='#i-click-on-the-editfield-image-for-the-event-named-string'>I click on the {editField} image for the event named {string}</a></li>
+                    <li><a href='#i-click-on-the-editevent-image-for-the-event-named-string'>I click on the {editEvent} image for the event named {string}</a></li>
                     
               
                     
@@ -437,13 +437,13 @@
                     
                       <h2 class="mt1 mb1">Longitudinal Project Setup</h2>
                     
-                    <li><a href='#i-should-not-see-the-delete-image-for-the-event-named-string'>I should NOT see the Delete image for the event named {string}</a></li>
+                    <li><a href='#i-should-not-see-the-delete-image-for-the-event-named-string'>I should NOT see the Delete image for the Event named {string}</a></li>
                     
               
                     
                       <h2 class="mt1 mb1">Misc</h2>
                     
-                    <li><a href='#then-i-verify-that-the-external-storage-server-has-a-file-whose-name-contains-pid13_formparticipantconsent_id1'>Then I verify that the External Storage server has a file whose name contains &quot;pid13_formParticipantConsent_id1&quot;</a></li>
+                    <li><a href='#i-shouldorshouldnot-see-a-file-on-the-external-storage-server-whose-name-contains-string'>I {shouldOrShouldNot} see a file on the External Storage server whose name contains {string}</a></li>
                     
               
                     
@@ -9237,12 +9237,12 @@
       
         
           
-          <h2 class='fl mb0 mt0' id='i-attempt-to-am-still-login-logged-in-to-redcap-with-the-user-string'>
-          <span class="hljs-title function_">I</span> (attempt to) (am still) (login) (logged <span class="hljs-keyword">in</span>) to <span class="hljs-title class_">REDCap</span> <span class="hljs-keyword">with</span> the user {string}
+          <h2 class='fl mb0 mt0' id='i-logintypes-the-user-string'>
+          I {loginTypes} the user {string}
           </h2>
-          <div class="gherkin_step" id="i-attempt-to-am-still-login-logged-in-to-redcap-with-the-user-string_gherkin"></div>
+          <div class="gherkin_step" id="i-logintypes-the-user-string_gherkin"></div>
           <script>
-                window.all_steps.push(`I (attempt to) (am still) (login) (logged in) to REDCap with the user {string}`)
+                window.all_steps.push(`I {loginTypes} the user {string}`)
           </script>
         
       
@@ -9251,7 +9251,7 @@
       
           
               <script type="module">
-                document.getElementById(`i-attempt-to-am-still-login-logged-in-to-redcap-with-the-user-string_gherkin`).innerHTML = `<div id="input63"></div><button onclick="generateText(63)" class="btn">Generate Step</button><br /><br /><div id="output63"></div>`
+                document.getElementById(`i-logintypes-the-user-string_gherkin`).innerHTML = `<div id="input63"></div><button onclick="generateText(63)" class="btn">Generate Step</button><br /><br /><div id="output63"></div>`
                 outputStepGenerator(63)
               </script>
           
@@ -9405,123 +9405,12 @@
       
         
           
-          <h2 class='fl mb0 mt0' id='i-should-not-see-a-data-collection-instrument-named-string-for-the-event-named-string'>
-          <span class="hljs-title function_">I</span> (should) (not) see a <span class="hljs-title class_">Data</span> <span class="hljs-title class_">Collection</span> <span class="hljs-title class_">Instrument</span> named {string} <span class="hljs-keyword">for</span> the <span class="hljs-title class_">Event</span> named {string}
-          </h2>
-          <div class="gherkin_step" id="i-should-not-see-a-data-collection-instrument-named-string-for-the-event-named-string_gherkin"></div>
-          <script>
-                window.all_steps.push(`I (should) (not) see a Data Collection Instrument named {string} for the Event named {string}`)
-          </script>
-        
-      
-
-
-      
-          
-              <script type="module">
-                document.getElementById(`i-should-not-see-a-data-collection-instrument-named-string-for-the-event-named-string_gherkin`).innerHTML = `<div id="input65"></div><button onclick="generateText(65)" class="btn">Generate Step</button><br /><br /><div id="output65"></div>`
-                outputStepGenerator(65)
-              </script>
-          
-      
-    
-
-    
-  </div>
-  
-
-  
-      <div class='py1 quiet mt1 prose-big'>Parameters</div>
-      <div class='prose'>
-        
-          <div class='space-bottom0'>
-            <div>
-              <span class='code bold'>instrumentName</span>
-
-            
-
-                    <code class='quiet'>
-                        (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
-
-                  the name of the instrument
-
-              
-
-            </div>
-            
-          </div>
-        
-          <div class='space-bottom0'>
-            <div>
-              <span class='code bold'>eventName</span>
-
-            
-
-                    <code class='quiet'>
-                        (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
-
-                  the name of the event
-
-              
-
-            </div>
-            
-          </div>
-        
-      </div>
-    
-
-
-  <p>Verifies an instrument exists within an event on a longitudinal project</p>
-
-
-  
-  
-
-  
-  
-  
-  <p class='mb0'><strong>Author:</strong> <a href="mailto:aldefouw@medicine.wisc.edu">Adam De Fouw</a></p>
-  
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-</section>
-
-            
-        
-            
-
-            
-<section class='p2 mb2 clearfix bg-white minishadow'>
-
-  
-  <div class='clearfix'>
-    
-
-      
-        
-          
           <h2 class='fl mb0 mt0' id='i-should-see-the-string-icon-for-the-string-longitudinal-instrument-for-instance-optionalstring-on-event-string'>
-          <span class="hljs-title function_">I</span> (should) see the {string} icon <span class="hljs-keyword">for</span> the {string} longitudinal <span class="hljs-title function_">instrument</span> (<span class="hljs-keyword">for</span> instance) {optionalString} on event {string}
+          <span class="hljs-title function_">I</span> (should )see the {string} icon <span class="hljs-keyword">for</span> the {string} longitudinal <span class="hljs-title function_">instrument</span>(<span class="hljs-params"> <span class="hljs-keyword">for</span> instance </span>){optionalString} on event {string}
           </h2>
           <div class="gherkin_step" id="i-should-see-the-string-icon-for-the-string-longitudinal-instrument-for-instance-optionalstring-on-event-string_gherkin"></div>
           <script>
-                window.all_steps.push(`I (should) see the {string} icon for the {string} longitudinal instrument (for instance) {optionalString} on event {string}`)
+                window.all_steps.push(`I (should )see the {string} icon for the {string} longitudinal instrument( for instance ){optionalString} on event {string}`)
           </script>
         
       
@@ -9530,8 +9419,8 @@
       
           
               <script type="module">
-                document.getElementById(`i-should-see-the-string-icon-for-the-string-longitudinal-instrument-for-instance-optionalstring-on-event-string_gherkin`).innerHTML = `<div id="input66"></div><button onclick="generateText(66)" class="btn">Generate Step</button><br /><br /><div id="output66"></div>`
-                outputStepGenerator(66)
+                document.getElementById(`i-should-see-the-string-icon-for-the-string-longitudinal-instrument-for-instance-optionalstring-on-event-string_gherkin`).innerHTML = `<div id="input65"></div><button onclick="generateText(65)" class="btn">Generate Step</button><br /><br /><div id="output65"></div>`
+                outputStepGenerator(65)
               </script>
           
       
@@ -9675,8 +9564,8 @@
       
           
               <script type="module">
-                document.getElementById(`i-should-see-the-string-icon-for-the-string-longitudinal-instrument-on-event-string-for-record-string_gherkin`).innerHTML = `<div id="input67"></div><button onclick="generateText(67)" class="btn">Generate Step</button><br /><br /><div id="output67"></div>`
-                outputStepGenerator(67)
+                document.getElementById(`i-should-see-the-string-icon-for-the-string-longitudinal-instrument-on-event-string-for-record-string_gherkin`).innerHTML = `<div id="input66"></div><button onclick="generateText(66)" class="btn">Generate Step</button><br /><br /><div id="output66"></div>`
+                outputStepGenerator(66)
               </script>
           
       
@@ -9763,6 +9652,117 @@
 
 
   <p>Verifies the icon given a specific longitudinal instrument and event for a given record</p>
+
+
+  
+  
+
+  
+  
+  
+  <p class='mb0'><strong>Author:</strong> <a href="mailto:aldefouw@medicine.wisc.edu">Adam De Fouw</a></p>
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</section>
+
+            
+        
+            
+
+            
+<section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+  <div class='clearfix'>
+    
+
+      
+        
+          
+          <h2 class='fl mb0 mt0' id='i-notseedc-string-for-the-event-named-string'>
+          I {notSeeDC} {string} <span class="hljs-keyword">for</span> the <span class="hljs-title class_">Event</span> named {string}
+          </h2>
+          <div class="gherkin_step" id="i-notseedc-string-for-the-event-named-string_gherkin"></div>
+          <script>
+                window.all_steps.push(`I {notSeeDC} {string} for the Event named {string}`)
+          </script>
+        
+      
+
+
+      
+          
+              <script type="module">
+                document.getElementById(`i-notseedc-string-for-the-event-named-string_gherkin`).innerHTML = `<div id="input67"></div><button onclick="generateText(67)" class="btn">Generate Step</button><br /><br /><div id="output67"></div>`
+                outputStepGenerator(67)
+              </script>
+          
+      
+    
+
+    
+  </div>
+  
+
+  
+      <div class='py1 quiet mt1 prose-big'>Parameters</div>
+      <div class='prose'>
+        
+          <div class='space-bottom0'>
+            <div>
+              <span class='code bold'>instrumentName</span>
+
+            
+
+                    <code class='quiet'>
+                        (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+
+                  the name of the instrument
+
+              
+
+            </div>
+            
+          </div>
+        
+          <div class='space-bottom0'>
+            <div>
+              <span class='code bold'>eventName</span>
+
+            
+
+                    <code class='quiet'>
+                        (<a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">string</a>)</code>
+
+                  the name of the event
+
+              
+
+            </div>
+            
+          </div>
+        
+      </div>
+    
+
+
+  <p>Verifies an instrument exists within an event on a longitudinal project</p>
 
 
   
@@ -10028,12 +10028,12 @@
       
         
           
-          <h2 class='fl mb0 mt0' id='i-click-on-the-editfield-image-for-the-event-named-string'>
-          I click on the {editField} image <span class="hljs-keyword">for</span> the event named {string}
+          <h2 class='fl mb0 mt0' id='i-click-on-the-editevent-image-for-the-event-named-string'>
+          I click on the {editEvent} image <span class="hljs-keyword">for</span> the event named {string}
           </h2>
-          <div class="gherkin_step" id="i-click-on-the-editfield-image-for-the-event-named-string_gherkin"></div>
+          <div class="gherkin_step" id="i-click-on-the-editevent-image-for-the-event-named-string_gherkin"></div>
           <script>
-                window.all_steps.push(`I click on the {editField} image for the event named {string}`)
+                window.all_steps.push(`I click on the {editEvent} image for the event named {string}`)
           </script>
         
       
@@ -10042,7 +10042,7 @@
       
           
               <script type="module">
-                document.getElementById(`i-click-on-the-editfield-image-for-the-event-named-string_gherkin`).innerHTML = `<div id="input70"></div><button onclick="generateText(70)" class="btn">Generate Step</button><br /><br /><div id="output70"></div>`
+                document.getElementById(`i-click-on-the-editevent-image-for-the-event-named-string_gherkin`).innerHTML = `<div id="input70"></div><button onclick="generateText(70)" class="btn">Generate Step</button><br /><br /><div id="output70"></div>`
                 outputStepGenerator(70)
               </script>
           
@@ -10794,11 +10794,11 @@
         
           
           <h2 class='fl mb0 mt0' id='i-should-not-see-the-delete-image-for-the-event-named-string'>
-          I should <span class="hljs-variable constant_">NOT</span> see the <span class="hljs-title class_">Delete</span> image <span class="hljs-keyword">for</span> the event named {string}
+          I should <span class="hljs-variable constant_">NOT</span> see the <span class="hljs-title class_">Delete</span> image <span class="hljs-keyword">for</span> the <span class="hljs-title class_">Event</span> named {string}
           </h2>
           <div class="gherkin_step" id="i-should-not-see-the-delete-image-for-the-event-named-string_gherkin"></div>
           <script>
-                window.all_steps.push(`I should NOT see the Delete image for the event named {string}`)
+                window.all_steps.push(`I should NOT see the Delete image for the Event named {string}`)
           </script>
         
       
@@ -10889,12 +10889,12 @@
       
         
           
-          <h2 class='fl mb0 mt0' id='then-i-verify-that-the-external-storage-server-has-a-file-whose-name-contains-pid13_formparticipantconsent_id1'>
-          <span class="hljs-title class_">Then</span> I verify that the <span class="hljs-title class_">External</span> <span class="hljs-title class_">Storage</span> server has a file whose name contains <span class="hljs-string">&quot;pid13_formParticipantConsent_id1&quot;</span>
+          <h2 class='fl mb0 mt0' id='i-shouldorshouldnot-see-a-file-on-the-external-storage-server-whose-name-contains-string'>
+          I {shouldOrShouldNot} see a file on the <span class="hljs-title class_">External</span> <span class="hljs-title class_">Storage</span> server whose name contains {string}
           </h2>
-          <div class="gherkin_step" id="then-i-verify-that-the-external-storage-server-has-a-file-whose-name-contains-pid13_formparticipantconsent_id1_gherkin"></div>
+          <div class="gherkin_step" id="i-shouldorshouldnot-see-a-file-on-the-external-storage-server-whose-name-contains-string_gherkin"></div>
           <script>
-                window.all_steps.push(`Then I verify that the External Storage server has a file whose name contains "pid13_formParticipantConsent_id1"`)
+                window.all_steps.push(`I {shouldOrShouldNot} see a file on the External Storage server whose name contains {string}`)
           </script>
         
       
@@ -10903,7 +10903,7 @@
       
           
               <script type="module">
-                document.getElementById(`then-i-verify-that-the-external-storage-server-has-a-file-whose-name-contains-pid13_formparticipantconsent_id1_gherkin`).innerHTML = `<div id="input78"></div><button onclick="generateText(78)" class="btn">Generate Step</button><br /><br /><div id="output78"></div>`
+                document.getElementById(`i-shouldorshouldnot-see-a-file-on-the-external-storage-server-whose-name-contains-string_gherkin`).innerHTML = `<div id="input78"></div><button onclick="generateText(78)" class="btn">Generate Step</button><br /><br /><div id="output78"></div>`
                 outputStepGenerator(78)
               </script>
           

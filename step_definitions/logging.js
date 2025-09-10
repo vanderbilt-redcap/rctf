@@ -3,7 +3,6 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 /**
  * @module Logging
  * @author Rushi Patel <rushi.patel@uhnresearch.ca>
- * @example I select the {string} option from the Filter by username dropdown field
  * @param {string} text - dropdown option
  * @description Select logging option from the Filter by username dropdown field
  */
@@ -15,7 +14,6 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
  * @module Logging
  * @author Rushi Patel <rushi.patel@uhnresearch.ca>
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I export all logging from the project and verify the result against expected logging results for this version of REDCap
  * @description Exports all logging from the Logging page
  */
  Given('I export all logging from the project and verify the result against expected logging results for this version of REDCap', () => {
