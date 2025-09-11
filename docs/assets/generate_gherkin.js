@@ -120,7 +120,7 @@ window.generateText = (index) => {
     document.getElementById(`output${index}`).innerHTML = `<div class="generated_step"><strong>Generated Step:</strong><br /><button class="btn" style="background: #007bff" onclick="copyToClipboard('step_${index}')">Copy Gherkin</button><pre><code id="step_${index}">${trimMultipleSpaces(replacedStepDefinition)}</code></pre></div>`;
 }
 
-function validateInteger(inputElement) {
+window.validateInteger = (inputElement) => {
     var inputValue = inputElement.value.trim();
 
     // Regular expression to check if the input is a valid integer
@@ -136,7 +136,7 @@ function validateInteger(inputElement) {
     }
 }
 
-function copyToClipboard(element_id) {
+window.copyToClipboard = (element_id) => {
     var codeBlock = document.getElementById(element_id);
     var range = document.createRange();
     range.selectNode(codeBlock);
