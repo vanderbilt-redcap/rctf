@@ -1,5 +1,4 @@
-import {parameterTypes} from '../../step_definitions/support/all_mappings.js'
-window.parameterTypes = parameterTypes
+import {} from '../../step_definitions/support/all_mappings.js'
 
 function countStringInstances(gherkinStep) {
     const regex = /\{string\}/g;

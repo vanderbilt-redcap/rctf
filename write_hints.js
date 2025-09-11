@@ -1,12 +1,6 @@
 import fs from 'fs'
-import path from 'path'
-
-// Create a global object named window (because it isn't available in Node by default)
-global.window = {}
-
 import transform from './step_definitions/support/transform_reg_ex_keys.js'
-import {parameterTypes} from './step_definitions/support/all_mappings.js'
-window.parameterTypes = parameterTypes
+import {} from './step_definitions/support/all_mappings.js'
 
 let output_str = `/**
  * The parameter definitions must be duplicated in this file,

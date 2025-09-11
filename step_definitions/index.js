@@ -4,9 +4,7 @@ require('../commands')
 
 //this needs to come before all_types because we use some of this in all_types
 require('./support/iframe')
-require('./support/mappings')
-import {parameterTypes} from './support/all_mappings.js'
-window.parameterTypes = parameterTypes
+require('./support/all_mappings.js')
 require('./support/all_types')
 
 //STANDARD

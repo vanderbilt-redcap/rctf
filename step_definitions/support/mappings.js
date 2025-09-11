@@ -1,4 +1,7 @@
-export const mappings = {}
+if(typeof window === 'undefined'){
+    // Required for node based calls like write_hints.js
+    window = {}
+}
 
 window.userRightChecks = {
     'Project Setup & Design' : 'design',
