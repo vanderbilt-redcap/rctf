@@ -14,6 +14,36 @@ function intercept_vanderbilt_requests(){
     })
 }
 
+function check_feature_filename_format(){
+    /**
+     * We check filenames here to ensure any inconsistencies are caught
+     * before analysts' initial commit for each feature file,
+     * since they often at least attempt to run them in Cypress.
+     */
+
+    // Only check redcap_rsvc files, as other institutions might use other formats
+    if(!Cypress.spec.relative.startsWith('redcap_rsvc')){
+        return
+    }
+
+    const parts = Cypress.spec.name.split('.')
+    if(!['A', 'B', 'C'].includes(parts[0])){
+        // We currently only check filesnames for features we run on automation.
+        return
+    }
+
+    if(!(
+        parts[0].length === 1 &&
+        parseInt(parts[1]) == parts[1] &&
+        parseInt(parts[2]) == parts[2] &&
+        parseInt(parts[3]) == parts[3] &&
+        parts[3].length === 4 &&
+        parts[4].startsWith(' - ')
+    )){
+        throw 'Feature files names must match the following general format: A.#.#.####. - Short description.feature'
+    }
+}
+
 function set_user_info(){
     cy.set_user_info(Cypress.env('users'))
 }
@@ -52,6 +82,7 @@ function rctf_initialize() {
 
     //This is where we initialize the stuff we need in a basic install
     before(() => {
+        check_feature_filename_format()
         load_support_files()
         set_user_info()
         intercept_vanderbilt_requests()
