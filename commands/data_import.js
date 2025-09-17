@@ -148,6 +148,10 @@ Cypress.Commands.add('upload_file', (fileName, fileType = ' ', selector = '', bu
             upload_element = cy.get(selector)
         }
 
+        if(fileName.startsWith('downloads/')){
+            fileName = "../" + fileName
+        }
+
         upload_element.then(subject => {
             cy.fixture(fileName, 'base64')
                 .then(Cypress.Blob.base64StringToBlob)
