@@ -120,7 +120,7 @@ function rctf_initialize() {
         }
     }
 
-    const rctfConfirm = () => {
+    const rctfConfirm = (str) => {
         console.log('detected confirm', str)
 
         if(shouldShowAlerts()){
