@@ -90,17 +90,7 @@ function before_click_monitor(type){
             url: '/redcap_v' + Cypress.env('redcap_version') + '/DataQuality/edit_rule_ajax.php*'
         }).as('data_quality_rule')
     } else if (type === " and cancel the confirmation window"){
-        cy.on('window:confirm', (str) => {
-            return false
-        })
-    } else if (type === " and accept the confirmation window"){
-        cy.window().then((win) =>
-            cy.stub(win, 'confirm').as('confirm').returns(true),
-        )
-
-        cy.on('window:confirm', (str) => {
-            return true
-        })
+        window.rctfCancelNextConfirm = true
     }
 }
 
@@ -124,10 +114,6 @@ function after_click_monitor(type){
                 cy.wrap($logic).should('not.have.descendants', 'textarea,button')
             })
         }
-    } else if (type === " and cancel the confirmation window") {
-        cy.on('window:confirm', (str) => {
-            return true //subsequent windows go back to default behavior
-        })
     }
 }
 
@@ -1281,20 +1267,6 @@ Given('I enter {string} into the field identified by {string} labeled {string}',
     // Find the cell that contains the label and find the parent
     cy.get('td').contains(label).parents('tr').within(() => {
         cy.get(selector).type(text)
-    })
-})
-
-/**
- * @module Interactions
- * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} confirmation - available options: 'accept', 'cancel'
- * @param {string} window_text - text that is expected to appear in the confirmation window
- * @description Pre-emptively tell Cypress what to do about a confirmation window.  NOTE: This step must come BEFORE step that clicks button.
- */
-Given('for this scenario, I will {confirmation} a confirmation window containing the text {string}', (action, window_text) => {
-    cy.on('window:confirm', (str) => {
-        expect(str).to.contain(window_text)
-        return action === "accept"
     })
 })
 

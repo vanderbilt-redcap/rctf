@@ -124,10 +124,15 @@ function rctf_initialize() {
         console.log('detected confirm', str)
 
         if(shouldShowAlerts()){
-            confirm(str)
+            return confirm(str)
         }
         else{
             window.lastAlert[str] = Date.now()
+        }
+
+        if(window.rctfCancelNextConfirm){
+            window.rctfCancelNextConfirm = false
+            return false
         }
 
         return true
@@ -135,11 +140,12 @@ function rctf_initialize() {
 
     const registerEventListeners = () => {
         /**
-         * There's a bug in cypress that prevents cy.on('window:alert') or Cypress.on('window:alert')
-         * from working in all cases (e.g. C.3.30.0800.)
-         * To ensure consistentcy, we manually override the alert & confirm functions instead.
-         * This is likely cleaner anyway since calling cy.on('window:alert') on each step was registering
-         * the same event listeners repeately and potentially slowing things down a little.
+         * We were running into issues on C.3.30.0800 that were caused by using cy.on('window:confirm')
+         * rather than cy.once('window:confirm').  This was causing a previous step to unexpectedly
+         * cancel confirm() dialogs for later steps.
+         * We could have resovled this using Cypress' event handling.
+         * However, we decided to switch to our function overrides to give us maximum control
+         * and to avoid the duplicate even handler registration issue that we've always had.
          * 
          * The following steps are helpful when troubleshooting alerts:
             Given I login to REDCap with the user "Test_Admin"
