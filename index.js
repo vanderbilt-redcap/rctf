@@ -94,55 +94,71 @@ function rctf_initialize() {
          * We use an object rather than an array so that we can use keys to avoid duplicates without
          * the need for something like 'lastAlert.includes(str)' for arrays, which can be expensive
          * since a dozen or so duplicate listeners are registered in some cases due to a quirk of Cypress.
+         * The "duplicate listeners" comment above is outdated, but we'll leave it for now in case we
+         * switch back to that implementation.
          */
         window.lastAlert = {}
     })
 
-    const registerEventListeners = () => {
-        const shouldShowAlerts = () => {
-            /**
-             * Cypress normally detects & suppress alerts during automated testing,
-             * but developers sometimes want to interact with the page normally
-             * if a test is paused or finished.  This functionality allows alerts in those cases.
-             */
-            return window.shouldShowAlerts
+    const shouldShowAlerts = () => {
+        /**
+         * Cypress normally detects & suppress alerts during automated testing,
+         * but developers sometimes want to interact with the page normally
+         * if a test is paused or finished.  This functionality allows alerts in those cases.
+         */
+        return window.shouldShowAlerts
+    }
+
+    const rctfAlert = (str) => {
+       console.log('detected alert', str)
+
+        if(shouldShowAlerts()){
+            alert(str)
+        }
+        else{
+            window.lastAlert[str] = Date.now()
+        }
+    }
+
+    const rctfConfirm = (str) => {
+        console.log('detected confirm', str)
+
+        if(shouldShowAlerts()){
+            return confirm(str)
+        }
+        else{
+            window.lastAlert[str] = Date.now()
         }
 
-        //Get last alert
-        cy.on('window:alert', (str) => {
-            /**
-             * This will show evidence of multiple event listeners being registered.
-             * This is expected. Cypress event listeners are unregistered at times that can't always be detected.
-             * We attempted to work around this for a while with a window.cypressEventListenersRegistered boolean.
-             * It worked in all cases we found except A.3.28.0300.
-             * We now allow the duplicate registrations to support that feature,
-             * and just try to make any actions within the listeners very simple & efficient.
-             * We also tried overriding the alert & confirm functions manually on the window
-             * but the overrides didn't apply immediately on page load and broke B.4.9.0100.
-             */
-            console.log('detected alert', str)
+        if(window.rctfCancelNextConfirm){
+            window.rctfCancelNextConfirm = false
+            return false
+        }
 
-            if(shouldShowAlerts()){
-                alert(str)
-            }
-            else{
-                window.lastAlert[str] = Date.now()
-            }
-        })
+        return true
+    }
 
-        //Get last confirmation
-        cy.on('window:confirm', (str) => {
-            /**
-             * See docblock above for the 'detected alert' log
-             */
-            console.log('detected confirm', str)
-
-            if(shouldShowAlerts()){
-                confirm(str)
-            }
-            else{
-                window.lastAlert[str] = Date.now()
-            }
+    const registerEventListeners = () => {
+        /**
+         * There's a bug in cypress that prevents cy.on('window:alert') or Cypress.on('window:alert')
+         * from working consisently in all cases (e.g. C.3.30.0800.,  C.3.24.0305).
+         * To ensure all alert & confirm calls are caught, we also manually override those functions on the window.
+         * 
+         * The following steps are helpful when troubleshooting alerts:
+            Given I login to REDCap with the user "Test_Admin"
+            And I click on the link labeled "Control Center"
+            And I click on the link labeled "Database Query Tool"
+            And I click on the button labeled "Custom query options"
+            And I click on the link labeled "Import custom queries"
+            And I click on the button labeled "Upload"
+            And I should see an alert box with the following text: "Please select a file first"
+         */
+        cy.on('window:alert', rctfAlert)
+        cy.on('window:confirm', rctfConfirm)
+        cy.window().then(win => {
+            // Actions performed within the function must be very efficient, as they are called on every step.
+            win.alert = rctfAlert
+            win.confirm = rctfConfirm
         })
     }
 

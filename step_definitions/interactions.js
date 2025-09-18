@@ -90,9 +90,7 @@ function before_click_monitor(type){
             url: '/redcap_v' + Cypress.env('redcap_version') + '/DataQuality/edit_rule_ajax.php*'
         }).as('data_quality_rule')
     } else if (type === " and cancel the confirmation window"){
-        cy.once('window:confirm', (str) => {
-            return false
-        })
+        window.rctfCancelNextConfirm = true
     }
 }
 
