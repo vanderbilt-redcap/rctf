@@ -1,3 +1,4 @@
+import DOMPurify from 'https://cdn.jsdelivr.net/npm/dompurify@3.2.7/+esm'
 import {} from '../../step_definitions/support/all_mappings.js'
 
 function countStringInstances(gherkinStep) {
@@ -115,6 +116,9 @@ window.generateText = (index) => {
         const value = document.getElementById(`optional_${index}_${i}`).value
         replacedStepDefinition = replacedStepDefinition.replace(param, value)
     }
+
+    index = parseInt(index)
+    replacedStepDefinition = DOMPurify.sanitize(replacedStepDefinition)
 
     // Display the replaced step definition in the output div
     document.getElementById(`output${index}`).innerHTML = `<div class="generated_step"><strong>Generated Step:</strong><br /><button class="btn" style="background: #007bff" onclick="copyToClipboard('step_${index}')">Copy Gherkin</button><pre><code id="step_${index}">${trimMultipleSpaces(replacedStepDefinition)}</code></pre></div>`;
