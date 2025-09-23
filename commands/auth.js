@@ -48,10 +48,10 @@ Cypress.Commands.add('login', (options, session) => {
     } else {
         cy.session(options['username'], () => {
             cy.login_steps(options)
-            cy.checkCookieAndLogin('PHPSESSID', options)
+            cy.checkCookieAndLogin(options)
         }, {
             validate: () => {
-                cy.checkCookieAndLogin('PHPSESSID', options)
+                cy.checkCookieAndLogin(options)
             }
         })
     }
@@ -64,12 +64,23 @@ Cypress.Commands.add('login_steps', (options) => {
     cy.get('button').contains('Log In').click()
 })
 
-Cypress.Commands.add('checkCookieAndLogin', (cookieName, options) => {
+Cypress.Commands.add('checkCookieAndLogin', (options) => {
     function checkCookies(retries = 5) {
         cy.getCookies().then((cookies) => {
             try {
                 expect(cookies).to.have.length.greaterThan(0);
-                expect(cookies[0]).to.have.property('name', cookieName)
+
+                let sessionCookieFound = false
+                cookies.forEach(cookie => {
+                    if(cookie.name.startsWith('redcap_session_')){
+                        sessionCookieFound = true
+                    }
+                })
+                
+                if(!sessionCookieFound){
+                    throw 'Session cookie not found!'
+                }
+
                 cy.url().then((currentUrl) => {
                     // The following call is required for restoring snapshots
                     currentUrl = window.adjustInvalidLoginUrls(currentUrl)
@@ -96,8 +107,7 @@ Cypress.Commands.add('checkCookieAndLogin', (cookieName, options) => {
 })
 
 Cypress.Commands.add('logout', () => {
-    cy.clearCookie('PHPSESSID')
-    cy.getCookie('PHPSESSID').should('not.exist')
+    cy.clearCookies()
     
     cy.url().then((url) => {
         url = window.adjustInvalidLoginUrls(url)
