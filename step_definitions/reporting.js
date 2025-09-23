@@ -3,7 +3,6 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 /**
  * @module Reporting
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I should see the report with {int} row(s)
  * @param {int} number the number of rows seen in a report
  * @description Visibility - Visually verifies that the report has the correct number of rows
  */
@@ -14,7 +13,6 @@ Given("I should see the report with {int} row(s)", (number) => {
 /**
  * @module Reporting
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I should see the report with {int} distinct records
  * @param {int} count - the number of different records seen in a report
  * @description Visibility - Visually verifies that the report has the correct number of distinct records
  */
@@ -38,7 +36,6 @@ Given("I should see the report with {int} distinct records", (count) => {
 /**
  * @module Reporting
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I should see the report with {int} repeating instrument rows
  * @param {int} count - the number of repeating instrument rows seen in a report
  * @description Visibility - Visually verifies that the report has the correct number of repeating instrument rows
  */
@@ -62,7 +59,6 @@ Given("I should see the report with {int} repeating instrument rows", (count) =>
 /**
  * @module Reporting
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I should see the report with the column named {string} {ordering}
  * @param {string} name the column name that should be ordered.
  * @param {string} order the order of the record IDs.
  * @description Visibility - Visually verifies that the report has record IDs in correct order
@@ -100,7 +96,6 @@ Given("I should see the report with the column named {string} {ordering}", (name
 /**
  * @module Reporting
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I click on the button labeled {string} for the report named {string}
  * @param {string} button - the text on the button element you want to click
  * @param {string} report the name of the report you want to click buttons for
  * @description Interactions - Clicks on a button element with a specific text label for a specific report name
@@ -116,7 +111,6 @@ Given("I click on the button labeled {string} for the report named {string}", (b
 /**
  * @module Reporting
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I click on the record {string} link for the row containing {string}
  * @param {string} record - the name of the record you want to click the link for
  * @param {string} text - the name of the event you want to click the record for
  * @description Interactions - Clicks on a button element with a specific text label for a specific report name
@@ -135,7 +129,6 @@ Given("I click on the record {string} link for the row containing {string}", (re
 /**
  * @module Reporting
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I click on the image {string} link for the row containing {string}
  * @param {string} file the text file name of image you are looking for
  * @param {string} text the text label of the table row you are looking for
  * @description Interactions - Clicks on the image of the table row with the text label
@@ -150,7 +143,6 @@ Given("I click on the image {string} link for the row containing {string}", (fil
 /**
  * @module Reporting
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I export data for the report named {string} in {string} format
  * @param {string} button - the text label of the Report you are looking for
  * @param {string} report_name - the name of the report you want
  * @description Interactions - Opens the Export Data dialog for a specific Report Name
@@ -166,7 +158,6 @@ Given("I click on the {string} button for the {string} report in the My Reports 
 /**
  * @module Reporting
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I click on the download icon(s) to receive the file(s) for the {string} format in the dialog box
  * @param {string} format the text format of the data export you are looking to receive
  * @description Interactions - Checks the hyperlinks and download formats for the data export
  */
@@ -322,7 +313,6 @@ Given(/^I should (see|have) (a|the latest downloaded) "(.*)" file (that contains
 /**
  * @module Reporting
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I should have a {string} file that contains {int} rows
  * @param {string} format the text format of the data export you are looking to receive
  * @param {int} count the number of rows of data this file should have
  * @description Interactions - Checks the number of rows (excluding header) the file should have
@@ -337,7 +327,6 @@ Given("I should have a {string} file that contains {int} rows", (format, count) 
 /**
  * @module Reporting
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I should have a {string} file that contains {int} distinct records
  * @param {string} format the text format of the data export you are looking to receive
  * @param {int} count the number of distinct records of data this file should have
  * @description Interactions - Checks the number of distinct records the file should have
@@ -360,7 +349,6 @@ Given("I should have a {string} file that contains {int} distinct records", (for
 /**
  * @module Reporting
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I should have a {string} file that contains {int} repeating instrument rows
  * @param {string} format the text format of the data export you are looking to receive
  * @param {int} count the number of repeating instrument rows
  * @description Interactions - Checks the number of repeating instrument rows the file should have

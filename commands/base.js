@@ -223,43 +223,6 @@ Cypress.Commands.add('get_top_layer', (element = 'div[role=dialog]:visible,html'
     }).then(() => cy.wrap(top_layer)) //yield top_layer to any further chained commands
 })
 
-Cypress.Commands.add('ensure_csrf_token', () => {
-    cy.url().then(($url) => {
-        if($url !== undefined && $url !== 'about:blank'){
-
-            //If this is a form but NOT the LOGIN form
-            if(Cypress.$('form').length > 0 && Cypress.$('#redcap_login_a38us_09i85').length === 0){
-                cy.getCookies()
-                    .should('have.length.greaterThan', 0)
-                    .then(($cookies) => {
-
-                        $cookies.forEach(($cookie) => {
-                            //If our cookies include PHPSESSID, we can assume we're logged into REDCap
-                            //If they do NOT include PHPSESSID, we shouldn't have to worry about this token
-                            //It also appears that the Report Forms DO not need a CSRF token, which is interesting ...
-                            if($cookie['name'] === 'PHPSESSID' &&
-                                Cypress.$('form#create_report_form').length === 0 &&
-                                Cypress.$('form input[name=redcap_csrf_token]').length === 1){
-                                // cy.get('form input[name=redcap_csrf_token]').each(($form_token) => {
-                                //     cy.window().then((win) => {
-                                //         expect($form_token[0].value).to.not.be.null
-                                //     })
-                                // })
-
-                                // === DETACHMENT PREVENTION === //
-                                //Some common elements to tell us things are still loading!
-                                if(Cypress.$('span#progress_save').length) cy.get('span#progress_save').should('not.be.visible')
-                                if(Cypress.$('div#progress').length) cy.get('div#progress').should('not.be.visible')
-                                //if(Cypress.$('div#working').length) cy.get('div#working').should('not.be.visible')
-                            }
-                        })
-                    })
-
-            }
-        }
-    })
-})
-
 Cypress.Commands.overwrite(
     'click',
     (originalFn, subject, options) => {
@@ -282,12 +245,6 @@ Cypress.Commands.overwrite(
                 subject[0].nodeName === "BUTTON" ||
                 subject[0].nodeName === "INPUT" && subject[0].type === "button" && subject[0].onclick === ""
             ){
-
-                //Is the element part of a form?
-                if(subject[0].form){
-                    cy.ensure_csrf_token() //Check for the CSRF token to be set in the form
-                }
-
                 //If our other detachment prevention measures failed, let's check to see if it detached and deal with it
                 cy.wrap(subject).then($el => {
                     return Cypress.dom.isDetached($el) ? Cypress.$($el): $el

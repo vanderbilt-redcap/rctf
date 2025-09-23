@@ -22,7 +22,6 @@ if(RegExp.escape === undefined){
 /**
  * @module UserRights
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I assign an expiration date to user {string} with username of {string}
  * @param {string} name - the proper name of the user (e.g. Jane Doe)
  * @param {string} username - the username assigned to the user (e.g. jdoe)
  * @description Assigns 'Expiration Date' user right to a given user
@@ -35,7 +34,6 @@ Given("I assign an expired expiration date to user {string} with username of {st
 /**
  * @module UserRights
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I remove the expired expiration date to user {string} with username of {string}
  * @param {string} name - the proper name of the user (e.g. Jane Doe)
  * @param {string} username - the username assigned to the user (e.g. jdoe)
  * @description Removes 'Expiration Date' user right to a given user when provided a valid Project ID.
@@ -48,7 +46,6 @@ Given("I remove the expiration date to user {string} with username of {string}",
 /**
  * @module UserRights
  * @author Rushi Patel <rushi.patel@uhnresearch.ca>
- * @example I {clickType} the User Right named "{userRightsChecks}"
  * @param {string} text - name of User Right
  * @description Assign the user right
  *
@@ -68,7 +65,6 @@ Given('I {clickType} the User Right named "{userRightsChecks}"', (click_type, te
 /**
  * @module UserRights
  * @author Rushi Patel <rushi.patel@uhnresearch.ca>
- * @example I select the User Right named {string} and choose {string}
  * @param {string} user_right - name of user right
  * @param {string} option - name of the option to select
  * @description Assign user right to role/user
@@ -111,7 +107,6 @@ Given("I select the User Right named {string} and choose {string}", (text, optio
 /**
  * @module UserRights
  * @author Rushi Patel <rushi.patel@uhnresearch.ca>
- * @example I save changes within the context of User Rights
  * @description Click on the create add user button or save changes
  *
  */
@@ -130,7 +125,6 @@ Given("I save changes within the context of User Rights", () => {
 /**
  * @module UserRights
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I {userRightAction} all Basic Rights within the open User Rights dialog box
  * @param {string} userRightAction - available options: 'add', 'remove'
  * @description Checks or Unchecks all Basic Rights within the User Rights dialog box.
  */
@@ -164,7 +158,6 @@ Given('I {userRightAction} all Basic Rights within the open User Rights dialog b
 /**
  * @module UserRights
  * @author Corey DeBacker <debacker@wisc.edu>
- * @example I set Data Viewing Rights to {dataViewingRights} {editSurveyRights} for the instrument {string}
  * @param {string} dataViewingRights - available options: 'No Access', 'Read Only', 'View & Edit', 'Edit survey responses'
  * @param {string} editSurveyRights - available options: ' with Edit survey responses checked', ' with Edit survey responses unchecked'
  * @param {string} instrument - the label of the instrument for which to configure data entry rights

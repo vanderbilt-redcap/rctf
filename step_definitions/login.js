@@ -3,7 +3,6 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 /**
  * @module Login
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I (attempt to) (am still) (login) (logged in) to REDCap with the user {string}
  * @param {string} user - the user we are logging in as (e.g. 'Test_User1' or 'Test_Admin' as specified in the cypress.env.json file)
  * @description Logs in to REDCap using a seeded user type.
  */
@@ -29,7 +28,6 @@ Given("I {loginTypes} the user {string}", (login_type, user) => {
 /**
  * @module Login
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I logout
  * @description Logs a given user out of REDCap
  */
 Given("I logout", () => {

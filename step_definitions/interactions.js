@@ -90,17 +90,7 @@ function before_click_monitor(type){
             url: '/redcap_v' + Cypress.env('redcap_version') + '/DataQuality/edit_rule_ajax.php*'
         }).as('data_quality_rule')
     } else if (type === " and cancel the confirmation window"){
-        cy.on('window:confirm', (str) => {
-            return false
-        })
-    } else if (type === " and accept the confirmation window"){
-        cy.window().then((win) =>
-            cy.stub(win, 'confirm').as('confirm').returns(true),
-        )
-
-        cy.on('window:confirm', (str) => {
-            return true
-        })
+        window.rctfCancelNextConfirm = true
     }
 }
 
@@ -124,10 +114,6 @@ function after_click_monitor(type){
                 cy.wrap($logic).should('not.have.descendants', 'textarea,button')
             })
         }
-    } else if (type === " and cancel the confirmation window") {
-        cy.on('window:confirm', (str) => {
-            return true //subsequent windows go back to default behavior
-        })
     }
 }
 
@@ -603,7 +589,6 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I select the submit option labeled "{instrumentSaveOptions}" on the Data Collection Instrument
  * @param {string} instrumentSaveOptions - available options: 'Save & Stay', 'Save & Exit Record', 'Save & Go To Next Record', 'Save & Exit Form', 'Save & Go To Next Form', 'Save & Go To Next Instance', 'Save & Add New Instance'
  * @description Clicks a specific submit option to save a record on a Data Collection Instrument
  */
@@ -636,7 +621,6 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I click on {articleType} {onlineDesignerButtons} {ordinal} button {labeledExactly} {string} {saveButtonRouteMonitoring} {baseElement} {iframeVisibility} {toDownloadFile}
  * @param {string} articleType - available options: 'a', 'the'
  * @param {string} onlineDesignerButtons - available options: '"Enable"', '"Disable"', '"Choose action"', '"Survey settings"', '"Automated Invitations"', 'enabled survey icon', '"View Report"', '"Export Data"', '"Stats & Charts"', '"Execute"', '"Save"'
  * @param {string} ordinal - available options: 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth', 'twentieth', 'last'
@@ -782,7 +766,6 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I click on the {onlineDesignerFieldIcons} {fileRepoIcons} {linkNames} {labeledExactly} {string} {saveButtonRouteMonitoring} {toDownloadFile} {baseElement}
  * @param {string} linkNames - available options: 'link', 'tab', 'instrument', 'icon'
  * @param {string} text - the text on the anchor element you want to click
  * @param {string} saveButtonRouteMonitoring - available options: '', ' on the dialog box for the Repeatable Instruments and Events module', ' on the Designate Instruments for My Events page', ' on the Online Designer page', ' and cancel the confirmation window', ' and accept the confirmation window', ' to rename an instrument', ' in the "Add New Field" dialog box', ' in the "Edit Field" dialog box', ''
@@ -876,7 +859,6 @@ Given("I click on the( ){ordinal}( ){onlineDesignerFieldIcons}( ){fileRepoIcons}
 /**
  * @module Interactions
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I click on the button labeled {string} for the row labeled {string}
  * @param {string} text - the text on the button element you want to click
  * @param {string} label - the lable of the row with the button you want to click
  * @description Clicks on a button element with a specific text title inside the table row label
@@ -892,7 +874,6 @@ Given("I click on the button labeled {string} for the row labeled {string}", (te
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I {enterType} {string} into the input field labeled {string} {baseElement}
  * @param {string} enterType - available options: 'verify', 'enter', 'clear field and enter', 'click on'
  * @param {string} label - the label of the field
  * @param {string} baseElement - available options: ' on the tooltip', ' in the tooltip', ' on the role selector dropdown', ' in the role selector dropdown', ' on the dialog box', ' in the dialog box', ' within the data collection instrument list', ' on the action popup', ' in the action popup', ' in the Edit survey responses column', ' in the "Main project settings" section', ' in the "Use surveys in this project?" row in the "Main project settings" section', ' in the "Use longitudinal data collection with defined events?" row in the "Main project settings" section', ' in the "Use the MyCap participant-facing mobile app?" row in the "Main project settings" section', ' in the "Enable optional modules and customizations" section', ' in the "Repeating instruments and events" row in the "Enable optional modules and customizations" section', ' in the "Auto-numbering for records" row in the "Enable optional modules and customizations" section', ' in the "Scheduling module (longitudinal only)" row in the "Enable optional modules and customizations" section', ' in the "Randomization module" row in the "Enable optional modules and customizations" section', ' in the "Designate an email field for communications (including survey invitations and alerts)" row in the "Enable optional modules and customizations" section', ' in the "Twilio SMS and Voice Call services for surveys and alerts" row in the "Enable optional modules and customizations" section', ' in the "SendGrid Template email services for Alerts & Notifications" row in the "Enable optional modules and customizations" section', ' in the validation row labeled "Code Postal 5 caracteres (France)"', ' in the validation row labeled "Date (D-M-Y)"', ' in the validation row labeled "Date (M-D-Y)"', ' in the validation row labeled "Date (Y-M-D)"', ' in the validation row labeled "Datetime (D-M-Y H:M)"', ' in the validation row labeled "Datetime (M-D-Y H:M)"', ' in the validation row labeled "Datetime (Y-M-D H:M)"', ' in the validation row labeled "Datetime w/ seconds (D-M-Y H:M:S)"', ' in the validation row labeled "Datetime w/ seconds (M-D-Y H:M:S)"', ' in the validation row labeled "Datetime w/ seconds (Y-M-D H:M:S)"', ' in the validation row labeled "Email"', ' in the validation row labeled "Integer"', ' in the validation row labeled "Letters only"', ' in the validation row labeled "MRN (10 digits)"', ' in the validation row labeled "MRN (generic)"', ' in the validation row labeled "Number"', ' in the validation row labeled "Number (1 decimal place - comma as decimal)"', ' in the validation row labeled "Number (1 decimal place)"', ' in the validation row labeled "Number (2 decimal places - comma as decimal)"', ' in the validation row labeled "Number (2 decimal places)"', ' in the validation row labeled "Number (3 decimal places - comma as decimal)"', ' in the validation row labeled "Number (3 decimal places)"', ' in the validation row labeled "Number (4 decimal places - comma as decimal)"', ' in the validation row labeled "Number (4 decimal places)"', ' in the validation row labeled "Number (comma as decimal)"', ' in the validation row labeled "Phone (Australia)"', ' in the validation row labeled "Phone (North America)"', ' in the validation row labeled "Phone (UK)"', ' in the validation row labeled "Postal Code (Australia)"', ' in the validation row labeled "Postal Code (Canada)"', ' in the validation row labeled "Postal Code (Germany)"', ' in the validation row labeled "Social Security Number (U.S.)"', ' in the validation row labeled "Time (HH:MM:SS)"', ' in the validation row labeled "Time (HH:MM)"', ' in the validation row labeled "Time (MM:SS)"', ' in the validation row labeled "Vanderbilt MRN"', ' in the validation row labeled "Zipcode (U.S.)"'
@@ -964,7 +945,6 @@ Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} fi
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I {enterType} {string} into the textarea field labeled {string} {baseElement}
  * @param {string} enterType - available options: 'verify', 'enter', 'clear field and enter'
  * @param {string} text - the text to enter into the field
  * @param {string} label - the label of the field
@@ -1056,7 +1036,6 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I enter {string} into the data entry form field labeled {string}
  * @param {string} enterType - available options: 'verify', 'enter', 'clear field and enter'
  * @param {string} text - the text to enter into the field
  * @param {string} label - the label of the field
@@ -1124,7 +1103,6 @@ Given('I {enterType} {string} (is within)(into) the data entry form field labele
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I clear the field labeled {string}
  * @param {string} label - the label of the field to select
  * @description Clears the text from an input field based upon its label
  */
@@ -1137,7 +1115,6 @@ Given('I clear the field labeled {string}', (label) => {
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I {clickType} the {checkBoxRadio} labeled {string} {baseElement}
  * @param {string} clickType - available options: 'click on', 'check', 'uncheck', 'enable', 'disable'
  * @param {string} ordinal - available options: 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth', 'twentieth', 'last'
  * @param {string} checkBoxRadio - available options: 'checkbox', 'radio', 'toggle button'
@@ -1229,7 +1206,6 @@ Given("(for the Event Name \")(the Column Name \")(for the Column Name \"){optio
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I click on the input element labeled {string}
  * @param {string} clickType - available options: 'click on', 'check', 'uncheck'
  * @param {string} elmType - available options: 'input', 'list item', 'checkbox', 'span'
  * @param {string} label - the label associated with the checkbox field
@@ -1258,7 +1234,6 @@ Given("I {clickType} the {elmType} element labeled {string}", (click_type, eleme
 /**
  * @module Interactions
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I set the input file field named {string} to the file at path {string}
  * @param {string} name - the name attribute of the input file field
  * @param {string} path - the path of the file to upload
  * @param {string} baseElement - available options: ' on the tooltip', ' in the tooltip', ' on the role selector dropdown', ' in the role selector dropdown', ' on the dialog box', ' in the dialog box', ' within the data collection instrument list', ' on the action popup', ' in the action popup', ' in the Edit survey responses column', ' in the "Main project settings" section', ' in the "Use surveys in this project?" row in the "Main project settings" section', ' in the "Use longitudinal data collection with defined events?" row in the "Main project settings" section', ' in the "Use the MyCap participant-facing mobile app?" row in the "Main project settings" section', ' in the "Enable optional modules and customizations" section', ' in the "Repeating instruments and events" row in the "Enable optional modules and customizations" section', ' in the "Auto-numbering for records" row in the "Enable optional modules and customizations" section', ' in the "Scheduling module (longitudinal only)" row in the "Enable optional modules and customizations" section', ' in the "Randomization module" row in the "Enable optional modules and customizations" section', ' in the "Designate an email field for communications (including survey invitations and alerts)" row in the "Enable optional modules and customizations" section', ' in the "Twilio SMS and Voice Call services for surveys and alerts" row in the "Enable optional modules and customizations" section', ' in the "SendGrid Template email services for Alerts & Notifications" row in the "Enable optional modules and customizations" section', ' in the validation row labeled "Code Postal 5 caracteres (France)"', ' in the validation row labeled "Date (D-M-Y)"', ' in the validation row labeled "Date (M-D-Y)"', ' in the validation row labeled "Date (Y-M-D)"', ' in the validation row labeled "Datetime (D-M-Y H:M)"', ' in the validation row labeled "Datetime (M-D-Y H:M)"', ' in the validation row labeled "Datetime (Y-M-D H:M)"', ' in the validation row labeled "Datetime w/ seconds (D-M-Y H:M:S)"', ' in the validation row labeled "Datetime w/ seconds (M-D-Y H:M:S)"', ' in the validation row labeled "Datetime w/ seconds (Y-M-D H:M:S)"', ' in the validation row labeled "Email"', ' in the validation row labeled "Integer"', ' in the validation row labeled "Letters only"', ' in the validation row labeled "MRN (10 digits)"', ' in the validation row labeled "MRN (generic)"', ' in the validation row labeled "Number"', ' in the validation row labeled "Number (1 decimal place - comma as decimal)"', ' in the validation row labeled "Number (1 decimal place)"', ' in the validation row labeled "Number (2 decimal places - comma as decimal)"', ' in the validation row labeled "Number (2 decimal places)"', ' in the validation row labeled "Number (3 decimal places - comma as decimal)"', ' in the validation row labeled "Number (3 decimal places)"', ' in the validation row labeled "Number (4 decimal places - comma as decimal)"', ' in the validation row labeled "Number (4 decimal places)"', ' in the validation row labeled "Number (comma as decimal)"', ' in the validation row labeled "Phone (Australia)"', ' in the validation row labeled "Phone (North America)"', ' in the validation row labeled "Phone (UK)"', ' in the validation row labeled "Postal Code (Australia)"', ' in the validation row labeled "Postal Code (Canada)"', ' in the validation row labeled "Postal Code (Germany)"', ' in the validation row labeled "Social Security Number (U.S.)"', ' in the validation row labeled "Time (HH:MM:SS)"', ' in the validation row labeled "Time (HH:MM)"', ' in the validation row labeled "Time (MM:SS)"', ' in the validation row labeled "Vanderbilt MRN"', ' in the validation row labeled "Zipcode (U.S.)"'
@@ -1282,7 +1257,6 @@ Given("I set the input file field named {string} to the file at path {string}{ba
 /**
  * @module Interactions
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @example I enter {string} into the field identified by {string} for the label {string}
  * @param {string} text - the text to enter into the field
  * @param {string} selector - the selector of the element to enter the text into
  * @param {string} label - the label associated with the field
@@ -1298,23 +1272,7 @@ Given('I enter {string} into the field identified by {string} labeled {string}',
 
 /**
  * @module Interactions
- * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example for this scenario, I will {confirmation} a confirmation window containing the text {string}
- * @param {string} confirmation - available options: 'accept', 'cancel'
- * @param {string} window_text - text that is expected to appear in the confirmation window
- * @description Pre-emptively tell Cypress what to do about a confirmation window.  NOTE: This step must come BEFORE step that clicks button.
- */
-Given('for this scenario, I will {confirmation} a confirmation window containing the text {string}', (action, window_text) => {
-    cy.on('window:confirm', (str) => {
-        expect(str).to.contain(window_text)
-        return action === "accept"
-    })
-})
-
-/**
- * @module Interactions
  * @author Rushi Patel <rushi.patel@uhnresearch.ca>
- * @example I export all data in {string} format and expect {int} record
  * @param {string} value - type of export
  * @param {int} num - expect this many records
  * @description Exports all data in selected export type
@@ -1330,7 +1288,6 @@ Given('for this scenario, I will {confirmation} a confirmation window containing
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I click the element containing the following text: {string}
  * @param {string} value - text that is inside the element
  * @description Clicks the element that contains the text specified
  */
@@ -1341,7 +1298,6 @@ Given('I click the element containing the following text: {string}', (value) => 
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I select the radio option {string} for the field labeled {string}
  * @param {string} option - option we want to select from the radio options
  * @param {string} field_label - the label on the field we want to select
  * @description Clicks the radio option on the field specified
@@ -1356,7 +1312,6 @@ Given('I select the radio option {string} for the field labeled {string}{baseEle
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I select the dropdown option {string} for the Data Collection Instrument field labeled {string}
  * @param {string} dropdown_option - option we want to select from the dropdown
  * @param {string} field_label - the label on the field we want to select
  * @description Clicks the dropdown option on the field specified
@@ -1368,7 +1323,6 @@ Given('I select the dropdown option {string} for the Data Collection Instrument 
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I select the checkbox option {string} for the field labeled {string}
  * @param {string} checkbox_option - option we want to select from the dropdown
  * @param {string} field_label - the label on the field we want to select
  * @description Clicks the dropdown option on the field specified
@@ -1380,7 +1334,6 @@ Given('I select the checkbox option {string} for the field labeled {string}', (c
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I select {string} on the {dropdownType} field labeled {string} {baseElement}
  * @param {string} text - the text to enter into the field
  * @param {string} ordinal - available options: 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth', 'twentieth', 'last'
  * @param {string} dropdownType - available options: 'dropdown', 'multiselect', 'checkboxes', 'radio'
@@ -1456,7 +1409,6 @@ Given('I select {string} (in)(on) the{ordinal} {dropdownType} (field labeled)(of
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I wait for (another) {int} {timeType}
  * @param {string} timeType - available options: 'seconds', 'second', 'minutes', 'minute'
  * @description Waits for specified number of second(s)/minute(s) before allowing anything else to happen
  */
@@ -1478,7 +1430,6 @@ Given("I wait for (another ){int} {timeType}", (time, unit) => {
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I {enterType} {string} into the field with the placeholder text of {string}
  * @param {string} enterType - available options: 'verify', 'enter', 'clear field and enter'
  * @param {string} text - the text to enter into the field
  * @param {string} placeholder - the text that is currently in the field as a placeholder
@@ -1499,7 +1450,6 @@ Given("I {enterType} {string} into the field with the placeholder text of {strin
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I close the iframe window
  * @description Closes iframe window on the To-Do List page
  */
 Given("I close the iframe window", () => {
@@ -1510,7 +1460,6 @@ Given("I close the iframe window", () => {
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I click on the table heading column labeled {string}
  * @param {string} column - the text to enter into the field
  * @description Clicks on a specific table column
  */
@@ -1525,7 +1474,6 @@ Given('I click on the table heading column labeled {string}', (column) => {
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I click on the table heading column labeled {string}
  * @param {string} column - the text to enter into the field
  * @description Clicks on a specific table column
  */
@@ -1541,7 +1489,6 @@ Given('I drag the field choice labeled {string} to the box labeled "Show the fie
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I enter a signature into the signature field
  * @param {string} column - the text to enter into the field
  * @description Clicks on a specific table column
  */
@@ -1552,7 +1499,6 @@ Given('I draw a signature in the signature field area', () => {
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I move the slider field labeled {string} to the position of {int}
  * @param {string} label - the label of the field
  * @param {string} position - the desired position we want to move the slider to
  * @description Moves the slider to a specific position
@@ -1582,7 +1528,6 @@ Given('I move the slider field labeled {string} to the position of {int}', (labe
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I move the Hour slider for the open date picker widget to {int}
  * @param {int} hour - the desired hour position we want
  * @description Moves the slider to a specific position for the Hour slider
  */
@@ -1602,7 +1547,6 @@ Given('I move the Hour slider for the open date picker widget to {int}', (hour) 
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I move the Minute slider for the open date picker widget to {int}
  * @param {int} minute - the desired minute position we want
  * @description Moves the slider to a specific position for the Minute slider
  */
@@ -1622,7 +1566,6 @@ Given('I move the Minute slider for the open date picker widget to {int}', (min)
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I open the date picker widget on the field labeled {string}
  * @param {string} label - the label of the field
  * @description Open the date picker widget
  */
@@ -1638,7 +1581,6 @@ Given('I click on the date picker widget on the field labeled {string}', (label,
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I click on the {string} button for the field labeled {string}
  * @param {string} label - the label of the field
  * @description Open the date picker widget
  */
@@ -1651,7 +1593,6 @@ Given('I click on the {string} button for the field labeled {string}', (button_l
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I click on the {string} {labeledElement} within (a)(the) {tableTypes} table in the following row:
  * @param {string} label - label on the element
  * @param {string} element - link or button
  * @param {string} table - description of the table
@@ -1679,8 +1620,6 @@ Given("I click on the {string} {labeledElement} within (a)(the) {tableTypes} tab
 /**
  * @module Interactions
  * @author Mark McEver <mark.mcever@vumc.org>
- * @example I click on the icon in the column labeled "Setup" and the row labeled "1"
- * @example I should see a button labeled "Edit" in the column labeled "Management Options" and the row labeled "1"
  * @param {action} action - the type of action to perform
  * @param {articleType} articleType - available options: 'a', 'the'
  * @param {optionalLabeledElement} type - the type of element we're looking for

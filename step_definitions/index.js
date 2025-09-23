@@ -4,7 +4,6 @@ require('../commands')
 
 //this needs to come before all_types because we use some of this in all_types
 require('./support/iframe')
-require('./support/mappings')
 require('./support/all_mappings')
 require('./support/all_types')
 

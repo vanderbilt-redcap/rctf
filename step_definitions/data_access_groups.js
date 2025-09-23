@@ -45,7 +45,6 @@ Given(/^I click on (?:a|the) table cell containing the text "(.*?)"(?: in)?(?: t
 /**
  * @module DataAccessGroups
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I {clickType} {string} for user {string} in the DAG Switcher {baseElement}
  * @param {string} clickType - available options: 'click on', 'check', 'uncheck', 'enable', 'disable'
  * @param {string} dag - the name of the Data Access Group
  * @param {string} user - the username of user to interact with

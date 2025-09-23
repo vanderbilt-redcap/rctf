@@ -3,7 +3,6 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 /**
  * @module RecordStatusDashboard
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I click on the bubble for the {string} data collection instrument for {recordIDEvent} {string}
  * @param {string} text - the text value of data collection instrument you want to target
  * @param {string} recordIDEvent - available options: 'record ID', 'event'
  * @description Clicks on a bubble within the Record Status Dashboard based upon record ID and the data instrument specified.
@@ -17,7 +16,6 @@ Given("I click on the bubble for the {string} data collection instrument for {re
 /**
  * @module RecordStatusDashboard
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I locate the bubble for the {string} instrument on event {string} for record ID {string} {cellAction}
  * @param {string} instrument - the data collection instrument you want to target
  * @param {string} event - the event name you want to target
  * @param {string} record_id - the value of the record_id you want to target
@@ -45,7 +43,6 @@ Given(/I select record ID "(.*)" from arm name "(.*)" on the (Add|View) \/ Edit 
 /**
  * @module RecordStatusDashboard
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I click the X to delete all data related to the event named {string}
  * @param {string} event - name of the event displayed on the Record Home Page
  * @description Activates a pop-up confirming that user wants to delete all data on a specific even within a record
  */

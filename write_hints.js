@@ -1,12 +1,6 @@
-const fs = require('fs')
-const path = require('path')
-
-// Create a global object named window (because it isn't available in Node by default)
-global.window = {}
-
-const transform = require('./step_definitions/support/transform_reg_ex_keys')
-require('./step_definitions/support/mappings')
-require('./step_definitions/support/all_mappings')
+import fs from 'fs'
+import transform from './step_definitions/support/transform_reg_ex_keys.js'
+import {} from './step_definitions/support/all_mappings.js'
 
 let output_str = `/**
  * The parameter definitions must be duplicated in this file,

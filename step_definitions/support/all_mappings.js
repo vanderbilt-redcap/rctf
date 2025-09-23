@@ -1,11 +1,11 @@
-const rctf = require("../../rctf.js")
+import {rctf} from '../../rctf.js'
+import {} from './mappings.js'
 
 function transformKeysToRegExp(variable){
     return Object.keys(variable).filter(key => key !== '')
 }
 
 const labeledElementTypes = ['button', 'link', 'field', 'section break', 'checkbox', 'toggle button', 'icon', 'dropdown', 'radio']
-
 window.parameterTypes = {
     tableTypes: transformKeysToRegExp(window.tableMappings),
     baseElement: transformKeysToRegExp(window.elementChoices),
