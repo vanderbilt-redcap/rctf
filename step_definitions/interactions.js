@@ -1643,6 +1643,15 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
             }
         }
         else if(labeledElement){
+            let resultFilter = () => { return true }
+            if(target.tagName === 'INPUT'){
+                const actualTarget = target
+                target = target.parentNode
+                resultFilter = (index, item) => {
+                    return item === actualTarget
+                }
+            }
+
             cy.wrap(target).within(() => {
                 const next = (action, result) =>{
                     performAction(action, result, disabled_text)
@@ -1666,6 +1675,8 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
                     }
 
                     cy.get(selector).then(results => {
+                        results = results.filter(resultFilter)
+
                         if(results.length != 1){
                             console.log('performActionOnTarget results', results)
                             throw 'Expected to find a single element, but found ' + results.length + ' instead.  See console log for details.'
