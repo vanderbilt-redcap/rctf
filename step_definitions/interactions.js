@@ -1670,6 +1670,9 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
                     else if(labeledElement === 'checkbox'){
                         selector = 'input[type="checkbox"]'
                     }
+                    else if(labeledElement === 'radio'){
+                        selector = 'input[type="radio"]'
+                    }
                     else{
                         throw 'Unexpected labeledElement and text combo'
                     }
