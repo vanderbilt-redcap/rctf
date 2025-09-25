@@ -80,6 +80,10 @@ async function addExamples(comments) {
 }
 
 export default async function (comments, config) {
+  comments = comments.filter(comment =>  {
+    return !comment.deprecated
+  })
+
   await addExamples(comments)
 
   var linkerStack = new LinkerStack(config).namespaceResolver(
