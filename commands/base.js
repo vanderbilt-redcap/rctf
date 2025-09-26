@@ -309,7 +309,7 @@ Cypress.Commands.add("closestIncludingChildren", {prevSubject: true}, function (
 })
 
 Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subject, text, shouldBeVisible) {
-    cy.retryUntilTimeout(() => {
+    cy.retryUntilTimeout((lastRun) => {
         let found = false
         subject.each((index, item) => {
             /**
@@ -325,14 +325,25 @@ Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subj
                 found = true
             }
         })
-
-        return cy.wrap(found)
-    }).then((found) => {
+        
+        let error
         if(found && !shouldBeVisible){
-            throw 'Unexpected text was found: ' + text
+            error = 'Unexpected text was found: ' + text
         }
         else if(!found && shouldBeVisible){
-            throw 'Expected text was not found: ' + text
+            error = 'Expected text was not found: ' + text
+        }
+
+        if(error){
+            if(lastRun){
+                throw error
+            }
+            else{
+                return cy.wrap(false) // false will trigger a retry
+            }
+        }
+        else{
+            return cy.wrap(true)
         }
     })
 })
