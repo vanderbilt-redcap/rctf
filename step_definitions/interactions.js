@@ -1633,14 +1633,7 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
     const performActionOnTarget = (target) =>{
         console.log('performActionOnTarget target', target)
         if(action === 'should NOT see'){
-            /**
-             * We use innerText.indexOf() rather than the ':contains()' selector
-             * to avoid matching text within hidden tags and <script> tags,
-             * since they are not actually visible.
-             */
-            if(target.innerText.includes(text)){
-                throw 'Unexpected text found'
-            }
+            cy.wrap(target).assertTextVisibility(text, false)
         }
         else if(labeledElement){
             let resultFilter = () => { return true }
@@ -1691,15 +1684,7 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
             })
         }
         else if(action === 'should see'){
-            /**
-             * We use innerText.indexOf() rather than the ':contains()' selector
-             * to avoid matching text within hidden tags and <script> tags,
-             * since they are not actually visible.
-             */
-            if(!target.innerText.includes(text)){
-                console.log('target', target)
-                throw 'Expected text not found'
-            }
+            cy.wrap(target).assertTextVisibility(text, true)
         }
         else{
             throw 'Action not found: ' + action

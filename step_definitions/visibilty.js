@@ -8,27 +8,7 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
  * @description Visually verifies that text does NOT exist within the HTML object.
  */
 Given("I {notSee} see {string}{baseElement}", (not_see, text, base_element = '') => {
-    cy.not_loading()
-
-    cy.get(window.elementChoices[base_element]).then($elm => {
-        /**
-         * We use innerText.indexOf() rather than the ':contains()' selector
-         * to avoid matching text within hidden tags and <script> tags,
-         * since they are not actually visible.
-         */
-        const index = $elm.get(0).innerText.indexOf(text)
-        //If we don't detect it anywhere
-        if(index === -1){
-            expect('html').to.not.contain(text)
-        //If we do detect the text, let us make sure it is not visible on-screen
-        } else {
-            cy.contains(text).then(($elm) => {
-                cy.wait_to_hide_or_detach($elm).then(() => {
-                    expect('html').to.not.contain(text)
-                })
-            })
-        }
-    })
+    cy.get(window.elementChoices[base_element]).assertTextVisibility(text, false)
 })
 
 /**
@@ -336,7 +316,7 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
                         } else if (window.icons.hasOwnProperty(online_buttons)) {
                             cy.wrap($element).should('have.descendants', window.icons[online_buttons])
                         } else {
-                            cy.wrap($element).should('contain', text)
+                            cy.wrap($element).assertTextVisibility(text, true)
                         }
                     })
 
