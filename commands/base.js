@@ -329,10 +329,10 @@ Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subj
         return cy.wrap(found)
     }).then((found) => {
         if(found && !shouldBeVisible){
-            throw 'Unexpected text was found'
+            throw 'Unexpected text was found: ' + text
         }
         else if(!found && shouldBeVisible){
-            throw 'Expected text was not found'
+            throw 'Expected text was not found: ' + text
         }
     })
 })
