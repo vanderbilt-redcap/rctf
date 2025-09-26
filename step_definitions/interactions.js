@@ -900,7 +900,7 @@ Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} fi
             select = `input[type=text]:visible,input[type=password]:visible`
         }
         base.within(() => {
-            let elm = cy.get(select)
+            let elm = cy.getLabeledElement('input', label)
 
             if(enter_type === "enter"){
                 elm.eq(ord).scrollIntoView().type(text)
