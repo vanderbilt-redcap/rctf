@@ -610,56 +610,53 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
             }).then(() => {
                 //console.log(columns)
                 let filter_selector = []
-                dataTable.hashes().forEach((row, row_index) => {
-                    for (const [index, key] of Object.keys(row).entries()) {
-                        let value = row[key]
-                        let column = columns[key].col
-                        if (!isNaN(column)) {
+                dataTable.rawTable.forEach((row, row_index) => {
+                    row.forEach((value, inde) => {
+                        let column = index+1
 
-                            let contains = ''
+                        let contains = ''
 
-                            if(Object.keys(html_elements).includes(value)) {
-                                contains += `td:has(${html_elements[value].selector}),th:has(${html_elements[value].selector})`
-                            } else if (window.dateFormats.hasOwnProperty(value)) {
-                                contains += `td,th`
-                            } else {
-                                value.split(' ').forEach((val) => {
-                                    if(Object.keys(html_elements).includes(val)) {
-                                        contains += `td:has(${html_elements[val].selector}),th:has(${html_elements[val].selector})`
-                                    } else if (window.dateFormats.hasOwnProperty(val)){
-                                        contains += `td,th`
-                                    } else{
-                                        contains += `:contains(${JSON.stringify(val)})`
-                                    }
-                                })
-                            }
-
-                            filter_selector.push({
-                                'column': column,
-                                'row': row_index,
-                                'value': value,
-                                'html_elm': Object.keys(html_elements).includes(value),
-                                'regex': window.dateFormats.hasOwnProperty(value),
-                                'selector': `:has(${contains})`
+                        if(Object.keys(html_elements).includes(value)) {
+                            contains += `td:has(${html_elements[value].selector}),th:has(${html_elements[value].selector})`
+                        } else if (window.dateFormats.hasOwnProperty(value)) {
+                            contains += `td,th`
+                        } else {
+                            value.split(' ').forEach((val) => {
+                                if(Object.keys(html_elements).includes(val)) {
+                                    contains += `td:has(${html_elements[val].selector}),th:has(${html_elements[val].selector})`
+                                } else if (window.dateFormats.hasOwnProperty(val)){
+                                    contains += `td,th`
+                                } else{
+                                    contains += `:contains(${JSON.stringify(val)})`
+                                }
                             })
-
-                            // let contains = ''
-                            // value.split(' ').forEach((val) => {
-                            //     contains += `:contains(${JSON.stringify(val)})`
-                            // })
-                            //
-                            // filter_selector.push({
-                            //     'column': column,
-                            //     'row': row_index,
-                            //     'value': value,
-                            //     'html_elm': Object.keys(html_elements).includes(value),
-                            //     'regex': window.dateFormats.hasOwnProperty(value),
-                            //     'selector': Object.keys(html_elements).includes(value) ?
-                            //         `:has(td:has(${html_elements[value].selector}),th:has(${html_elements[value].selector}))` :
-                            //         `:has(${window.dateFormats.hasOwnProperty(value) ? 'td,th' : contains})`
-                            // })
                         }
-                    }
+
+                        filter_selector.push({
+                            'column': column,
+                            'row': row_index,
+                            'value': value,
+                            'html_elm': Object.keys(html_elements).includes(value),
+                            'regex': window.dateFormats.hasOwnProperty(value),
+                            'selector': `:has(${contains})`
+                        })
+
+                        // let contains = ''
+                        // value.split(' ').forEach((val) => {
+                        //     contains += `:contains(${JSON.stringify(val)})`
+                        // })
+                        //
+                        // filter_selector.push({
+                        //     'column': column,
+                        //     'row': row_index,
+                        //     'value': value,
+                        //     'html_elm': Object.keys(html_elements).includes(value),
+                        //     'regex': window.dateFormats.hasOwnProperty(value),
+                        //     'selector': Object.keys(html_elements).includes(value) ?
+                        //         `:has(td:has(${html_elements[value].selector}),th:has(${html_elements[value].selector}))` :
+                        //         `:has(${window.dateFormats.hasOwnProperty(value) ? 'td,th' : contains})`
+                        // })
+                    })
                 })
 
                 //See if at least one row matches the criteria we are suggesting
