@@ -128,7 +128,7 @@ Cypress.Commands.add("retryUntilTimeout", function (action, start, lastRun) {
 
     const isAfterTimeout = () => {
         const elapsed = Date.now() - start
-        return elapsed > 3000
+        return elapsed > Cypress.config('defaultCommandTimeout')
     }
 
     return action(lastRun).then((result) => {
