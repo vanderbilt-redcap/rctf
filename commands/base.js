@@ -309,6 +309,9 @@ Cypress.Commands.add("closestIncludingChildren", {prevSubject: true}, function (
 })
 
 Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subject, text, shouldBeVisible) {
+    // Collapse adjacent spaces to match innerText()'s behavior.
+    text = text.replace(/ +/g, ' ')
+
     cy.retryUntilTimeout((lastRun) => {
         let found = false
         subject.each((index, item) => {
