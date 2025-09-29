@@ -155,7 +155,7 @@ Cypress.Commands.add('upload_file', (fileName, fileType = ' ', selector = '', bu
         upload_element.selectFile('cypress/fixtures/' + fileName)
         
         if(button_label !== '') {
-            cy.wrap(subject).closestIncludingChildren(submit_button_selector).click()
+            upload_element.closestIncludingChildren(submit_button_selector).click()
         }
     })
 })
