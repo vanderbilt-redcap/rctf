@@ -611,7 +611,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                 //console.log(columns)
                 let filter_selector = []
                 dataTable.rawTable.forEach((row, row_index) => {
-                    row.forEach((value, inde) => {
+                    row.forEach((value, index) => {
                         let column = index+1
 
                         let contains = ''
