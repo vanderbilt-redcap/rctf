@@ -196,6 +196,25 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
         console.log(`table_cell_by_column_and_row_label() - Looking for the \`${td_selector}\` selector in this table: `, table)
 
         cy.wrap(table).within(() => {
+            if(table.id === 'form_rights'){
+                /**
+                 * This table has items that look like cells but are actually just divs.
+                 * They require special handling.
+                 */
+                let sectionIndex, columnIndex
+                cy.get(`:contains('${column_label}')`).filterMatches(column_label).then(column_header => {
+                    const div = column_header.closest('div')
+                    columnIndex = div.index()
+                    sectionIndex = div.closest('td').index()
+                })
+                
+                cy.get(`:contains('${row_label}')`).filterMatches(row_label).then(row_header => {
+                   table_cell = row_header.closest('tr').children().eq(sectionIndex).children().eq(columnIndex)
+                })
+
+                return
+            }
+
             row = cy.get(td_selector).eq(row_number)
 
             if(no_col_match_body && body_table === 'table'){

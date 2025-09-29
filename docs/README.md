@@ -1,6 +1,6 @@
 # REDCap Cypress Step Definitions - Documentation Theme
 
-This repo holds the theme used to publish the [Gherkin Step Builder]([url](https://vanderbilt-redcap.github.io/redcap_cypress/)).  For more details on cypress testing of REDCap, see the [REDCap Cypress Developer Toolkit](https://github.com/vanderbilt-redcap/redcap_cypress_docker/blob/main/README.md). 
+This repo holds the theme used to publish the [Gherkin Step Builder]([url](https://vanderbilt-redcap.github.io/rctf/)).  For more details on cypress testing of REDCap, see the [REDCap Cypress Developer Toolkit](https://github.com/vanderbilt-redcap/redcap_cypress_docker/blob/main/README.md). 
 
 This is the customized documentation theme for [documentationjs](https://documentation.js.org):
 it consists of underscore templates and a few assets: a [highlight.js](https://highlightjs.org/)

@@ -128,7 +128,7 @@ Cypress.Commands.add("retryUntilTimeout", function (action, start, lastRun) {
 
     const isAfterTimeout = () => {
         const elapsed = Date.now() - start
-        return elapsed > 3000
+        return elapsed > Cypress.config('defaultCommandTimeout')
     }
 
     return action(lastRun).then((result) => {
@@ -900,7 +900,7 @@ Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} fi
             select = `input[type=text]:visible,input[type=password]:visible`
         }
         base.within(() => {
-            let elm = cy.get(select)
+            let elm = cy.getLabeledElement('input', label)
 
             if(enter_type === "enter"){
                 elm.eq(ord).scrollIntoView().type(text)
@@ -1633,16 +1633,18 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
     const performActionOnTarget = (target) =>{
         console.log('performActionOnTarget target', target)
         if(action === 'should NOT see'){
-            /**
-             * We use innerText.indexOf() rather than the ':contains()' selector
-             * to avoid matching text within hidden tags and <script> tags,
-             * since they are not actually visible.
-             */
-            if(target.innerText.includes(text)){
-                throw 'Unexpected text found'
-            }
+            cy.wrap(target).assertTextVisibility(text, false)
         }
         else if(labeledElement){
+            let resultFilter = () => { return true }
+            if(target.tagName === 'INPUT'){
+                const actualTarget = target
+                target = target.parentNode
+                resultFilter = (index, item) => {
+                    return item === actualTarget
+                }
+            }
+
             cy.wrap(target).within(() => {
                 const next = (action, result) =>{
                     performAction(action, result, disabled_text)
@@ -1661,11 +1663,16 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
                     else if(labeledElement === 'checkbox'){
                         selector = 'input[type="checkbox"]'
                     }
+                    else if(labeledElement === 'radio'){
+                        selector = 'input[type="radio"]'
+                    }
                     else{
                         throw 'Unexpected labeledElement and text combo'
                     }
 
                     cy.get(selector).then(results => {
+                        results = results.filter(resultFilter)
+
                         if(results.length != 1){
                             console.log('performActionOnTarget results', results)
                             throw 'Expected to find a single element, but found ' + results.length + ' instead.  See console log for details.'
@@ -1677,15 +1684,7 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
             })
         }
         else if(action === 'should see'){
-            /**
-             * We use innerText.indexOf() rather than the ':contains()' selector
-             * to avoid matching text within hidden tags and <script> tags,
-             * since they are not actually visible.
-             */
-            if(!target.innerText.includes(text)){
-                console.log('target', target)
-                throw 'Expected text not found'
-            }
+            cy.wrap(target).assertTextVisibility(text, true)
         }
         else{
             throw 'Action not found: ' + action

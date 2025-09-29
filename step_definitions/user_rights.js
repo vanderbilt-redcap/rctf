@@ -108,18 +108,10 @@ Given("I select the User Right named {string} and choose {string}", (text, optio
  * @module UserRights
  * @author Rushi Patel <rushi.patel@uhnresearch.ca>
  * @description Click on the create add user button or save changes
- *
+ * @deprecated
  */
 Given("I save changes within the context of User Rights", () => {
-    cy.intercept({  method: 'POST',
-        url: '/redcap_v' + Cypress.env('redcap_version') + '/UserRights/edit_user.php?*'
-    }).as('saved_user')
-
-    cy.get('button').contains(/add user|save changes/i).click()
-
-    cy.wait('@saved_user')
-
-    if(Cypress.$('div#working').length) cy.get('div#working').should('not.be.visible')
+    throw 'This step has been deprecated in favor of the following: I click on the button labeled "Save Changes"'
 })
 
 /**
@@ -162,14 +154,8 @@ Given('I {userRightAction} all Basic Rights within the open User Rights dialog b
  * @param {string} editSurveyRights - available options: ' with Edit survey responses checked', ' with Edit survey responses unchecked'
  * @param {string} instrument - the label of the instrument for which to configure data entry rights
  * @description Selects a radio option for Data Entry Rights for the specified instrument within the user rights configuration dialog.
+ * @deprecated
  */
 Given('I set Data Viewing Rights to {dataViewingRights}{editSurveyRights} for the instrument {string}', (level, survey, instrument) => {
-    cy.get('div[role=dialog]').should('be.visible')
-    let input_values = {'No Access': 0, 'Read Only': 2, 'View & Edit': 1}
-    if(survey === " with Edit survey responses checked") {
-        cy.get(`table#form_rights tr:has(td:contains(${instrument})) input[type=checkbox]:visible`).check()
-    } else if (survey === " with Edit survey responses unchecked"){
-        cy.get(`table#form_rights tr:has(td:contains(${instrument})) input[type=checkbox]:visible`).uncheck()
-    }
-    cy.get(`table#form_rights tr:has(td:contains(${instrument})) input[value=${input_values[level]}]:visible`).check()
+    throw 'This step has been deprecated in favor of steps like the following: I click on the radio in the column labeled "No Access" and the row labeled "Text Validation"'
 })

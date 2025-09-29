@@ -307,3 +307,46 @@ Cypress.Commands.add("closestIncludingChildren", {prevSubject: true}, function (
     
     return null
 })
+
+Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subject, text, shouldBeVisible) {
+    // Collapse adjacent spaces to match innerText()'s behavior.
+    text = text.replace(/ +/g, ' ')
+
+    cy.retryUntilTimeout((lastRun) => {
+        let found = false
+        subject.each((index, item) => {
+            /**
+             * We use innerText.indexOf() rather than the ':contains()' selector
+             * to avoid matching text within hidden tags and <script> tags,
+             * since they are not actually visible.
+             * 
+             * This previously caused steps looking for text like "SUCCEED"
+             * to always work even when they should fail because that string
+             * exists inside a <script> tag on most pages. 
+             */
+            if(item.innerText.includes(text)){
+                found = true
+            }
+        })
+        
+        let error
+        if(found && !shouldBeVisible){
+            error = 'Unexpected text was found: ' + text
+        }
+        else if(!found && shouldBeVisible){
+            error = 'Expected text was not found: ' + text
+        }
+
+        if(error){
+            if(lastRun){
+                throw error
+            }
+            else{
+                return cy.wrap(false) // false will trigger a retry
+            }
+        }
+        else{
+            return cy.wrap(true)
+        }
+    })
+})
