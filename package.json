@@ -2,7 +2,6 @@
   "name": "rctf",
   "description": "These are the supporting files that underpin the REDCap Cypress Test Framework.",
   "main": "index.js",
-  "type": "module",
   "dependencies": {
     "@4tw/cypress-drag-drop": "^2",
     "@badeball/cypress-cucumber-preprocessor": "^22",

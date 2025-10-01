@@ -19,7 +19,7 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
  * @module CSV
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
  * @param {string} filename - the filename the downloaded CSV
- * @param {string} headerOrNot - available options: 'header and', 'header'
+ * @param {string} headerOrNot
  * @param {DataTable} headings the DataTable of headings this file should have
  * @description Verifies headers and rows of the CSV file.
  */

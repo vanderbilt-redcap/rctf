@@ -82,7 +82,39 @@ async function addExamples(comments) {
 
 export default async function (comments, config) {
   comments = comments.filter(comment =>  {
-    return !comment.deprecated
+    if(comment.deprecated){
+      return false
+    }
+
+    comment.params.forEach(param => {
+      const parameterType = window.parameterTypes[param.name]
+      if(!parameterType){
+        // This is likely a simple string param where the user is allowed to enter anything.
+        return
+      }
+
+      if(param.description !== undefined){
+        console.log(JSON.stringify(param.description, null, 2))
+        throw 'A "' + param.name + '" param has been specified with a description.  Please remove the parameter description, as they are now automatically generated.'
+      }
+
+      param.description = {
+        type: 'root',
+        children: [
+          {
+            type: 'paragraph',
+            children: [
+              {
+                type: 'text',
+                value: 'available options: ' + "'" + window.parameterTypes[param.name].join("', '") + "'"
+              }
+            ]
+          }
+        ]
+      }
+    })
+
+    return true
   })
 
   await addExamples(comments)

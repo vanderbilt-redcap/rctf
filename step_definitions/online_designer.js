@@ -3,9 +3,9 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 /**
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} enterType - available options: 'verify', 'enter', 'clear field and enter', 'click on'
+ * @param {string} enterType
  * @param {string} choices - the choices in string format
- * @param {string} addEditField - available options: 'Add New Field', 'Edit Field'
+ * @param {string} addEditField
  */
 Given('I {enterType} Choice(s) of {string} in(to) the open "{addEditField}" dialog box', (enter_type, choices) => {
     let field_choices = cy.select_field_choices()
@@ -25,7 +25,7 @@ Given('I {enterType} Choice(s) of {string} in(to) the open "{addEditField}" dial
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} label - the label of the field to edit
- * @param {string} addEditField - available options: 'Add New Field', 'Edit Field'
+ * @param {string} addEditField
  * @description Edits the field label of the open dialog box
  */
 Given('I enter {string} into the Field Label of the open "{addEditField}" dialog box', (field_label) => {
@@ -36,7 +36,7 @@ Given('I enter {string} into the Field Label of the open "{addEditField}" dialog
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} variable_name - the variable_name of the field to edit
- * @param {string} addEditField - available options: 'Add New Field', 'Edit Field'
+ * @param {string} addEditField
  * @description Edits the variable name of the open dialog box
  */
 Given('I enter {string} into the Variable Name of the open "{addEditField}" dialog box', (field_label) => {
@@ -47,7 +47,7 @@ Given('I enter {string} into the Variable Name of the open "{addEditField}" dial
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} equation - the equation to enter
- * @param {string} addEditField - available options: 'Add New Field', 'Edit Field'
+ * @param {string} addEditField
  * @description Enters specified equation into a Calculated Field within an open "Edit Field" dialog box
  */
 Given('I enter the equation {string} into Calculation Equation of the open "{addEditField}" dialog box', (equation) => {
@@ -60,7 +60,7 @@ Given('I enter the equation {string} into Calculation Equation of the open "{add
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} label - the label of the field to edit
- * @param {string} addEditField - available options: 'Add New Field', 'Edit Field'
+ * @param {string} addEditField
  * @description Selects option from the Field Type dropdown in open "Edit Field" dialog box
  */
 Given('I select {string} from the Field Type dropdown of the open "{addEditField}" dialog box', (dropdown_option) => {
@@ -71,7 +71,7 @@ Given('I select {string} from the Field Type dropdown of the open "{addEditField
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} label - the label of the field to edit
- * @param {string} addEditField - available options: 'Add New Field', 'Edit Field'
+ * @param {string} addEditField
  * @description Selects option from the Validation dropdown in open "Edit Field" dialog box
  */
 Given('I select {string} from the Validation dropdown of the open "{addEditField}" dialog box', (dropdown_option) => {
@@ -130,7 +130,7 @@ Given("I add an instrument below the instrument named {string}", (instrument) =>
 /**
  * @module OnlineDesigner
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @param {string} action - available options: 'click on', 'check', 'uncheck', 'should see', 'should NOT see'
+ * @param {string} action
  * @param {string} instrument - the name of the instrument that a form should be added below
  * @description Interactions - Clicks the "choose action" button and clicks an anchor link
  */
@@ -158,7 +158,7 @@ Given("I drag on the instrument named {string} to position {int}", (instrument, 
 /**
  * @module OnlineDesigner
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @param {string} addField - available options: 'Add Field', 'Add Matrix of Fields', 'Import from Field Bank'
+ * @param {string} addField
  * @param {string} target - the name of the field you want to add a field below
  * @description Clicks on one of the add field options below a specified field name
  */
@@ -172,7 +172,7 @@ Given("I click on the {addField} input button below the field named {string}", (
 /**
  * @module OnlineDesigner
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
- * @param {string} editField - available options: 'Edit', 'Edit Matrix', 'Branching Logic', 'Copy', 'Move', 'Delete Field'
+ * @param {string} editField
  * @param {string} field - the name of the field you want to edit
  * @description Clicks on the image link of the action you want to perform on a field
  */
@@ -264,7 +264,7 @@ Given("I drag (on )the field variable named {string} {aboveBelow} the field vari
  * @module OnlineDesigner
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
  * @param {string} fieldBefore - the field name that comes before
- * @param {string} beforeAfter - available options: 'before', 'after'
+ * @param {string} beforeAfter
  * @description Visually verifies that the fieldBefore is before fieldAfter
  */
 Given("I should see (a )(the )field named {string} {beforeAfter} field named {string}", (fieldBefore, before_after, fieldAfter) => {
@@ -279,7 +279,7 @@ Given("I should see (a )(the )field named {string} {beforeAfter} field named {st
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @author Madilynn Peterson <mmpeterson24@wisc.edu>
- * @param {string} fieldType - available options: 'Text Box', 'Notes Box', 'Drop-down List', 'Radio Buttons', 'Checkboxes', 'Yes - No', 'True - False', 'Signature', 'File Upload', 'Slider', 'Descriptive Text', 'Begin New Section', 'Calculated Field'
+ * @param {string} fieldType
  * @param {string} variable_name - variable name
  * @description Creates a new field in the Online Designer
  */
@@ -312,7 +312,7 @@ Given("I add a new {fieldType} field labeled {string} with variable name {string
  * @module OnlineDesigner
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
  * @param {string} instrument - the naame of the instrument being drag-n-dropped
- * @param {string} ordinal - available options: 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth', 'twentieth', 'last'
+ * @param {string} ordinal
  * @description Interactions - Drag and drop the instrument to the int position
  */
 Given("I drag the instrument named {string} to the{ordinal} row", (instrument, position) => {
@@ -326,7 +326,7 @@ Given("I drag the instrument named {string} to the{ordinal} row", (instrument, p
  * @module OnlineDesigner
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
  * @param {string} instrument - the naame of the instrument being drag-n-dropped
- * @param {string} ordinal - available options: 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth', 'twentieth', 'last'
+ * @param {string} ordinal
  * @description Interactions - Drag and drop the instrument to the int position
  */
 Given("I (should) see the instrument named {string} in the{ordinal} row", (instrument, position) => {
@@ -343,7 +343,7 @@ Given("I (should) see the instrument named {string} in the{ordinal} row", (instr
  * @module OnlineDesigner
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
  * @param {string} field - the name of the field being drag-n-dropped
- * @param {string} ordinal - available options: 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth', 'twentieth', 'last'
+ * @param {string} ordinal
  * @description Interactions - Drag and drop the field to the int position
  */
 Given("I drag the field named {string} to the{ordinal} row", (field, position) => {
@@ -368,9 +368,9 @@ Given('I click the "reset" link for the field labeled {string}', (label) => {
 /**
  * @module OnlineDesigner
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} text - available options: 'Add Field', 'Add Matrix of Fields', 'Import from Field Bank'
- * @param {string} variable_name - the name of the field you want to add a field below
- * @description Clicks on one of the add field options below a specified field name
+ * @param {string} text - the text we're looking for
+ * @param {string} variable_name - the REDCap field within with to look
+ * @description Looks for the specified text within the specified REDCap field
  */
 Given("I (should )see {string} within the field with variable name {string}", (text, variable_name) => {
     cy.not_loading()

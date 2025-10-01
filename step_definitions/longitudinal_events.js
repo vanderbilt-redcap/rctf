@@ -69,7 +69,7 @@ Given("I add an event named {string} with offset of {int} day(s) into the curren
 /**
  * @module LongitudinalEvents
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} editEvent - available options: 'Edit', 'Delete'
+ * @param {string} editEvent
  * @param {string} eventName - name of the Event targeted
  * @description Clicks on the image link of the action you want to perform on a event
  */
