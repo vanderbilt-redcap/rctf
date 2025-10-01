@@ -925,6 +925,9 @@ Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} fi
         const elm = cy.getLabeledElement('input', label, ordinal)
 
         if (enter_type === "enter" || enter_type === "clear field and enter") {
+            // Sometimes cypress will struggle to scroll a field into view and hang on the clear() call if we don't focus it first.
+            elm.focus()
+
             /**
              * Clearing is important to replace what is there, but also to support "text === ''"
              */
