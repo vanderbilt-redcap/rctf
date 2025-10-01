@@ -92,7 +92,7 @@ Given('I click on the "{toDoTableIcons}" icon for the "{toDoRequestTypes}" reque
 /**
  * @module ControlCenter
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} toDoRequestTypes - available options: 'Move to prod', 'Approve draft changes', 'Copy project'
+ * @param {string} toDoRequestTypes - available options: 'Move to prod', 'Approve draft changes', 'Copy project', 'Delete project'
  * @param {string} project_name - the text value of project name you want to target
  * @param {string} toDoTableTypes - available options: 'Pending Requests', 'Low Priority Pending Requests', 'Completed & Archived Requests'
  * @description Identifies Request Type within the To-Do-List page based upon Project Name, and Table Name specified.

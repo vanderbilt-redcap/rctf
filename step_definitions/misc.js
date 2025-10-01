@@ -4,7 +4,7 @@ import {rctf} from '../rctf.js'
 /**
  * @module Misc
  * @author Mark McEver <mark.mcever@vumc.org>
- * @param {shouldOrShouldNot} action - should or should NOT
+ * @param {shouldOrShouldNot} action - available options: 'click on', 'check', 'uncheck', 'should see', 'should NOT see'
  * @param {string} partialFilename - a filename or portion of a filename to check
  * @description Verifies whether a file exists on the External Storage server 
  */

@@ -7,6 +7,7 @@ import hljs from 'highlight.js';
 import { fileURLToPath } from 'url';
 import PromptSync from 'prompt-sync';
 import child_process from 'child_process'
+import {} from '../step_definitions/support/all_mappings.js'
 
 const prompt = PromptSync()
 
