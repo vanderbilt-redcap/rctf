@@ -570,7 +570,21 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
                      */
                     if (current.tagName === 'LABEL' && current.htmlFor !== '') {
                         // This label has the 'for' attribute set.  Use it.
-                        return cy.get('#' + current.htmlFor)
+                        /**
+                         * We use an attribute selector because REDCap has some elements with duplicate IDs,
+                         * and we want to consider all of them.  Using cy.get('#some-id') will only find the first one.
+                         */
+                        return cy.get('[id=' + current.htmlFor + ']').then(results => {
+                            results = results.filter((index, element) => {
+                                return element.tagName !== 'DIV'
+                            })
+
+                            if(results.length > 1){
+                                throw "Multiple elements with this ID found: " +current.htmlFor
+                            }
+
+                            return results[0]
+                        })
                     }
                 } while (current = current.parentElement)
             }
@@ -581,6 +595,8 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
         if (!match) {
             throw 'The specified element could not be found'
         }
+
+        console.log('getLabeledElement() return value', match)
 
         return match
     })
