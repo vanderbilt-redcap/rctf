@@ -40,7 +40,7 @@ module.exports = (cypressOn, config) => {
     on = require('cypress-on-fix')(cypressOn)
 
     const getRCTF = async () =>{
-        const imported = await import('../rctf.js') 
+        const imported = await import('../rctf.mjs') 
         return imported.rctf
     }
 

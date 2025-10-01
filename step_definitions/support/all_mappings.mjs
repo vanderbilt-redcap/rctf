@@ -1,4 +1,4 @@
-import {rctf} from '../../rctf.js'
+import {rctf} from '../../rctf.mjs'
 import {} from './mappings.js'
 
 function transformKeysToRegExp(variable){

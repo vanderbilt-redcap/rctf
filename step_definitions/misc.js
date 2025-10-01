@@ -1,5 +1,5 @@
 const { Given } = require('@badeball/cypress-cucumber-preprocessor')
-import {rctf} from '../rctf.js'
+import {rctf} from '../rctf.mjs'
 
 /**
  * @module Misc
