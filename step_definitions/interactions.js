@@ -1739,8 +1739,23 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
                     console.log('rows found', results)
                     throw 'Multiple rows found for the given label'
                 }
+                
+                const row = results[0]
+                let next
+                if(row.closest('table').closest('div').id.startsWith('setupChklist-')){
+                    /**
+                     * We're on the Project Setup page.
+                     * What look like table rows here are just divs that require special handling. 
+                     */
+                    next = cy.get(`div:contains("${rowLabel}")`).filterMatches(text)
+                }
+                else{
+                    next = cy.wrap(row);
+                }
 
-                performActionOnTarget(results[0])
+                next.then(row => {
+                    performActionOnTarget(row)
+                })
             })
         })
     }
