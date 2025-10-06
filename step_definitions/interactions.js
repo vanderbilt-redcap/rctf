@@ -209,6 +209,12 @@ function filterNonExactMatches(matches, text) {
         }
     })
 
+    if(minChars === Number.MAX_SAFE_INTEGER){
+        console.log('matches', matches)
+        console.log('text', text)
+        throw 'The matches did not contain the expected text!'
+    }
+
     return matches.filter(element =>
         /**
          * Only include the closest matches as determined by minChars.
