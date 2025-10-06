@@ -17,14 +17,6 @@ Given(/^I click on (?:a|the) table cell containing the text "(.*?)"(?: in)?(?: t
         selector = window.tableMappings[table_type][0]
     }
 
-    if(table_type === 'data access groups'){
-        cy.intercept({
-            method: 'GET',
-            url: '/redcap_v' + Cypress.env('redcap_version') + '/index.php?route=DataAccessGroupsController:getDagSwitcherTable&tablerowsonly=1&pid=*&rowoption=dags*'
-        }).as('dag_data')
-        selector = window.tableMappings[table_type][1]
-    }
-
     cy.get(selector).within(() => {
         cy.get(`td:contains(${JSON.stringify(text)}):visible`).
         find(`a:contains(${JSON.stringify(text)}):visible:first, span:contains(${JSON.stringify(text)}):visible:first`).
@@ -33,10 +25,8 @@ Given(/^I click on (?:a|the) table cell containing the text "(.*?)"(?: in)?(?: t
 
             if(enter_type === "clear field and enter"){
                 cy.wrap($element).clear().type(`${new_text}{enter}`)
-                if(table_type === 'data access groups') cy.wait('@dag_data')
             } else if (enter_type === "enter"){
                 cy.wrap($element).type(`${new_text}{enter}`)
-                if(table_type === 'data access groups') cy.wait('@dag_data')
             }
         })
     })
