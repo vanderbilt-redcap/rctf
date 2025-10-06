@@ -1,6 +1,6 @@
 import fs from 'fs'
 import transform from './step_definitions/support/transform_reg_ex_keys.js'
-import {} from './step_definitions/support/all_mappings.js'
+import {} from './step_definitions/support/all_mappings.mjs'
 
 let output_str = `/**
  * The parameter definitions must be duplicated in this file,

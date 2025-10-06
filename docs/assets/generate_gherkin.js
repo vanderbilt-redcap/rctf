@@ -1,5 +1,5 @@
 import DOMPurify from 'https://cdn.jsdelivr.net/npm/dompurify@3.2.7/+esm'
-import {} from '../../step_definitions/support/all_mappings.js'
+import {} from '../../step_definitions/support/all_mappings.mjs'
 
 function countStringInstances(gherkinStep) {
     const regex = /\{string\}/g;

@@ -23,7 +23,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "docs:build": "./node_modules/.bin/documentation build -f html --theme docs/index.js -o docs",
-    "generate:hints": "node --no-warnings write_hints.js",
+    "generate:hints": "node write_hints.mjs",
     "install:dev": "NODE_ENV=development npm install --save-dev @cypress/browserify-preprocessor",
     "install:prod": "NODE_ENV=production npm install --omit=optional"
   },

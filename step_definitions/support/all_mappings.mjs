@@ -1,4 +1,4 @@
-import {rctf} from '../../rctf.js'
+import {rctf} from '../../rctf.mjs'
 import {} from './mappings.js'
 
 function transformKeysToRegExp(variable){
@@ -20,7 +20,7 @@ window.parameterTypes = {
     addEditField: ['Add New Field', 'Edit Field'],
     addField: ['Add Field', 'Add Matrix of Fields', 'Import from Field Bank'],
     addOrSelect: ['add', 'select'],
-    articleType: ['a', 'the'],
+    articleType: ['a', 'an', 'the'],
     aboveBelow: ['above', 'below'],
     beforeAfter: ['before', 'after'],
     cellAction: [

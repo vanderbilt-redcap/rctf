@@ -3,7 +3,7 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 /**
  * @module ControlCenter
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} enableDisable - available options: 'enable', 'disable'
+ * @param {string} enableDisable
  * @param {string} admin_user - the name of the user you are setting the privilege for
  * @description Enables the privilege for the administrator based upon user.
  */
@@ -75,10 +75,10 @@ Given('I enable the Administrator Privilege {string} for a new administrator', (
 /**
  * @module ControlCenter
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} toDoTableIcons - available options: 'process request', 'get more information', 'add or edit a comment', 'Move to low priority section', 'archive request notification'
- * @param {string} toDoRequestTypes - available options: 'Move to prod', 'Approve draft changes', 'Copy project', 'Delete project'
+ * @param {string} toDoTableIcons
+ * @param {string} toDoRequestTypes
  * @param {string} project_name - the text value of project name you want to target
- * @param {string} toDoTableTypes - available options: 'Pending Requests', 'Low Priority Pending Requests', 'Completed & Archived Requests'
+ * @param {string} toDoTableTypes
  * @description Clicks on an icon within the To-Do-List page based upon Icon, Request Type, Project Name, and Table Name specified.
  */
 Given('I click on the "{toDoTableIcons}" icon for the "{toDoRequestTypes}" request created for the project named {string} within the "{toDoTableTypes}" table', (icon, request_type, project_name, table_name) => {
@@ -92,9 +92,9 @@ Given('I click on the "{toDoTableIcons}" icon for the "{toDoRequestTypes}" reque
 /**
  * @module ControlCenter
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} toDoRequestTypes - available options: 'Move to prod', 'Approve draft changes', 'Copy project'
+ * @param {string} toDoRequestTypes
  * @param {string} project_name - the text value of project name you want to target
- * @param {string} toDoTableTypes - available options: 'Pending Requests', 'Low Priority Pending Requests', 'Completed & Archived Requests'
+ * @param {string} toDoTableTypes
  * @description Identifies Request Type within the To-Do-List page based upon Project Name, and Table Name specified.
  */
 Given('I (should )see the "{toDoRequestTypes}" request created for the project named {string} within the "{toDoTableTypes}" table', (request_type, project_name, table_name) => {

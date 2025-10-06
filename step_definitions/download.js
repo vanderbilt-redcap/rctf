@@ -106,7 +106,7 @@ Given("I download the PDF by clicking on the link for Record {string} and Survey
 /**
  * @module Download
  * @author Mark McEver <mark.mcever@vumc.org>
- * @param {string} shouldOrShouldNot - should or should NOT
+ * @param {string} shouldOrShouldNot
  * @param {string} signatureField - the field under which the signature would be stored
  * @param {string} record - the Survey / Event of the record the PDF is associated with
  * @param {string} survey - the Survey / Event of the record the PDF is associated with

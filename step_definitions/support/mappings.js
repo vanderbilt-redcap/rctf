@@ -1,6 +1,6 @@
 if(typeof window === 'undefined'){
     // Required for node based calls like write_hints.js
-    window = {}
+    globalThis.window = {}
 }
 
 window.userRightChecks = {
@@ -55,7 +55,6 @@ window.tableMappings = {
     'reports' : 'table#table-report_list',
     'report data' : ['table.dataTable', 'table#report_table'],
     'define events' : 'table#event_table',
-    'data access groups' : ['div#dags_table table:first', 'div#dags_table table#table-dags_table'],
     'DAGs Switcher' : 'div#dag-switcher-config-container-parent table',
     'record status dashboard': 'table#record_status_table',
     'data collection instruments': 'table#table-forms_surveys',

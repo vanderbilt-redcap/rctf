@@ -39,9 +39,9 @@ Given("I click the button labeled {string} to select and upload {string} to File
  * @module DataImport
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} project_name - the desired name for the project
- * @param {string} projectType - available options: 'Practice / Just for fun', 'Operational Support', 'Research', 'Quality Improvement', 'Other'
+ * @param {string} projectType
  * @param {string} cdisc_file - the fixture path to the CDISC XML file (relative path; fixtures are located in /cypress/fixtures/cdisc_files/)
- * @param {string} projectRequestLabel - available options: 'Create Project', 'Send Request'
+ * @param {string} projectRequestLabel
  * @description Creates a new REDCap project of a specific project type from a CDISC XML file.
  */
 Given('I create a new project named {string} by clicking on "New Project" in the menu bar, selecting "{projectType}" from the dropdown, choosing file {string}, and clicking the "{projectRequestLabel}" button', (project_name, project_type, cdisc_file, button_label) => {

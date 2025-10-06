@@ -1,10 +1,10 @@
 const { Given } = require('@badeball/cypress-cucumber-preprocessor')
-import {rctf} from '../rctf.js'
+import {rctf} from '../rctf.mjs'
 
 /**
  * @module Misc
  * @author Mark McEver <mark.mcever@vumc.org>
- * @param {shouldOrShouldNot} action - should or should NOT
+ * @param {shouldOrShouldNot} action
  * @param {string} partialFilename - a filename or portion of a filename to check
  * @description Verifies whether a file exists on the External Storage server 
  */

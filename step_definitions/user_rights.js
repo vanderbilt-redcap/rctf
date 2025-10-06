@@ -117,7 +117,7 @@ Given("I save changes within the context of User Rights", () => {
 /**
  * @module UserRights
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} userRightAction - available options: 'add', 'remove'
+ * @param {string} userRightAction
  * @description Checks or Unchecks all Basic Rights within the User Rights dialog box.
  */
 Given('I {userRightAction} all Basic Rights within the open User Rights dialog box', (action) => {
@@ -150,8 +150,8 @@ Given('I {userRightAction} all Basic Rights within the open User Rights dialog b
 /**
  * @module UserRights
  * @author Corey DeBacker <debacker@wisc.edu>
- * @param {string} dataViewingRights - available options: 'No Access', 'Read Only', 'View & Edit', 'Edit survey responses'
- * @param {string} editSurveyRights - available options: ' with Edit survey responses checked', ' with Edit survey responses unchecked'
+ * @param {string} dataViewingRights
+ * @param {string} editSurveyRights
  * @param {string} instrument - the label of the instrument for which to configure data entry rights
  * @description Selects a radio option for Data Entry Rights for the specified instrument within the user rights configuration dialog.
  * @deprecated
