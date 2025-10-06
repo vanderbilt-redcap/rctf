@@ -1725,37 +1725,46 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
         throw 'Support for "in the column labeled" syntax is not yet implemented.  Please ask if you need it!'
     }
     else if(rowLabel){
-        cy.get(`tr:contains("${rowLabel}")`).then(results => {
+        let quoteChar
+        if(rowLabel.includes('"')){
+            quoteChar = "'"
+        }
+        else if(rowLabel.includes("'")){
+            quoteChar = '"'
+        }
+        else{
+            throw 'Strings that contain both single and double quotes are not currently supported in this context.  Please ask if you need this feature!'
+        }
+
+        const rowContainsSelector = `tr:contains(${quoteChar}${rowLabel}${quoteChar})`
+        cy.get(rowContainsSelector).filterMatches(text).then(results => {
             results = results.filter((i, row) => {
                 return !(row.closest('table').classList.contains('form-label-table'))
             })
 
-            cy.wrap(results).filterMatches(text).then(results => {
+            if(results.length === 0){
+                throw 'Row with given label not found'
+            }
+            else if(results.length > 1){
+                console.log('rows found', results)
+                throw 'Multiple rows found for the given label'
+            }
+            
+            const row = results[0]
+            let next
+            if(row.closest('table').closest('div').id.startsWith('setupChklist-')){
+                /**
+                 * We're on the Project Setup page.
+                 * What look like table rows here are just divs that require special handling. 
+                 */
+                next = cy.get(rowContainsSelector.replace('tr', 'div')).filterMatches(text)
+            }
+            else{
+                next = cy.wrap(row);
+            }
 
-                if(results.length === 0){
-                    throw 'Row with given label not found'
-                }
-                else if(results.length > 1){
-                    console.log('rows found', results)
-                    throw 'Multiple rows found for the given label'
-                }
-                
-                const row = results[0]
-                let next
-                if(row.closest('table').closest('div').id.startsWith('setupChklist-')){
-                    /**
-                     * We're on the Project Setup page.
-                     * What look like table rows here are just divs that require special handling. 
-                     */
-                    next = cy.get(`div:contains("${rowLabel}")`).filterMatches(text)
-                }
-                else{
-                    next = cy.wrap(row);
-                }
-
-                next.then(row => {
-                    performActionOnTarget(row)
-                })
+            next.then(row => {
+                performActionOnTarget(row)
             })
         })
     }
