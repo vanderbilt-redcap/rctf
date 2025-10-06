@@ -162,7 +162,7 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
     let base
     let subsel = ''
 
-    if(el !== ''){ subsel = {'link': 'a', 'button': 'button', 'field': 'tr', 'section break': 'td.header', 'checkbox': 'input[type=checkbox]', 'dropdown': 'select'}[el] }
+    if(el !== ''){ subsel = {'link': 'a', 'button': 'button', 'field': 'tr', 'section break': 'td.header', 'checkbox': 'input[type=checkbox]', 'dropdown': 'select', 'icon': 'i'}[el] }
 
     //It's possible for the survey icon to appear even if the instrument itself is not a link
     if(el === 'link' && online_buttons !== undefined && online_buttons.includes('survey icon')){
