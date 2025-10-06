@@ -528,7 +528,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
             if (colSpan > 1 && rowSpan === 1) {
                 let freeze_count = count
 
-                if(table_type !== "report data") header_selector = header_selector.replace('tr', '')
+                header_selector = header_selector.replace('tr:', ':')
 
                 //Notice how we don't want to use TR here
                 cy.get(`${header_selector} tr:nth-child(2) th[rowspan=1]`).each((c) => {
