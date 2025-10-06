@@ -163,6 +163,16 @@ function getShortestMatchingNodeLength(textToFind, element) {
     }
 
     if(!text){
+        // Required for C.3.30.1800
+        element.querySelectorAll(`[data-bs-original-title*="${textToFind}"]`).forEach(child => {
+            const titleText = child.getAttribute('data-bs-original-title')
+            if(!text || titleText.length < text.length){
+                text = titleText
+            }
+        })
+    }
+
+    if(!text){
         text = element.textContent
     }
 
