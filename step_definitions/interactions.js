@@ -1748,34 +1748,36 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
         }
 
         const rowContainsSelector = `tr:contains(${quoteChar}${rowLabel}${quoteChar})`
-        cy.get(rowContainsSelector).filterMatches(text).then(results => {
+        cy.get(rowContainsSelector).then(results => {
             results = results.filter((i, row) => {
                 return !(row.closest('table').classList.contains('form-label-table'))
             })
 
-            if(results.length === 0){
-                throw 'Row with given label not found'
-            }
-            else if(results.length > 1){
-                console.log('rows found', results)
-                throw 'Multiple rows found for the given label'
-            }
-            
-            const row = results[0]
-            let next
-            if(row.closest('table').closest('div').id.startsWith('setupChklist-')){
-                /**
-                 * We're on the Project Setup page.
-                 * What look like table rows here are just divs that require special handling. 
-                 */
-                next = cy.get(rowContainsSelector.replace('tr', 'div')).filterMatches(text)
-            }
-            else{
-                next = cy.wrap(row);
-            }
+            cy.wrap(results).filterMatches(text).then(results => {
+                if(results.length === 0){
+                    throw 'Row with given label not found'
+                }
+                else if(results.length > 1){
+                    console.log('rows found', results)
+                    throw 'Multiple rows found for the given label'
+                }
+                
+                const row = results[0]
+                let next
+                if(row.closest('table').closest('div').id.startsWith('setupChklist-')){
+                    /**
+                     * We're on the Project Setup page.
+                     * What look like table rows here are just divs that require special handling. 
+                     */
+                    next = cy.get(rowContainsSelector.replace('tr', 'div')).filterMatches(text)
+                }
+                else{
+                    next = cy.wrap(row);
+                }
 
-            next.then(row => {
-                performActionOnTarget(row)
+                next.then(row => {
+                    performActionOnTarget(row)
+                })
             })
         })
     }
