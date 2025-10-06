@@ -1725,14 +1725,9 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
         throw 'Support for "in the column labeled" syntax is not yet implemented.  Please ask if you need it!'
     }
     else if(rowLabel){
-        let quoteChar
-        if(rowLabel.includes('"')){
-            quoteChar = "'"
-        }
-        else if(rowLabel.includes("'")){
-            quoteChar = '"'
-        }
-        else{
+        const quoteChar = rowLabel.includes('"') ? "'" : '"'
+
+        if(rowLabel.includes(quoteChar)){
             throw 'Strings that contain both single and double quotes are not currently supported in this context.  Please ask if you need this feature!'
         }
 
