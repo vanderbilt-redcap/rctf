@@ -315,6 +315,12 @@ Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subj
     cy.retryUntilTimeout((lastRun) => {
         let found = false
         subject.each((index, item) => {
+            if (!Cypress.dom.isAttached(item)) {
+                cy.log('Element is stale (no longer attached to DOM)', item)
+            } else {
+                cy.log('Element is still valid', item)
+            }
+
             /**
              * We use innerText.indexOf() rather than the ':contains()' selector
              * to avoid matching text within hidden tags and <script> tags,
