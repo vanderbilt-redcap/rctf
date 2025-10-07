@@ -163,9 +163,10 @@ function getShortestMatchingNodeLength(textToFind, element) {
     }
 
     if(!text){
-        ['title', 'data-bs-original-title'].forEach(attribute => {
-            // Required for A.3.28.0500, C.3.30.1800, and others 
-            element.querySelectorAll(`[${attribute}*="${textToFind}"]`).forEach(child => {
+        const textToFindEscaped = textToFind.replaceAll('"', '\\"')
+        ;['title', 'data-bs-original-title'].forEach(attribute => {
+            // Required for A.3.28.0500, C.3.30.1800, and others
+            element.querySelectorAll(`[${attribute}*="${textToFindEscaped}"]`).forEach(child => {
                 const titleText = child.getAttribute(attribute)
                 if(!text || titleText.length < text.length){
                     text = titleText
