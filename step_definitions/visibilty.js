@@ -7,7 +7,7 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
  * @param {string} baseElement
  * @description Visually verifies that text does NOT exist within the HTML object.
  */
-Given("I {notSee} see {string}{baseElement}", (not_see, text, base_element = '') => {
+Given("I should NOT see {string}{baseElement}", (not_see, text, base_element = '') => {
     cy.get(window.elementChoices[base_element]).assertTextVisibility(text, false)
 })
 
@@ -758,11 +758,10 @@ Given("I should see the consent pdf has loaded in the iframe", () => {
 /**
  * @module Visibility
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} notSee
  *
  * @description Determine whether the lock image is visible or not for a given record
  */
-Given("I (should ){notSee}( )see the lock image for Record ID {string}", (not, record_id) => {
+Given("I should NOT see the lock image for Record ID {string}", (not, record_id) => {
     cy.not_loading()
 
     cy.get('div#record_display_name').then((record_id) =>{
@@ -778,13 +777,12 @@ Given("I (should ){notSee}( )see the lock image for Record ID {string}", (not, r
 /**
  * @module Visibility
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} notSee
  * @param {string} recordId - ID of the record we are focused on
  * @param {string} instrument - instrument we are focused on
  * @param {string} event - event we are focused on
  * @description Determine whether the lock image is visible or not for a given record
  */
-Given("I (should ){notSee} see the lock image on the Record Home Page for the Data Collection Instrument labeled {string} for event {string}", (not, instrument, event) => {
+Given("I should NOT see the lock image on the Record Home Page for the Data Collection Instrument labeled {string} for event {string}", (not, instrument, event) => {
     cy.not_loading()
 
     cy.table_cell_by_column_and_row_label(event, instrument, '#event_grid_table').then((record_id) => {
