@@ -767,10 +767,6 @@ Given("I should NOT see the lock image on the Record Home Page for the Data Coll
     cy.not_loading()
 
     cy.table_cell_by_column_and_row_label(event, instrument, '#event_grid_table').then((record_id) => {
-        if(not === "should NOT" || not === "should no longer" || not === "no longer"){
-            expect(record_id).to.not.have.descendants('img[src*=lock]')
-        } else {
-            expect(record_id).to.have.descendants('img[src*=lock]')
-        }
+        expect(record_id).to.not.have.descendants('img[src*=lock]')
     })
 })
