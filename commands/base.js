@@ -312,6 +312,10 @@ Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subj
     // Collapse adjacent spaces to match innerText()'s behavior.
     text = text.replace(/ +/g, ' ')
 
+    if(text.length === 0){
+        throw "The text specified must not be empty!"
+    }
+
     cy.retryUntilTimeout((lastRun) => {
         let found = false
         subject.each((index, item) => {

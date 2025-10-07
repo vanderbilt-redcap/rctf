@@ -7,7 +7,7 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
  * @param {string} baseElement
  * @description Visually verifies that text does NOT exist within the HTML object.
  */
-Given("I should NOT see {string}{baseElement}", (not_see, text, base_element = '') => {
+Given("I should NOT see {string}{baseElement}", (text, base_element = '') => {
     cy.get(window.elementChoices[base_element]).assertTextVisibility(text, false)
 })
 
@@ -763,7 +763,7 @@ Given("I should see the consent pdf has loaded in the iframe", () => {
  * @param {string} event - event we are focused on
  * @description Determine whether the lock image is visible or not for a given record
  */
-Given("I should NOT see the lock image on the Record Home Page for the Data Collection Instrument labeled {string} for event {string}", (not, instrument, event) => {
+Given("I should NOT see the lock image on the Record Home Page for the Data Collection Instrument labeled {string} for event {string}", (instrument, event) => {
     cy.not_loading()
 
     cy.table_cell_by_column_and_row_label(event, instrument, '#event_grid_table').then((record_id) => {
