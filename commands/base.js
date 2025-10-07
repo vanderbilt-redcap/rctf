@@ -316,9 +316,11 @@ Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subj
         let found = false
         subject.each((index, item) => {
             if (!Cypress.dom.isAttached(item)) {
-                const message = 'Element is stale (no longer attached to DOM).  This can be caused by a partial or full page load.'
-                cy.log(message, item)
-                throw message
+                // The page must have partially or fully reloaded.  Get new reference(s) to the same subject(s).
+                const selector = subject.selector
+                subject = Cypress.$(selector)
+                subject.selector = selector
+                item = subject[index]
             }
 
             /**
