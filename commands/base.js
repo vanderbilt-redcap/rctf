@@ -321,7 +321,11 @@ Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subj
         subject.each((index, item) => {
             if (!Cypress.dom.isAttached(item)) {
                 cy.log('assertTextVisibility() - Stale subject(s) detected.  The page must have partially or fully reloaded.  Attempting to get new reference(s) to the same subject(s)...')
-                const selector = subject.selector
+                let selector = subject.selector
+                if(!selector){
+                    selector = 'body'
+                }
+                
                 subject = Cypress.$(selector)
                 subject.selector = selector
                 item = subject[index]
