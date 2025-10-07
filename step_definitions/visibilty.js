@@ -758,25 +758,6 @@ Given("I should see the consent pdf has loaded in the iframe", () => {
 /**
  * @module Visibility
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- *
- * @description Determine whether the lock image is visible or not for a given record
- */
-Given("I should NOT see the lock image for Record ID {string}", (not, record_id) => {
-    cy.not_loading()
-
-    cy.get('div#record_display_name').then((record_id) =>{
-        if(not === "should NOT" || not === "should no longer" || not === "no longer"){
-            expect(record_id).to.not.have.descendants('img[src*=lock]')
-        } else {
-            expect(record_id).to.have.descendants('img[src*=lock]')
-        }
-    })
-})
-
-
-/**
- * @module Visibility
- * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} recordId - ID of the record we are focused on
  * @param {string} instrument - instrument we are focused on
  * @param {string} event - event we are focused on
