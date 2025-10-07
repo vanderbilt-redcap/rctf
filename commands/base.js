@@ -325,6 +325,11 @@ Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subj
                 subject = Cypress.$(selector)
                 subject.selector = selector
                 item = subject[index]
+
+                if(item === undefined){
+                    // The number of items matched must be smaller after the page load.  Return and check the new list on the next retry.
+                    return
+                }
             }
 
             /**
