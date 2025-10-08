@@ -1738,13 +1738,8 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
         throw 'Support for "in the column labeled" syntax is not yet implemented.  Please ask if you need it!'
     }
     else if(rowLabel){
-        const quoteChar = rowLabel.includes('"') ? "'" : '"'
-
-        if(rowLabel.includes(quoteChar)){
-            throw 'Strings that contain both single and double quotes are not currently supported in this context.  Please ask if you need this feature!'
-        }
-
-        const rowContainsSelector = `tr:contains(${quoteChar}${rowLabel}${quoteChar})`
+        const escapedRowLabel = rowLabel.replaceAll('"', '\\"')
+        const rowContainsSelector = `tr:contains("${escapedRowLabel}")`
         cy.get(rowContainsSelector).then(results => {
             results = results.filter((i, row) => {
                 return !(row.closest('table').classList.contains('form-label-table'))
