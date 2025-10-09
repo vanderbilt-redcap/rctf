@@ -489,7 +489,10 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
     //We will first try to match on exact match, then substring if no match
     function exactMatch(label, header, columns, colSpan, rowSpan, count){
         header.forEach((heading) => {
-            const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // Escape special characters
+            const escapedLabel = label
+                .replaceAll(' ', ' ') // Replace no-break space chars
+                .replace(/  +/g, ' ') // Collapse adjacent spaces to make matching more forgiving
+                .replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // Escape special characters
             const exactPattern = new RegExp(`^${escapedLabel}$`)
             if(exactPattern.test(heading) && columns[heading].match_type === 'none' && label !== ""){
                 columns[heading] = { col: count, match_type: 'exact', colSpan: colSpan, rowSpan: rowSpan }
