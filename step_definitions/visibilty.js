@@ -610,9 +610,13 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
             }).then(() => {
                 //console.log(columns)
                 let filter_selector = []
-                dataTable.rawTable.forEach((row, row_index) => {
-                    row.forEach((value, index) => {
-                        let column = index+1
+                dataTable.hashes().forEach((row, row_index) => {
+                    for (const [index, key] of Object.keys(row).entries()) {
+                        let value = row[key]
+                        let column = columns[key].col
+                        if (isNaN(column)) {
+                            throw 'Error detecting column index!'
+                        }
 
                         let contains = ''
 
@@ -656,7 +660,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                         //         `:has(td:has(${html_elements[value].selector}),th:has(${html_elements[value].selector}))` :
                         //         `:has(${window.dateFormats.hasOwnProperty(value) ? 'td,th' : contains})`
                         // })
-                    })
+                    }
                 })
 
                 //See if at least one row matches the criteria we are suggesting
