@@ -618,7 +618,8 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                         let value = row[key]
                         let column = columns[key].col
                         if (isNaN(column)) {
-                            throw 'Error detecting column index!'
+                            console.log('columns', columns)
+                            throw 'Error detecting index for column: ' + key
                         }
 
                         let contains = ''
