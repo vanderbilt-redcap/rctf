@@ -491,7 +491,6 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
         header.forEach((heading) => {
             const escapedLabel = label
                 .replaceAll(' ', ' ') // Replace no-break space chars
-                .replace(/  +/g, ' ') // Collapse adjacent spaces to make matching more forgiving
                 .replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // Escape special characters
             const exactPattern = new RegExp(`^${escapedLabel}$`)
             if(exactPattern.test(heading) && columns[heading].match_type === 'none' && label !== ""){
