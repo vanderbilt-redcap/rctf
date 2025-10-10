@@ -309,8 +309,10 @@ Cypress.Commands.add("closestIncludingChildren", {prevSubject: true}, function (
 })
 
 Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subject, text, shouldBeVisible) {
-    // Collapse adjacent spaces to match innerText()'s behavior.
-    text = text.replace(/ +/g, ' ')
+    
+    text = text
+        .replace(/ +/g, ' ') // Collapse adjacent spaces to match innerText()'s behavior.
+        .replace(/\\n/g, '\n') // Remove autoescaped new lines so that they will match properly
 
     if(text.length === 0){
         throw "The text specified must not be empty!"
