@@ -314,38 +314,48 @@ Cypress.Commands.add("filterMatches", {prevSubject: true}, function (matches, te
  *      the radio labeled "Use Data Access Groups"
  */
 function getPreferredSibling(text, originalMatch, one, two){
-    if(originalMatch === one.parentElement){
-        const nodeMatches = Array.from(originalMatch.childNodes).filter(child => {
-            return child.textContent.includes(text)
-        })
+    const elementsToCheck = Cypress.$(originalMatch).parents().toArray()
+    elementsToCheck.unshift(originalMatch)
+    const sharedParent = elementsToCheck.filter(element => {
+        return element.contains(one) && element.contains(two)
+    })[0]
 
-        if(nodeMatches.length !== 1){
-            throw 'Found an unexpexcted number of node matches'
+    const siblings = Array.from(sharedParent.childNodes)
+    
+    let matchOrParent, oneOrParent, twoOrParent
+    siblings.forEach(child => {
+        if(child === originalMatch || child.contains(originalMatch)){
+            matchOrParent = child
         }
-
-        originalMatch = nodeMatches[0]
-    }
+        else if(child === one || child.contains(one)){
+            oneOrParent = child
+        }
+        else if(child === two || child.contains(two)){
+            twoOrParent = child
+        }
+    })
 
     if(
-        originalMatch.parentElement === one.parentElement
-        &&
-        originalMatch.parentElement === two.parentElement
+        matchOrParent === oneOrParent
+        ||
+        matchOrParent === twoOrParent
+        ||
+        oneOrParent === twoOrParent
     ){
-        // All three have the same parent, so the logic in this method is useful
-    }
-    else{
-        // This method is not useful in its current form since the three are not siblings
+        /**
+         * Shared parent with distinct children not found.
+         * This method is not useful in its current form if the three elements or their parents are not siblings.
+         */
         return undefined
     }
 
-    const siblings = Array.from(originalMatch.parentElement.childNodes)
-    const matchIndex = siblings.indexOf(originalMatch)
+    const matchIndex = siblings.indexOf(matchOrParent)
     if(matchIndex === -1){
         throw 'Could not determine match index'
     }
 
-    const indexOne = siblings.indexOf(one)
-    const indexTwo = siblings.indexOf(two)
+    const indexOne = siblings.indexOf(oneOrParent)
+    const indexTwo = siblings.indexOf(twoOrParent)
     const distanceOne = Math.abs(matchIndex - indexOne)
     const distanceTwo = Math.abs(matchIndex - indexTwo)
     if(distanceOne === distanceTwo){
