@@ -917,7 +917,64 @@ Given("I click on the button labeled {string} for the row labeled {string}", (te
  * @param {string} label - the label of the field
  * @param {string} baseElement
  */
-Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}', (enter_type, text, ordinal, input_type, column, labeled_exactly, label, base_element, iframe) => {
+Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}', enterTextIntoField)
+
+/**
+ * @module Interactions
+ * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
+ * @param {string} enterType
+ * @param {string} label - the label of the field
+ * @param {string} baseElement
+ */
+Given('I enter the code that was emailed to the current user into the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}', (...args) => {
+    const getCodeFromEmail = () => {
+        return cy.request('http://localhost:8025/api/v1/messages').then(response => {
+            const lastMessage = response.body[0].Content
+
+            // Make null the default return value
+            cy.wrap(null)
+
+            const timeSinceSent = Date.now() - new Date(lastMessage.Headers.Date)
+            if(timeSinceSent > 10000){
+                // Ignore any old emails
+                return
+            }
+            
+            let code = null
+            lastMessage.Body.split('\r').forEach(line => {
+                if(code === null && line.includes('verification code is')){
+                    code = line.split(' ').at(-1)
+                }
+            })
+
+            cy.wrap(code)
+        })
+    }
+
+    let triesLeft = 10
+    const getSentEmails = () => {
+        getCodeFromEmail().then(code => {
+            if(!code){
+                if(triesLeft-- > 0){
+                    cy.wait(1000)
+                    getSentEmails()
+                }
+                else{
+                    throw 'Could not find a recent message containing an authentication code: ' + lastMessage
+                }
+            }
+            else{
+                args.unshift(code)
+                args.unshift('enter')
+                enterTextIntoField(...args)
+            }
+        })
+    }
+
+    getSentEmails()
+})
+
+function enterTextIntoField(enter_type, text, ordinal, input_type, column, labeled_exactly, label, base_element, iframe){
     let select = 'input[type=text]:visible,input[type=password]:visible'
 
     // Also look for inputs that omit a "type", like "Name of trigger"
@@ -982,7 +1039,7 @@ Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} fi
             }
         }
     }
-})
+}
 
 /**
  * @module Interactions
