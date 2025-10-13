@@ -156,8 +156,12 @@ function getShortestMatchingNodeLength(textToFind, element) {
     else if(element.childNodes.length > 0) {
         // This is required for 'on the dropdown field labeled "to"' syntax
         element.childNodes.forEach(child => {
-            if(child.constructor.name === 'Text' && child.textContent.includes(textToFind)){
-                text = child.textContent
+            if(child.constructor.name === 'Text'){
+                let content = child.textContent
+                content = content.replaceAll(' ', ' ') // Replace no-break space chars to make matching work in more cases
+                if(content.includes(textToFind)){
+                    text = content
+                }
             }
         })
     }
@@ -444,6 +448,10 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
             // B.3.14.0900.
             && child.closest('.ui-helper-hidden-accessible') === null
     })
+
+    if(selectOption){
+        children = filterNonExactMatches(children, selectOption)
+    }
 
     removeUnpreferredSiblings(text, originalMatch, children)
 
