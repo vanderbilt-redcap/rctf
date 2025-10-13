@@ -257,6 +257,27 @@ Cypress.Commands.overwrite(
     }
 )
 
+Cypress.Commands.overwrite('within', (...args) => {
+    const originalWithin = args.shift()
+    const subject = args[0]
+
+    if(subject[0].tagName === 'HTML'){
+        /**
+         * Effectively ignore the cy.within() call on the HTML element because it has no desired effect
+         * and actually prevents elements from being found in the case where the HTML element
+         * happens to be matched during a within() call immediately prior to a page reload.
+         * In this case we will never find our desired element because we are searching
+         * within the previous page's HTML that is not desired and no longer displayed.
+         */
+        const callbackFn = args.at(-1)
+        callbackFn(subject)
+        return subject
+    }
+    else{
+        return originalWithin(...args)
+    }
+})
+
 Cypress.Commands.add('php_time_zone', () => {
     // Check if php path is set in Cypress.env.json
     if (Cypress.env('php') && Cypress.env('php')['path']) {
