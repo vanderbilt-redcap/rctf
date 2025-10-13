@@ -314,7 +314,24 @@ Cypress.Commands.add("filterMatches", {prevSubject: true}, function (matches, te
  *      the radio labeled "Use Data Access Groups"
  */
 function getPreferredSibling(text, originalMatch, one, two){
-    if(one === originalMatch){
+    if(originalMatch === one.parentElement){
+        /**
+         * The originalMatch was matched because it contains a text node
+         * that is a direct sibling of the options to consider.
+         * Replace originalMatch with the actual text node for the following logic to work properly. 
+         */
+
+        const nodeMatches = Array.from(originalMatch.childNodes).filter(child => {
+            return child.textContent.includes(text)
+        })
+
+        if(nodeMatches.length !== 1){
+            throw 'Found an unexpexcted number of node matches'
+        }
+     
+        originalMatch = nodeMatches[0]
+    }
+    else if(one === originalMatch){
         return one
     }
     else if(two === originalMatch){
