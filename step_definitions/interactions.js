@@ -314,6 +314,13 @@ Cypress.Commands.add("filterMatches", {prevSubject: true}, function (matches, te
  *      the radio labeled "Use Data Access Groups"
  */
 function getPreferredSibling(text, originalMatch, one, two){
+    if(one === originalMatch){
+        return one
+    }
+    else if(two === originalMatch){
+        return two
+    }
+
     const elementsToCheck = Cypress.$(originalMatch).parents().toArray()
     elementsToCheck.unshift(originalMatch)
     const sharedParent = elementsToCheck.filter(element => {
