@@ -257,6 +257,27 @@ Cypress.Commands.overwrite(
     }
 )
 
+Cypress.Commands.overwrite('within', (...args) => {
+    const originalWithin = args.shift()
+    const subject = args[0]
+
+    if(subject[0].tagName === 'HTML'){
+        /**
+         * Effectively ignore the cy.within() call on the HTML element because it has no desired effect
+         * and actually prevents elements from being found in the case where the HTML element
+         * happens to be matched during a within() call immediately prior to a page reload.
+         * In this case we will never find our desired element because we are searching
+         * within the previous page's HTML that is not desired and no longer displayed.
+         */
+        const callbackFn = args.at(-1)
+        callbackFn(subject)
+        return subject
+    }
+    else{
+        return originalWithin(...args)
+    }
+})
+
 Cypress.Commands.add('php_time_zone', () => {
     // Check if php path is set in Cypress.env.json
     if (Cypress.env('php') && Cypress.env('php')['path']) {
@@ -309,12 +330,35 @@ Cypress.Commands.add("closestIncludingChildren", {prevSubject: true}, function (
 })
 
 Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subject, text, shouldBeVisible) {
-    // Collapse adjacent spaces to match innerText()'s behavior.
-    text = text.replace(/ +/g, ' ')
+    
+    text = text
+        .replace(/ +/g, ' ') // Collapse adjacent spaces to match innerText()'s behavior.
+        .replace(/\\n/g, '\n') // Remove autoescaped new lines so that they will match properly
+
+    if(text.length === 0){
+        throw "The text specified must not be empty!"
+    }
 
     cy.retryUntilTimeout((lastRun) => {
         let found = false
         subject.each((index, item) => {
+            if (!Cypress.dom.isAttached(item)) {
+                cy.log('assertTextVisibility() - Stale subject(s) detected.  The page must have partially or fully reloaded.  Attempting to get new reference(s) to the same subject(s)...')
+                let selector = subject.selector
+                if(!selector){
+                    selector = 'body'
+                }
+                
+                subject = Cypress.$(selector)
+                subject.selector = selector
+                item = subject[index]
+
+                if(item === undefined){
+                    // The number of items matched must be smaller after the page load.  Return and check the new list on the next retry.
+                    return
+                }
+            }
+
             /**
              * We use innerText.indexOf() rather than the ':contains()' selector
              * to avoid matching text within hidden tags and <script> tags,

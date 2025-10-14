@@ -156,19 +156,26 @@ function getShortestMatchingNodeLength(textToFind, element) {
     else if(element.childNodes.length > 0) {
         // This is required for 'on the dropdown field labeled "to"' syntax
         element.childNodes.forEach(child => {
-            if(child.constructor.name === 'Text' && child.textContent.includes(textToFind)){
-                text = child.textContent
+            if(child.constructor.name === 'Text'){
+                let content = child.textContent
+                content = content.replaceAll(' ', ' ') // Replace no-break space chars to make matching work in more cases
+                if(content.includes(textToFind)){
+                    text = content
+                }
             }
         })
     }
 
     if(!text){
-        // Required for C.3.30.1800
-        element.querySelectorAll(`[data-bs-original-title*="${textToFind}"]`).forEach(child => {
-            const titleText = child.getAttribute('data-bs-original-title')
-            if(!text || titleText.length < text.length){
-                text = titleText
-            }
+        const textToFindEscaped = textToFind.replaceAll('"', '\\"')
+        ;['title', 'data-bs-original-title'].forEach(attribute => {
+            // Required for A.3.28.0500, C.3.30.1800, and others
+            element.querySelectorAll(`[${attribute}*="${textToFindEscaped}"]`).forEach(child => {
+                const titleText = child.getAttribute(attribute)
+                if(!text || titleText.length < text.length){
+                    text = titleText
+                }
+            })
         })
     }
 
@@ -312,6 +319,12 @@ Cypress.Commands.add("filterMatches", {prevSubject: true}, function (matches, te
  */
 function getPreferredSibling(text, originalMatch, one, two){
     if(originalMatch === one.parentElement){
+        /**
+         * The originalMatch was matched because it contains a text node
+         * that is a direct sibling of the options to consider.
+         * Replace originalMatch with the actual text node for the following logic to work properly. 
+         */
+
         const nodeMatches = Array.from(originalMatch.childNodes).filter(child => {
             return child.textContent.includes(text)
         })
@@ -319,30 +332,58 @@ function getPreferredSibling(text, originalMatch, one, two){
         if(nodeMatches.length !== 1){
             throw 'Found an unexpexcted number of node matches'
         }
-
+     
         originalMatch = nodeMatches[0]
     }
+    else if(one === originalMatch){
+        return one
+    }
+    else if(two === originalMatch){
+        return two
+    }
+
+    const elementsToCheck = Cypress.$(originalMatch).parents().toArray()
+    elementsToCheck.unshift(originalMatch)
+    const sharedParent = elementsToCheck.filter(element => {
+        return element.contains(one) && element.contains(two)
+    })[0]
+
+    const siblings = Array.from(sharedParent.childNodes)
+    
+    let matchOrParent, oneOrParent, twoOrParent
+    siblings.forEach(child => {
+        if(child === originalMatch || child.contains(originalMatch)){
+            matchOrParent = child
+        }
+        else if(child === one || child.contains(one)){
+            oneOrParent = child
+        }
+        else if(child === two || child.contains(two)){
+            twoOrParent = child
+        }
+    })
 
     if(
-        originalMatch.parentElement === one.parentElement
-        &&
-        originalMatch.parentElement === two.parentElement
+        matchOrParent === oneOrParent
+        ||
+        matchOrParent === twoOrParent
+        ||
+        oneOrParent === twoOrParent
     ){
-        // All three have the same parent, so the logic in this method is useful
-    }
-    else{
-        // This method is not useful in its current form since the three are not siblings
+        /**
+         * Shared parent with distinct children not found.
+         * This method is not useful in its current form if the three elements or their parents are not siblings.
+         */
         return undefined
     }
 
-    const siblings = Array.from(originalMatch.parentElement.childNodes)
-    const matchIndex = siblings.indexOf(originalMatch)
+    const matchIndex = siblings.indexOf(matchOrParent)
     if(matchIndex === -1){
         throw 'Could not determine match index'
     }
 
-    const indexOne = siblings.indexOf(one)
-    const indexTwo = siblings.indexOf(two)
+    const indexOne = siblings.indexOf(oneOrParent)
+    const indexTwo = siblings.indexOf(twoOrParent)
     const distanceOne = Math.abs(matchIndex - indexOne)
     const distanceTwo = Math.abs(matchIndex - indexTwo)
     if(distanceOne === distanceTwo){
@@ -407,6 +448,10 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
             // B.3.14.0900.
             && child.closest('.ui-helper-hidden-accessible') === null
     })
+
+    if(selectOption){
+        children = filterNonExactMatches(children, selectOption)
+    }
 
     removeUnpreferredSiblings(text, originalMatch, children)
 
@@ -904,7 +949,64 @@ Given("I click on the button labeled {string} for the row labeled {string}", (te
  * @param {string} label - the label of the field
  * @param {string} baseElement
  */
-Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}', (enter_type, text, ordinal, input_type, column, labeled_exactly, label, base_element, iframe) => {
+Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}', enterTextIntoField)
+
+/**
+ * @module Interactions
+ * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
+ * @param {string} enterType
+ * @param {string} label - the label of the field
+ * @param {string} baseElement
+ */
+Given('I enter the code that was emailed to the current user into the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}', (...args) => {
+    const getCodeFromEmail = () => {
+        return cy.request('http://localhost:8025/api/v1/messages').then(response => {
+            const lastMessage = response.body[0].Content
+
+            // Make null the default return value
+            cy.wrap(null)
+
+            const timeSinceSent = Date.now() - new Date(lastMessage.Headers.Date)
+            if(timeSinceSent > 10000){
+                // Ignore any old emails
+                return
+            }
+            
+            let code = null
+            lastMessage.Body.split('\r').forEach(line => {
+                if(code === null && line.includes('verification code is')){
+                    code = line.split(' ').at(-1)
+                }
+            })
+
+            cy.wrap(code)
+        })
+    }
+
+    let triesLeft = 10
+    const getSentEmails = () => {
+        getCodeFromEmail().then(code => {
+            if(!code){
+                if(triesLeft-- > 0){
+                    cy.wait(1000)
+                    getSentEmails()
+                }
+                else{
+                    throw 'Could not find a recent message containing an authentication code: ' + lastMessage
+                }
+            }
+            else{
+                args.unshift(code)
+                args.unshift('enter')
+                enterTextIntoField(...args)
+            }
+        })
+    }
+
+    getSentEmails()
+})
+
+function enterTextIntoField(enter_type, text, ordinal, input_type, column, labeled_exactly, label, base_element, iframe){
     let select = 'input[type=text]:visible,input[type=password]:visible'
 
     // Also look for inputs that omit a "type", like "Name of trigger"
@@ -969,7 +1071,7 @@ Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} fi
             }
         }
     }
-})
+}
 
 /**
  * @module Interactions
@@ -1735,13 +1837,8 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
         throw 'Support for "in the column labeled" syntax is not yet implemented.  Please ask if you need it!'
     }
     else if(rowLabel){
-        const quoteChar = rowLabel.includes('"') ? "'" : '"'
-
-        if(rowLabel.includes(quoteChar)){
-            throw 'Strings that contain both single and double quotes are not currently supported in this context.  Please ask if you need this feature!'
-        }
-
-        const rowContainsSelector = `tr:contains(${quoteChar}${rowLabel}${quoteChar})`
+        const escapedRowLabel = rowLabel.replaceAll('"', '\\"')
+        const rowContainsSelector = `tr:contains("${escapedRowLabel}")`
         cy.get(rowContainsSelector).then(results => {
             results = results.filter((i, row) => {
                 return !(row.closest('table').classList.contains('form-label-table'))

@@ -81,7 +81,6 @@ window.parameterTypes = {
     loginTypes: ['attempt to login to REDCap with', 'am still logged in to REDCap with', 'login to REDCap with', 'successfully login to REDCap with', 'provide E-Signature credentials for'],
     projectRequestLabel: ['Create Project', 'Send Request'],
     notSeeDC: ['should see a Data Collection Instrument named', 'should NOT see a Data Collection Instrument named', 'should no longer see a Data Collection Instrument named'],
-    notSee: ['', 'should NOT', 'should no longer', 'no longer'],
     shouldOrShouldNot: ['should', 'should NOT'],
     storageDirectoryLocations: Object.keys(rctf.STORAGE_DIRECTORY_LOCATIONS),
     ordering: ['ascending', 'descending'],

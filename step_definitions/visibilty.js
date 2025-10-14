@@ -7,7 +7,7 @@ const { Given } = require('@badeball/cypress-cucumber-preprocessor')
  * @param {string} baseElement
  * @description Visually verifies that text does NOT exist within the HTML object.
  */
-Given("I {notSee} see {string}{baseElement}", (not_see, text, base_element = '') => {
+Given("I should NOT see {string}{baseElement}", (text, base_element = '') => {
     cy.get(window.elementChoices[base_element]).assertTextVisibility(text, false)
 })
 
@@ -489,7 +489,9 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
     //We will first try to match on exact match, then substring if no match
     function exactMatch(label, header, columns, colSpan, rowSpan, count){
         header.forEach((heading) => {
-            const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // Escape special characters
+            const escapedLabel = label
+                .replaceAll(' ', ' ') // Replace no-break space chars
+                .replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // Escape special characters
             const exactPattern = new RegExp(`^${escapedLabel}$`)
             if(exactPattern.test(heading) && columns[heading].match_type === 'none' && label !== ""){
                 columns[heading] = { col: count, match_type: 'exact', colSpan: colSpan, rowSpan: rowSpan }
@@ -528,7 +530,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
             if (colSpan > 1 && rowSpan === 1) {
                 let freeze_count = count
 
-                if(table_type !== "report data") header_selector = header_selector.replace('tr', '')
+                header_selector = header_selector.replace('tr:', ':')
 
                 //Notice how we don't want to use TR here
                 cy.get(`${header_selector} tr:nth-child(2) th[rowspan=1]`).each((c) => {
@@ -610,9 +612,14 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
             }).then(() => {
                 //console.log(columns)
                 let filter_selector = []
-                dataTable.rawTable.forEach((row, row_index) => {
-                    row.forEach((value, index) => {
-                        let column = index+1
+                dataTable.hashes().forEach((row, row_index) => {
+                    for (const [index, key] of Object.keys(row).entries()) {
+                        let value = row[key]
+                        let column = columns[key].col
+                        if (isNaN(column)) {
+                            console.log('columns', columns)
+                            throw 'Error detecting index for column: ' + key
+                        }
 
                         let contains = ''
 
@@ -656,7 +663,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                         //         `:has(td:has(${html_elements[value].selector}),th:has(${html_elements[value].selector}))` :
                         //         `:has(${window.dateFormats.hasOwnProperty(value) ? 'td,th' : contains})`
                         // })
-                    })
+                    }
                 })
 
                 //See if at least one row matches the criteria we are suggesting
@@ -758,40 +765,15 @@ Given("I should see the consent pdf has loaded in the iframe", () => {
 /**
  * @module Visibility
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} notSee
- *
- * @description Determine whether the lock image is visible or not for a given record
- */
-Given("I (should ){notSee}( )see the lock image for Record ID {string}", (not, record_id) => {
-    cy.not_loading()
-
-    cy.get('div#record_display_name').then((record_id) =>{
-        if(not === "should NOT" || not === "should no longer" || not === "no longer"){
-            expect(record_id).to.not.have.descendants('img[src*=lock]')
-        } else {
-            expect(record_id).to.have.descendants('img[src*=lock]')
-        }
-    })
-})
-
-
-/**
- * @module Visibility
- * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} notSee
  * @param {string} recordId - ID of the record we are focused on
  * @param {string} instrument - instrument we are focused on
  * @param {string} event - event we are focused on
  * @description Determine whether the lock image is visible or not for a given record
  */
-Given("I (should ){notSee} see the lock image on the Record Home Page for the Data Collection Instrument labeled {string} for event {string}", (not, instrument, event) => {
+Given("I should NOT see the lock image on the Record Home Page for the Data Collection Instrument labeled {string} for event {string}", (instrument, event) => {
     cy.not_loading()
 
     cy.table_cell_by_column_and_row_label(event, instrument, '#event_grid_table').then((record_id) => {
-        if(not === "should NOT" || not === "should no longer" || not === "no longer"){
-            expect(record_id).to.not.have.descendants('img[src*=lock]')
-        } else {
-            expect(record_id).to.have.descendants('img[src*=lock]')
-        }
+        expect(record_id).to.not.have.descendants('img[src*=lock]')
     })
 })
