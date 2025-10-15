@@ -252,8 +252,10 @@ Cypress.Commands.overwrite(
                 .then($el => {
                     $el = $el[0]
                     if(
+                        // Use $el.href here since it will return absolute urls even when relative urls are specified
                         $el.href?.startsWith('http')
                         &&
+                        // Use $el.getAttribute('href') here to test the relative url
                         !$el.getAttribute('href')?.startsWith('#')
                     ){
                         /**
@@ -261,7 +263,13 @@ Cypress.Commands.overwrite(
                          * as a way of waiting until the DOM is reloaded before continueing.
                          * This prevents next steps from unexpectedly matching elements on the previous page.
                          */
-                        cy.wrap($el).should('not.exist')
+                        return cy.retryUntilTimeout(() => {
+                            return cy.wrap(
+                                Cypress.dom.isDetached($el)
+                                ||
+                                Cypress.$('#stayOnPageReminderDialog:visible').length > 0
+                            )
+                        }, 'Failed to detect page load after link click')
                     }
                 })
             } else {
