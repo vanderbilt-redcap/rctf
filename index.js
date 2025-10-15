@@ -40,7 +40,11 @@ function check_feature_filename_format(){
         parts[3].length === 4 &&
         parts[4].startsWith(' - ')
     )){
-        throw 'Feature files names must match the following general format: A.#.#.####. - Short description.feature'
+        throw 'Feature filenames must match the following general format: A.#.#.####. - Short description.feature'
+    }
+    
+    if(parts[4].includes('(')){
+        throw 'Feature filenames must not contain parenthesis since cloud.cypress.io does not support them'
     }
 }
 
