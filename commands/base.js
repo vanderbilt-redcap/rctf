@@ -251,12 +251,15 @@ Cypress.Commands.overwrite(
                 }).click(options)
                 .then($el => {
                     $el = $el[0]
+                    // Use $el.href here since it will return absolute urls even when relative urls are specified
+                    const href = $el.href ?? ''
                     if(
-                        // Use $el.href here since it will return absolute urls even when relative urls are specified
-                        $el.href?.startsWith('http')
+                        href.startsWith('http')
                         &&
                         // Use $el.getAttribute('href') here to test the relative url
                         !$el.getAttribute('href')?.startsWith('#')
+                        &&
+                        !href.includes('DataEntry/file_download.php')
                     ){
                         /**
                          * The page should reload now.  We make sure the link element stops existing
