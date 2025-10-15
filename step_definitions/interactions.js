@@ -369,6 +369,12 @@ function getPreferredSibling(text, originalMatch, one, two){
     })
 
     if(
+        !matchOrParent
+        ||
+        !oneOrParent
+        ||
+        !twoOrParent
+        ||
         matchOrParent === oneOrParent
         ||
         matchOrParent === twoOrParent
