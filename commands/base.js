@@ -251,7 +251,11 @@ Cypress.Commands.overwrite(
                 }).click(options)
                 .then($el => {
                     $el = $el[0]
-                    if($el.getAttribute('href')?.startsWith('http')){
+                    if(
+                        $el.href?.startsWith('http')
+                        &&
+                        !$el.getAttribute('href')?.startsWith('#')
+                    ){
                         /**
                          * The page should reload now.  We make sure the link element stops existing
                          * as a way of waiting until the DOM is reloaded before continueing.
