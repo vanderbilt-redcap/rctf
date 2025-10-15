@@ -117,7 +117,11 @@ function after_click_monitor(type){
     }
 }
 
-Cypress.Commands.add("retryUntilTimeout", function (action, start, lastRun) {
+Cypress.Commands.add("retryUntilTimeout", function (action, messageOnError, start, lastRun) {
+    if(messageOnError === undefined){
+        messageOnError = "Timeout reached via retryUntilTimeout().  Pass an error message to this function in order to get a more specific error in this case."
+    }
+
     if (start === undefined) {
         start = Date.now()
     }
@@ -126,18 +130,19 @@ Cypress.Commands.add("retryUntilTimeout", function (action, start, lastRun) {
         lastRun = false
     }
 
-    const isAfterTimeout = () => {
-        const elapsed = Date.now() - start
-        return elapsed > Cypress.config('defaultCommandTimeout')
-    }
-
     return action(lastRun).then((result) => {
-        if (result || (isAfterTimeout() && lastRun)) {
+        if (result) {
             return result
         }
+        else if (lastRun){
+            throw messageOnError
+        }
         else {
-            cy.wait(250).then(() => {
-                cy.retryUntilTimeout(action, start, isAfterTimeout())
+            const elapsed = Date.now() - start
+            const waitTime = elapsed < 1000 ? 250 : 1000
+            cy.wait(waitTime).then(() => {
+                const lastRun = elapsed > Cypress.config('defaultCommandTimeout')
+                cy.retryUntilTimeout(action, messageOnError, start, lastRun)
             })
         }
     })
@@ -646,11 +651,8 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
 
             return null
         })
-    }).then((match) => {
-        if (!match) {
-            throw 'The specified element could not be found'
-        }
-
+    }, 'The specified element could not be found')
+    .then((match) => {
         console.log('getLabeledElement() return value', match)
 
         return match
