@@ -231,7 +231,7 @@ function rctf_initialize() {
                             return 'failed'
                         }
                         else{
-                            return 'suceeded'
+                            return 'succeeded'
                         }
                     }
 
