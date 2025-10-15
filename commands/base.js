@@ -251,13 +251,13 @@ Cypress.Commands.overwrite(
                 }).click(options)
                 .then($el => {
                     $el = $el[0]
-                    if($el.href?.startsWith('http')){
+                    if($el.getAttribute('href')?.startsWith('http')){
                         /**
                          * The page should reload now.  We make sure the link element stops existing
                          * as a way of waiting until the DOM is reloaded before continueing.
                          * This prevents next steps from unexpectedly matching elements on the previous page.
                          */
-                        return cy.wrap($el).should('not.exist')
+                        cy.wrap($el).should('not.exist')
                     }
                 })
             } else {
