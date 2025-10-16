@@ -267,12 +267,21 @@ Cypress.Commands.overwrite(
                          * This prevents next steps from unexpectedly matching elements on the previous page.
                          */
                         return cy.retryUntilTimeout(() => {
+                            cy.document().then((document) => {
+                                cy.log('checking readyState1: ', document.readyState)
+                            })
                             return cy.wrap(
                                 Cypress.dom.isDetached($el)
                                 ||
                                 Cypress.$('#stayOnPageReminderDialog:visible').length > 0
                             )
                         }, 'Failed to detect page load after link click')
+                        .retryUntilTimeout(() => {
+                            return cy.document().then((document) => {
+                                cy.log('checking readyState2: ', document.readyState)
+                                return cy.wrap(document.readyState === 'complete')
+                            });
+                        }, 'Document never reached a completed readyState after a link was clicked!')
                     }
                 })
             } else {
