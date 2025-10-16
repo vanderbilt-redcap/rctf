@@ -502,11 +502,6 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
             `input[type=submit][value*=${JSON.stringify(text)}]`,
         ].join(', ')
 
-        if(!lastRun){
-            // Favor visible items until the lastRun.  Keep in mind items that must be scrolled into view aren't considered visible.
-            selector += ':visible'
-        }
-
         return cy.get(selector).filterMatches(text).then(matches => {
             if(!Array.isArray(matches)){
                 /**
