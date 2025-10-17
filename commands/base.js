@@ -249,40 +249,17 @@ Cypress.Commands.overwrite(
                 cy.wrap(subject).then($el => {
                     return Cypress.dom.isDetached($el) ? Cypress.$($el): $el
                 }).click(options)
-                .then($el => {
-                    $el = $el[0]
-                    // Use $el.href here since it will return absolute urls even when relative urls are specified
-                    const href = $el.href ?? ''
-                    if(
-                        href.startsWith('http')
-                        &&
-                        // Use $el.getAttribute('href') here to test the relative url
-                        !$el.getAttribute('href')?.startsWith('#')
-                        &&
-                        !href.includes('DataEntry/file_download.php')
-                    ){
+                .window().then((win) => {
+                    return cy.retryUntilTimeout(() => {
                         /**
-                         * The page should reload now.  We make sure the link element stops existing
-                         * as a way of waiting until the DOM is reloaded before continueing.
-                         * This prevents next steps from unexpectedly matching elements on the previous page.
+                         * Wait until any pending jQuery requests complete before continuing.
+                         * This serves a similar purpose to cy.intercept(), but in a simpler & more generic way,
+                         * since cy.intercept() is asyncronous and can't cause cypress to wait to execute the next step
+                         * without an explicit cy.wait(@someAlias) call.  Using jQuery's request count is much simpler
+                         * than explicitly supportly every page load & ajax request in REDCap.
                          */
-                        return cy.retryUntilTimeout(() => {
-                            cy.document().then((document) => {
-                                cy.log('checking readyState1: ', document.readyState)
-                            })
-                            return cy.wrap(
-                                Cypress.dom.isDetached($el)
-                                ||
-                                Cypress.$('#stayOnPageReminderDialog:visible').length > 0
-                            )
-                        }, 'Failed to detect page load after link click')
-                        .retryUntilTimeout(() => {
-                            return cy.document().then((document) => {
-                                cy.log('checking readyState2: ', document.readyState)
-                                return cy.wrap(document.readyState === 'complete')
-                            });
-                        }, 'Document never reached a completed readyState after a link was clicked!')
-                    }
+                        return cy.wrap(win.jQuery.active === 0)
+                    }, 'The jQuery request count never fell to zero!')
                 })
             } else {
                 return originalFn(subject, options)
