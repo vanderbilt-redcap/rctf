@@ -308,6 +308,7 @@ Cypress.Commands.overwrite('within', (...args) => {
         return subject
     }
     else{
+        console.log('cy.within() called with subject: ', subject)
         return originalWithin(...args)
     }
 })
