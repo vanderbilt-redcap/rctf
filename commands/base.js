@@ -258,7 +258,19 @@ Cypress.Commands.overwrite(
                          * without an explicit cy.wait(@someAlias) call.  Using jQuery's request count is much simpler
                          * than explicitly supportly every page load & ajax request in REDCap.
                          */
-                        return cy.wrap(win.jQuery.active === 0)
+                        const jQuery = win.jQuery
+                        let result
+                        if(!jQuery){
+                            /**
+                             * We are likely on a page where jQuery is not loaded, like the "ACCESS DENIED" page in B.2.6.0100.
+                             */
+                            result = true
+                        }
+                        else{
+                            result = jQuery.active === 0
+                        }
+
+                        return cy.wrap(result)
                     }, 'The jQuery request count never fell to zero!')
                 })
             } else {
