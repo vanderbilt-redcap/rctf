@@ -294,28 +294,9 @@ Cypress.Commands.overwrite(
                         cy.wait(500)
                     }
 
-                    return cy.retryUntilTimeout(() => {
-                        /**
-                         * Wait until any pending jQuery requests complete before continuing.
-                         * This serves a similar purpose to cy.intercept(), but in a simpler & more generic way,
-                         * since cy.intercept() is asyncronous and can't cause cypress to wait to execute the next step
-                         * without an explicit cy.wait(@someAlias) call.  Using jQuery's request count is much simpler
-                         * than explicitly supportly every page load & ajax request in REDCap.
-                         */
-                        const jQuery = win.jQuery
-                        let result
-                        if(!jQuery){
-                            /**
-                             * We are likely on a page where jQuery is not loaded, like the "ACCESS DENIED" page in B.2.6.0100.
-                             */
-                            result = true
-                        }
-                        else{
-                            result = jQuery.active === 0
-                        }
-
-                        return cy.wrap(result)
-                    }, 'The jQuery request count never fell to zero!')
+                    /**
+                     * Used to check for jQuery.active === 0 here.  It mostly worked, but there were exceptions.  The value is stuck on 1 in B.6.4.1200.
+                     */
                 })
             } else {
                 return originalFn(subject, options)
