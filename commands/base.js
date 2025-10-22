@@ -250,6 +250,23 @@ Cypress.Commands.overwrite(
                     return Cypress.dom.isDetached($el) ? Cypress.$($el): $el
                 }).click(options)
                 .window().then((win) => {
+                    if(
+                        win.location.href.includes('ProjectSetup/index')
+                        &&
+                        (
+                            subject[0].innerText.includes('Enable')
+                            ||
+                            subject[0].innerText.includes('Disable')
+                        )
+                    ){
+                        /**
+                         * This accounts for a 200ms setTimeout() in saveProjectSetting() that delays the page load.
+                         * If we don't wait, within() calls on the next step will match elements on the soon to be unloaded page.
+                         */
+                        cy.log('Waiting for potential page load after project setting changes')
+                        cy.wait(250)
+                    }
+
                     return cy.retryUntilTimeout(() => {
                         /**
                          * Wait until any pending jQuery requests complete before continuing.
