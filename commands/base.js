@@ -249,6 +249,32 @@ Cypress.Commands.overwrite(
                 cy.wrap(subject).then($el => {
                     return Cypress.dom.isDetached($el) ? Cypress.$($el): $el
                 }).click(options)
+                .then($el => {
+                    $el = $el[0]
+                    // Use $el.href here since it will return absolute urls even when relative urls are specified
+                    const href = $el.href ?? ''
+                    if(
+                        href.startsWith('http')
+                        &&
+                        // Use $el.getAttribute('href') here to test the relative url
+                        !$el.getAttribute('href')?.startsWith('#')
+                        &&
+                        !href.includes('DataEntry/file_download.php')
+                    ){
+                         /**
+                         * The page should reload now.  We make sure the link element stops existing
+                         * as a way of waiting until the DOM is reloaded before continueing.
+                         * This prevents next steps from unexpectedly matching elements on the previous page.
+                         */
+                        return cy.retryUntilTimeout(() => {
+                            return cy.wrap(
+                                Cypress.dom.isDetached($el)
+                                ||
+                                Cypress.$('#stayOnPageReminderDialog:visible').length > 0
+                            )
+                        }, 'Failed to detect page load after link click')
+                    }
+                })
                 .window().then((win) => {
                     if(
                         win.location.href.includes('ProjectSetup/index')
