@@ -286,11 +286,12 @@ Cypress.Commands.overwrite(
                         )
                     ){
                         /**
-                         * This accounts for a 200ms setTimeout() in saveProjectSetting() that delays the page load.
+                         * This accounts for a 200ms setTimeout() in saveProjectSetting() that delays the page load,
+                         * and apparently takes longer than the states 200ms a percentage of the time.
                          * If we don't wait, within() calls on the next step will match elements on the soon to be unloaded page.
                          */
                         cy.log('Waiting for potential page load after project setting changes')
-                        cy.wait(250)
+                        cy.wait(500)
                     }
 
                     return cy.retryUntilTimeout(() => {
