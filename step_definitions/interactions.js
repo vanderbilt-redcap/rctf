@@ -964,6 +964,9 @@ Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} fi
 Given('I enter the code that was emailed to the current user into the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}', (...args) => {
     const getCodeFromEmail = () => {
         return cy.request('http://localhost:8025/api/v1/messages').then(response => {
+            // Make null the default return value & override any previous subject
+            cy.wrap(null)
+
             const messages = response.body 
             if(messages.length === 0){
                 // Maybe it hasn't come through yet.  Return to retry.
@@ -971,9 +974,6 @@ Given('I enter the code that was emailed to the current user into the( ){ordinal
             }
 
             const lastMessage = messages[0].Content
-
-            // Make null the default return value
-            cy.wrap(null)
 
             const timeSinceSent = Date.now() - new Date(lastMessage.Headers.Date)
             if(timeSinceSent > 10000){
