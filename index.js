@@ -56,7 +56,7 @@ function reset_database(){
     cy.base_db_seed()
 }
 
-function load_core_step_definitions (Given, When, Then, defineParameterType){
+function load_core_step_definitions (){
     require('./step_definitions/index')
 }
 
@@ -76,13 +76,13 @@ function load_support_files(){
 function rctf_initialize() {
     preprocessor = require('@badeball/cypress-cucumber-preprocessor')
 
-    const { Given, BeforeStep, defineParameterType } = preprocessor
+    const { BeforeStep } = preprocessor
 
     let lastFailingFeature
 
     load_support_files()
     load_core_commands()
-    load_core_step_definitions(Given, defineParameterType)
+    load_core_step_definitions()
 
     //This is where we initialize the stuff we need in a basic install
     before(() => {
