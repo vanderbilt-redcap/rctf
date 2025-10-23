@@ -1,3 +1,6 @@
+const { Given } = require('@badeball/cypress-cucumber-preprocessor')
+globalThis.Given = Given
+
 window.compareVersions = require('compare-versions')
 
 require('@4tw/cypress-drag-drop')

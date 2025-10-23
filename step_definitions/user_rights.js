@@ -1,4 +1,3 @@
-const { Given } = require('@badeball/cypress-cucumber-preprocessor')
 if(RegExp.escape === undefined){
     /**
      * Poly fill copied from https://github.com/sindresorhus/escape-string-regexp/blob/main/index.js

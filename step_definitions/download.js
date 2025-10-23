@@ -1,5 +1,3 @@
-const { Given } = require('@badeball/cypress-cucumber-preprocessor')
-
 function downloadFile(text){
 
     // We do not actually click on the link because new windows and Cypress do not work.
