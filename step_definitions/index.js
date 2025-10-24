@@ -3,11 +3,10 @@ require('../index')
 
 if (typeof window !== 'undefined') {
     require('../commands')
-
-    //this needs to come before all_types because we use some of this in all_types
-    require('./support/iframe')
 }
 
+//this needs to come before all_types because we use some of this in all_types
+require('./support/iframe')
 require('./support/all_mappings.mjs')
 require('./support/all_types')
 
