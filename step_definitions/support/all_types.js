@@ -1,6 +1,3 @@
-const { defineParameterType } = require('@badeball/cypress-cucumber-preprocessor')
-
-
 // This file contains definitions for custom parameter types used in step definitions.
 // Parameter type definitions have been consolidated here for easier reference and to avoid duplication.
 // This should also make it easier to identify when refactoring/merging is appropriate.

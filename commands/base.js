@@ -443,3 +443,761 @@ Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subj
         }
     })
 })
+
+Cypress.Commands.add("assertPDFContainsDataTable", {prevSubject: true}, function (pdf, dataTable) {
+    function findDateFormat(str) {
+        for (const format in window.dateFormats) {
+            const regex = window.dateFormats[format]
+            const match = str.includes(format)
+            if (match) {
+                expect(window.dateFormats).to.haveOwnProperty(format)
+                return str.replace(format, '')
+            }
+        }
+        return null
+    }
+    
+    dataTable['rawTable'].forEach((row, row_index) => {
+        row.forEach((dataTableCell) => {
+            const result = findDateFormat(dataTableCell)
+            if (result === null) {
+                expect(pdf.text).to.include(dataTableCell)
+            } else {
+                result.split(' ').forEach((item) => {
+                    expect(pdf.text).to.include(item)
+                })
+            }
+        })
+    })
+})
+
+Cypress.Commands.add('assertContains', {prevSubject: true}, (path, dataTable) => {
+    if(!path){
+        throw 'A recent file could not be found!'
+    }
+    
+    const extension = path.split('.').pop()
+    if(extension === 'pdf'){
+        cy.task('readPdf', { pdf_file: path }).assertPDFContainsDataTable(dataTable)
+    }
+    else{
+        throw 'This step needs to be expanded to support this file type: ' + path
+    }
+})
+
+Cypress.Commands.add('findMostRecentAzureFile', () => {
+    /**
+     * Azurite does not simply store files in a directory that we can directly access.
+     * We created this method to access them.
+     */
+    return cy.request({
+        url: '/azure/get-most-recent-file.php',
+        encoding: 'binary',
+    }).then((response) => {
+        expect(response.status).to.eq(200);
+
+        const filename = response.headers['content-disposition']
+            .split('filename=')[1]
+            .split('"')[1]                    
+
+        cy.task('createTempFile', {filename, content: response.body})
+    })
+})
+
+Cypress.Commands.add('findMostRecentS3File', () => {
+    cy.exec('docker exec mybucket.minio.local mc ls --json /data/mybucket/').then(result => {
+        const lines = result.stdout.split('\n')
+        let mostRecent = null
+        lines.forEach(line => {
+            const fileInfo = JSON.parse(line)
+            fileInfo.lastModified = new Date(fileInfo.lastModified)
+            if(mostRecent === null || fileInfo.lastModified > mostRecent.lastModified){
+                mostRecent = fileInfo
+            }
+        })
+
+        const filename = mostRecent.key.split('/')[0]
+        cy.exec('docker exec mybucket.minio.local mc cp local/mybucket/' + filename + ' /tmp').then(() => {
+            const path = '../tmp/' + filename
+            cy.exec('docker cp mybucket.minio.local:/tmp/' + filename + ' ' + path).then(() => {
+                return path
+            })
+        })
+    })
+})
+
+Cypress.Commands.add("retryUntilTimeout", function (action, messageOnError, start, lastRun) {
+    if(messageOnError === undefined){
+        messageOnError = "Timeout reached via retryUntilTimeout().  Pass an error message to this function in order to get a more specific error in this case."
+    }
+
+    if (start === undefined) {
+        start = Date.now()
+    }
+
+    if(lastRun === undefined){
+        lastRun = false
+    }
+
+    return action(lastRun).then((result) => {
+        if (result) {
+            return result
+        }
+        else if (lastRun){
+            throw messageOnError
+        }
+        else {
+            const elapsed = Date.now() - start
+            const waitTime = elapsed < 1000 ? 250 : 1000
+            cy.wait(waitTime).then(() => {
+                const lastRun = elapsed > Cypress.config('defaultCommandTimeout')
+                cy.retryUntilTimeout(action, messageOnError, start, lastRun)
+            })
+        }
+    })
+})
+
+function getShortestMatchingNodeLength(textToFind, element) {
+    let text = null
+    if (element.tagName === 'INPUT') {
+        if(['button', 'submit'].includes(element.type)){
+            text = element.value
+        }
+        else{
+            text = element.placeholder
+        }
+    }
+    else if(element.childNodes.length > 0) {
+        // This is required for 'on the dropdown field labeled "to"' syntax
+        element.childNodes.forEach(child => {
+            if(child.constructor.name === 'Text'){
+                let content = child.textContent
+                content = content.replaceAll(' ', ' ') // Replace no-break space chars to make matching work in more cases
+                if(content.includes(textToFind)){
+                    text = content
+                }
+            }
+        })
+    }
+
+    if(!text){
+        const textToFindEscaped = textToFind.replaceAll('"', '\\"')
+        ;['title', 'data-bs-original-title'].forEach(attribute => {
+            // Required for A.3.28.0500, C.3.30.1800, and others
+            element.querySelectorAll(`[${attribute}*="${textToFindEscaped}"]`).forEach(child => {
+                const titleText = child.getAttribute(attribute)
+                if(!text || titleText.length < text.length){
+                    text = titleText
+                }
+            })
+        })
+    }
+
+    if(!text){
+        text = element.textContent
+    }
+
+    if(!text){
+        text = element.title
+    }
+
+    if(!text){
+        text = element.getAttribute('data-bs-original-title') // Required for C.3.24.2200.
+    }
+
+    if(!text.includes(textToFind)){
+        // This is not a match.  Return a large int to make sure it is excluded.
+        return Number.MAX_SAFE_INTEGER
+    }
+
+    return text.trim().length
+}
+
+function filterNonExactMatches(matches, text) {
+    if(!text){
+        return matches
+    }
+
+    let minChars = null
+    matches.forEach(element => {
+        const chars = getShortestMatchingNodeLength(text, element)
+        if (
+            minChars === null
+            ||
+            chars < minChars
+        ) {
+            minChars = chars
+        }
+    })
+
+    return matches.filter(element =>
+        /**
+         * Only include the closest matches as determined by minChars.
+         * If we intend to be match longer strings, we should specify them explicitly.
+         */
+        getShortestMatchingNodeLength(text, element) === minChars
+    )  
+}
+
+function filterCoveredElements(matches) {
+    const getZIndex = (element) => {
+        const zIndex = getComputedStyle(element).zIndex
+        if(isNaN(zIndex)){
+            return 0
+        }
+        else{
+            return zIndex
+        }
+    }
+
+    let topElement = Cypress.$('html')[0]
+    matches.forEach(element => {
+        let current = element
+        while(current = current.parentElement){
+            if (
+                getZIndex(topElement) < getZIndex(current)
+                &&
+                /**
+                 * Don't match bootstrap ".dropdown-menu" elements that aren't actually visible,
+                 * but have a z-index set .
+                 */
+                Cypress.$(current).is(':visible') 
+                &&
+                // Never consider the footer to be a topElement
+                current.id !== 'south'
+                &&
+                // Do not consider tooltips to be top elements, since their zIndex is greater than dialogs (e.g. C.3.24.2200)
+                !current.classList.contains('tooltip') // Required for C.3.24.2200.
+            ) {
+                topElement = current
+            }
+        }
+    })
+
+    return matches.filter(element =>
+        // Only include elements within the top most element (likely a dialog)
+        topElement.contains(element)
+    )
+}
+
+Cypress.Commands.add("filterMatches", {prevSubject: true}, function (matches, text) {
+    matches = matches.toArray()
+    console.log('filterMatches before', matches)
+
+    const matchesCopy = [...matches]
+    matchesCopy.forEach(current => {
+        if(current.tagName === 'SELECT' && text){
+            const option = Cypress.$(current).find(`:contains(${JSON.stringify(text)})`)[0]
+            if(!option.selected){
+                // Exclude matches for options that are not currently selected, as they are not visible and should not be considered labels
+                matches = matches.filter(match => match !== current)
+            }
+        }
+        else if(current.tagName === 'SCRIPT'){
+            // Exclude script tag matches, since they were likely language strings that are not actually displayed
+            matches = matches.filter(match => match !== current)
+        }
+        
+        while (current = current.parentElement) {
+            // Remove parents so only leaf node matches are included
+            matches = matches.filter(match => match !== current)
+        }
+    })
+
+    /**
+     * We filter out covered elements after removing parents but before deoing 
+     * aything else. We definitely want this to happen before searching for visible elements
+     * to support the case where there are multiple matches and we want to
+     * exclude matches outside the current dialog that are visible, while 
+     * keeping matches within the dialog that require scrolling to become visible.
+     * Some examples include B.4.9.0100 and B.6.7.1600.
+     */
+    matches = filterCoveredElements(matches)
+    
+    matches = filterNonExactMatches(matches, text)
+
+    const visibleMatches = matches.filter(element => Cypress.$(element).is(':visible'))
+    if(visibleMatches.length > 0){
+        // Favor visible matches
+        matches = visibleMatches
+    }
+
+    console.log('filterMatches after', matches)
+    return matches
+})
+
+function normalizeString(s){
+    if(s === undefined){
+        return undefined
+    }
+
+    // Replace '&nbsp;' so that normal spaces in steps will match that character
+    return s.trim().replaceAll('\u00a0', ' ')
+}
+
+/**
+ * We tried implementing this as an exact match at first, but that made some steps unweildly.
+ * For example:
+ *      I select "gender"...
+ * Changed to:
+ *      I select "gender (Do you describe yourself as a man, a woman, or in some other way?)..."...
+ */
+Cypress.$.expr[':'].containsCustom = Cypress.$.expr.createPseudo(function(arg) {
+    arg = normalizeString(arg)
+
+    // Remove any double quote escaping added by JSON.stringify()
+    arg = JSON.parse('"' + arg + '"')
+
+    return function( elem ) {
+        return normalizeString(Cypress.$(elem).text()).includes(arg)
+    };
+});
+
+/**
+ * This is required to support steps containing the following:
+ *      the dropdown field labeled "Assign user"
+ *      the radio labeled "Use Data Access Groups"
+ */
+function getPreferredSibling(text, originalMatch, one, two){
+    if(originalMatch === one.parentElement){
+        /**
+         * The originalMatch was matched because it contains a text node
+         * that is a direct sibling of the options to consider.
+         * Replace originalMatch with the actual text node for the following logic to work properly. 
+         */
+
+        const nodeMatches = Array.from(originalMatch.childNodes).filter(child => {
+            return child.textContent.includes(text)
+        })
+
+        if(nodeMatches.length !== 1){
+            throw 'Found an unexpexcted number of node matches'
+        }
+     
+        originalMatch = nodeMatches[0]
+    }
+    else if(one === originalMatch){
+        return one
+    }
+    else if(two === originalMatch){
+        return two
+    }
+
+    const elementsToCheck = Cypress.$(originalMatch).parents().toArray()
+    elementsToCheck.unshift(originalMatch)
+    const sharedParent = elementsToCheck.filter(element => {
+        return element.contains(one) && element.contains(two)
+    })[0]
+
+    const siblings = Array.from(sharedParent.childNodes)
+    
+    let matchOrParent, oneOrParent, twoOrParent
+    siblings.forEach(child => {
+        if(child === originalMatch || child.contains(originalMatch)){
+            matchOrParent = child
+        }
+        else if(child === one || child.contains(one)){
+            oneOrParent = child
+        }
+        else if(child === two || child.contains(two)){
+            twoOrParent = child
+        }
+    })
+
+    if(
+        !matchOrParent
+        ||
+        !oneOrParent
+        ||
+        !twoOrParent
+        ||
+        matchOrParent === oneOrParent
+        ||
+        matchOrParent === twoOrParent
+        ||
+        oneOrParent === twoOrParent
+    ){
+        /**
+         * Shared parent with distinct children not found.
+         * This method is not useful in its current form if the three elements or their parents are not siblings.
+         */
+        return undefined
+    }
+
+    const matchIndex = siblings.indexOf(matchOrParent)
+    if(matchIndex === -1){
+        throw 'Could not determine match index'
+    }
+
+    const indexOne = siblings.indexOf(oneOrParent)
+    const indexTwo = siblings.indexOf(twoOrParent)
+    const distanceOne = Math.abs(matchIndex - indexOne)
+    const distanceTwo = Math.abs(matchIndex - indexTwo)
+    if(distanceOne === distanceTwo){
+        if(text === 'to'){
+            // Support the special case for 'dropdown field labeled "to"' language
+            // Alternatively, we could replaces such steps with 'dropdown field labeled "[No Assignment]"' to resolve this.
+            return two
+        }
+
+        throw 'Two sibling matches were found the same distance away.  We should consider implementing a way to definitively determine which to match.'
+    }
+    else if(distanceOne < distanceTwo){
+        return one
+    }
+    else{
+        return two
+    }
+}
+
+function removeUnpreferredSiblings(text, originalMatch, children){
+    for(let i=0; i<children.length-1; i++){
+        const current = children[i]
+        const next = children[i+1]
+
+        const preferredSibling = getPreferredSibling(text, originalMatch, current, next)
+        let indexToRemove
+        if(preferredSibling === current){
+            indexToRemove = i+1
+        }
+        else if(preferredSibling === next){
+            indexToRemove = i
+        }
+        else{
+            // Neither was preferred
+            indexToRemove = null
+        }
+
+        if(indexToRemove !== null){
+            children.splice(indexToRemove, 1)
+            i--
+        }
+    }
+}
+
+function findMatchingChildren(text, selectOption, originalMatch, searchParent, childSelector, childrenToIgnore) {
+    selectOption = normalizeString(selectOption)
+
+    let children = Array.from(Cypress.$(searchParent).find(childSelector)).filter(child => {
+        if(
+            childSelector.replace(':visible', '') === 'input'
+            &&
+            // Remember, child.type will be 'text' even when type is not set in the DOM.
+            !['text', 'password', 'email', 'number', 'search', 'tel', 'url'].includes(child.type)
+        ){
+            /**
+             * We're looking for a text type (like checkbox), but found a non-text type.  Ignore this element.
+             */
+            return false
+        }
+
+        return !childrenToIgnore.includes(child)
+            // B.3.14.0900.
+            && child.closest('.ui-helper-hidden-accessible') === null
+    })
+
+    if(selectOption){
+        children = filterNonExactMatches(children, selectOption)
+    }
+
+    removeUnpreferredSiblings(text, originalMatch, children)
+
+    const exactMatches = children.filter(child =>{
+        return normalizeString(child.textContent) === selectOption // B.6.7.1900.
+    })
+
+    if(exactMatches.length > 0){
+        children = exactMatches
+    }
+
+    return children
+}
+
+/**
+ * This logic is meant to eventually replace get_labeled_element() and other label matching logic duplicated in multiple places.
+ * Is it specifically designed to help us evolve toward normalizing & simplify association of labels with their clickable elements.
+ * The main differences is that it does not require the tagName to be determined up front,
+ * allowing for significant logic simplification (incrementally over time).
+ * We may want to introduce bahmutov/cypress-if at some point as well,
+ * as the root of some of our existing duplicate logic is the lack of built-in "if" support.
+ */
+Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectOption) {
+    return cy.retryUntilTimeout((lastRun) => {
+        /**
+         * We tried using "window().then(win => win.$(`:contains..." to combine the following two cases,
+         * but it could not find iframe content like cy.get() can.
+         * We also tried Cypress.$, but it seems to return similar results to cy.get().
+         * Example from A.6.4.0200.: I click on the radio labeled "Keep ALL data saved so far." in the dialog box in the iframe
+        */
+        let selector = [
+            `input[placeholder=${JSON.stringify(text)}]`,
+            `:contains(${JSON.stringify(text)})`,
+            `[title*=${JSON.stringify(text)}]`,
+            `[data-bs-original-title*=${JSON.stringify(text)}]`,
+            `input[type=button][value*=${JSON.stringify(text)}]`,
+            `input[type=submit][value*=${JSON.stringify(text)}]`,
+        ].join(', ')
+
+        return cy.get(selector).filterMatches(text).then(matches => {
+            if(!Array.isArray(matches)){
+                /**
+                 * It seems like this line should be run all the time,
+                 * but we need the conditional above because a step in C.3.24.0205
+                 * seems to automatically convert the return value from a chainer to an array.
+                 * Is this a bug in Cypress?!?
+                 */
+                matches = matches.toArray()
+            }
+
+            if (type === 'button'){
+                const buttonMatches = matches.filter(element => 
+                    ['BUTTON', 'INPUT'].includes(element.tagName)
+                    ||
+                    element.closest('button') !== null
+                )
+
+                if(buttonMatches.length > 0){
+                    // Favor matches with labels inside the button, rather than outside.
+                    matches = buttonMatches
+                }
+            }
+
+            if (ordinal !== undefined) {
+                let match
+                if(ordinal === 'last'){
+                    match = matches[matches.length-1]
+                }
+                else{
+                    match = matches[window.ordinalChoices[ordinal]]
+                }
+                
+                if(!match){
+                    throw 'Specified ordinal not found'
+                }
+
+                matches = [match]
+            }
+
+            for (let i = 0; i < matches.length; i++){
+                const match = matches[i]
+                match.scrollIntoView() // Matches must be in view for the ':visible' selector to work
+                
+                let current = match
+                const childrenToIgnore = []
+                do {
+                    console.log('getLabeledElement() current', current)
+
+                    if(current.clientHeight > 500){
+                        /**
+                         * We've reached a parent that is large enough that our scope is now too large for a valid match
+                         */
+                        break
+                    }
+
+                    let childSelector = null
+                    if (type === 'icon') {
+                        childSelector = 'i, img'
+                    }
+                    else if (['checkbox', 'radio'].includes(type)) {
+                        childSelector = 'input[type=' + type + ']'
+                    }
+                    else if (type === 'dropdown') {
+                        if(selectOption !== undefined){
+                            childSelector = `option:containsCustom(${JSON.stringify(selectOption)})`
+                        }
+                        else{
+                            childSelector = 'select'
+                        }
+                    }
+                    else if (type === 'button'){
+                        if(current.tagName === 'BUTTON'){
+                            // We've already found it.  No need to keep searching.
+                            return current
+                        }
+
+                        childSelector = 'input[type=button], input[type=submit], button'
+                    }
+                    else if (type === 'textarea'){
+                        //.tox-editor-container is used for TinyMCE in C.3.24.1500
+                        childSelector = '.tox-editor-container, textarea'
+                    }
+                    else if (type === 'input'){
+                        childSelector = 'input'
+                    }
+                    else {
+                        // Leave childSelector blank.  Catch all for 'link', 'tab', 'instrument', etc.
+                    }
+
+                    if(childSelector !== null && type !== 'dropdown'){
+                        // Required for the 'input field labeled "Search"' step in C.3.24.2100
+                        childSelector += ':visible'
+                    }
+
+                    if (childSelector) {
+                        const children = findMatchingChildren(text, selectOption, match, current, childSelector, childrenToIgnore)
+                        console.log('getLabeledElement() children', children)
+                        if (children.length === 1) {
+                            /**
+                             * Example Steps:
+                             *  I uncheck the first checkbox labeled "Participant Consent"
+                             *  I click on the icon labeled "[All instruments]"
+                             */
+                            return children[0]
+                        }
+                        else if (
+                            /**
+                             * We're likely matching an unrelated group of elements.
+                             * They could be children or distant siblings of the desired match
+                             * Regardles, ignore this grouping and start the search again from the next parent.
+                             */
+                            children.length > 1
+                        ) {
+                            childrenToIgnore.push(...children)
+                        }
+                    } else if (
+                        // Default to the first matching "a" tag, if no other cases apply.
+                        current.tagName === 'A'
+                     ){
+                        return current
+                    }
+
+                    /**
+                     * Some label elements in REDCap contain mulitple fields.
+                     * Only use 'for' for matching as a last resort if none of the logic above matched the field.
+                     */
+                    if (current.tagName === 'LABEL' && current.htmlFor !== '') {
+                        // This label has the 'for' attribute set.  Use it.
+                        /**
+                         * We use an attribute selector because REDCap has some elements with duplicate IDs,
+                         * and we want to consider all of them.  Using cy.get('#some-id') will only find the first one.
+                         */
+                        return cy.get('[id=' + current.htmlFor + ']').then(results => {
+                            results = results.filter((index, element) => {
+                                return element.tagName !== 'DIV'
+                            })
+
+                            if(results.length > 1){
+                                throw "Multiple elements with this ID found: " +current.htmlFor
+                            }
+
+                            return results[0]
+                        })
+                    }
+                } while (current = current.parentElement)
+            }
+
+            return null
+        })
+    }, 'The specified element could not be found')
+    .then((match) => {
+        console.log('getLabeledElement() return value', match)
+
+        return match
+    })
+})
+
+const frameLoaded = (selector, opts) => {
+    if (selector === undefined) {
+        selector = DEFAULT_IFRAME_SELECTOR
+    } else if (typeof selector === 'object') {
+        opts = selector
+        selector = DEFAULT_IFRAME_SELECTOR
+    }
+
+    const fullOpts = {
+        ...DEFAULT_OPTS,
+        ...opts,
+    }
+    const log = fullOpts.log ? Cypress.log({
+        name: 'frame loaded',
+        displayName: 'frame loaded',
+        message: [selector],
+    }).snapshot() : null
+
+    return cy.get(selector, { log: false }).then({ timeout: fullOpts.timeout }, async ($frame) => {
+        log?.set('$el', $frame)
+        if ($frame.length !== 1) {
+            throw new Error(`cypress-iframe commands can only be applied to exactly one iframe at a time.  Instead found ${$frame.length}`)
+        }
+
+        const contentWindow = $frame.prop('contentWindow')
+        const hasNavigated = fullOpts.url
+            ? () => typeof fullOpts.url === 'string'
+                ? contentWindow.location.toString().includes(fullOpts.url)
+                : fullOpts.url?.test(contentWindow.location.toString())
+            : () => contentWindow.location.toString() !== 'about:blank'
+
+        while (!hasNavigated()) {
+            await sleep(100)
+        }
+
+        if (contentWindow.document.readyState === 'complete') {
+            return $frame
+        }
+
+        const loadLog = Cypress.log({
+            name: 'Frame Load',
+            message: [contentWindow.location.toString()],
+            event: true,
+        }).snapshot()
+        await new Promise(resolve => {
+            Cypress.$(contentWindow).on('load', resolve)
+        })
+        loadLog.end()
+        log?.finish()
+        return $frame
+    })
+}
+Cypress.Commands.add('frameLoaded', frameLoaded)
+
+const iframe = (selector, opts) => {
+    if (selector === undefined) {
+        selector = DEFAULT_IFRAME_SELECTOR
+    } else if (typeof selector === 'object') {
+        opts = selector
+        selector = DEFAULT_IFRAME_SELECTOR
+    }
+
+    const fullOpts = {
+        ...DEFAULT_OPTS,
+        ...opts,
+    }
+    const log = fullOpts.log ? Cypress.log({
+        name: 'iframe',
+        displayName: 'iframe',
+        message: [selector],
+    }).snapshot() : null
+
+    return cy.frameLoaded(selector, { ...fullOpts, log: false }).then($frame => {
+        log?.set('$el', $frame).end()
+        const contentWindow = $frame.prop('contentWindow')
+        return Cypress.$(contentWindow.document.body)
+    })
+}
+Cypress.Commands.add('iframe', iframe)
+
+const enter = (selector, opts) => {
+    if (selector === undefined) {
+        selector = DEFAULT_IFRAME_SELECTOR
+    } else if (typeof selector === 'object') {
+        opts = selector
+        selector = DEFAULT_IFRAME_SELECTOR
+    }
+
+    const fullOpts = {
+        ...DEFAULT_OPTS,
+        ...opts,
+    }
+
+    const log = fullOpts.log ? Cypress.log({
+        name: 'enter',
+        displayName: 'enter',
+        message: [selector],
+    }).snapshot() : null
+
+    return cy.iframe(selector, { ...fullOpts, log: false }).then($body => {
+        log?.set('$el', $body).end()
+        return () => cy.wrap($body, { log: false })
+    })
+}
+Cypress.Commands.add('enter', enter)
