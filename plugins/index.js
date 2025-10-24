@@ -36,6 +36,7 @@ const {createEsbuildPlugin}  = require("@badeball/cypress-cucumber-preprocessor/
 const glob = require('glob')
 
 module.exports = (cypressOn, config) => {
+    let lastCallToFetchLatestDownload = 0
     const on = require('cypress-on-fix')(cypressOn)
 
     const getRCTF = async () =>{
@@ -297,6 +298,13 @@ module.exports = (cypressOn, config) => {
                     .sort((a, b) => b.mtime - a.mtime)
                     .filter(item => {
                         return item.mtime > threshold
+                            /**
+                             * Ignore files we've already used to prevent them from matching multiple steps.
+                             * For example, this prevents intermittent failures on C.3.24.2200 caused by
+                             * the step to check the content of the second download from running against
+                             * the first download because the second download hasn't completed yet. 
+                             */
+                            && item.mtime > lastCallToFetchLatestDownload
                     })
 
                 //If no filtered files are found ...
@@ -304,6 +312,7 @@ module.exports = (cypressOn, config) => {
                     return ''
                 } else {
                     const latestFile = files[0].file
+                    lastCallToFetchLatestDownload = Date.now()
                     return `${downloadsDir}${latestFile}`
                 }
             }
