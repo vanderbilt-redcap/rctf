@@ -36,8 +36,7 @@ const {createEsbuildPlugin}  = require("@badeball/cypress-cucumber-preprocessor/
 const glob = require('glob')
 
 module.exports = (cypressOn, config) => {
-    let on = cypressOn
-    on = require('cypress-on-fix')(cypressOn)
+    const on = require('cypress-on-fix')(cypressOn)
 
     const getRCTF = async () =>{
         const imported = await import('../rctf.mjs') 
