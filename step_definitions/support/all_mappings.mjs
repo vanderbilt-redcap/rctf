@@ -101,7 +101,6 @@ window.parameterTypes = {
         ' on the Online Designer page',
         ' and cancel the confirmation window',
         ' and accept the confirmation window',
-        ' to rename an instrument',
         ' and will leave the tab open when I return to the REDCap project',
     ],
     select: ['selected', 'unselected'],

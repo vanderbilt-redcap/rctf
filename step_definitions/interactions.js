@@ -34,11 +34,6 @@ function before_click_monitor(type){
             method: 'POST',
             url: '/redcap_v' + Cypress.env('redcap_version') + '/Design/designate_forms_ajax*'
         }).as('designate_instruments')
-    } else if (type === " to rename an instrument"){
-        cy.intercept({
-            method: 'POST',
-            url: '/redcap_v' + Cypress.env('redcap_version') + '/Design/set_form_name.php*'
-        }).as('rename_instrument')
     } else if (type === " on the Online Designer page"){
         cy.intercept({
             method: 'GET',
@@ -50,9 +45,7 @@ function before_click_monitor(type){
 }
 
 function after_click_monitor(type){
-    if (type === " to rename an instrument"){
-        cy.wait('@rename_instrument')
-    } else if (type === " on the Designate Instruments for My Events page") {
+    if (type === " on the Designate Instruments for My Events page") {
         if(Cypress.$('span#progress_save').length) cy.get('span#progress_save').should('not.be.visible')
         cy.wait('@designate_instruments')
     } else if (type === " on the Online Designer page") {
