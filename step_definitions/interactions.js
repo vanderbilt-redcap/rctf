@@ -29,63 +29,13 @@ function performAction(action, element, disabled_text){
 }
 
 function before_click_monitor(type){
-    if(type === ' in the "Add New Field" dialog box' || type === ' in the "Edit Field" dialog box' ){
-        cy.intercept({
-            method: 'GET',
-            url: '/redcap_v' + Cypress.env('redcap_version') + "/Design/online_designer_render_fields.php?*"
-        }).as('save_field')
-    } else if (type === " on the dialog box for the Repeatable Instruments and Events module"){
-        cy.window().its('performance.navigation.type').should('eq', 0)
-        cy.intercept({
-            method: 'POST',
-            url: '/redcap_v' + Cypress.env('redcap_version') + "/*RepeatInstanceController:saveSetup*"
-        }).as('repeat_save')
-    } else if (type === " on the Designate Instruments for My Events page") {
-        cy.intercept({
-            method: 'POST',
-            url: '/redcap_v' + Cypress.env('redcap_version') + '/Design/designate_forms_ajax*'
-        }).as('designate_instruments')
-    } else if (type === " to rename an instrument"){
-        cy.intercept({
-            method: 'POST',
-            url: '/redcap_v' + Cypress.env('redcap_version') + '/Design/set_form_name.php*'
-        }).as('rename_instrument')
-    } else if (type === " on the Online Designer page"){
-        cy.intercept({
-            method: 'GET',
-            url: '/redcap_v' + Cypress.env('redcap_version') + '/Design/online_designer_render_fields.php*'
-        }).as('online_designer')
-    } else if (type === " on the active Data Quality rule"){
-        cy.intercept({
-            method: 'POST',
-            url: '/redcap_v' + Cypress.env('redcap_version') + '/DataQuality/edit_rule_ajax.php*'
-        }).as('data_quality_rule')
-    } else if (type === " and cancel the confirmation window"){
+    if (type === " and cancel the confirmation window"){
         window.rctfCancelNextConfirm = true
     }
 }
 
 function after_click_monitor(type){
-    if(type === ' in the "Add New Field" dialog box' || type === ' in the "Edit Field" dialog box' ){
-        cy.wait('@save_field')
-    } else if (type === " on the dialog box for the Repeatable Instruments and Events module"){
-        cy.wait('@repeat_save')
-        cy.window().its('performance.navigation.type').should('eq', 1)
-    } else if (type === " to rename an instrument"){
-        cy.wait('@rename_instrument')
-    } else if (type === " on the Designate Instruments for My Events page") {
-        if(Cypress.$('span#progress_save').length) cy.get('span#progress_save').should('not.be.visible')
-        cy.wait('@designate_instruments')
-    } else if (type === " on the Online Designer page") {
-        cy.wait('@online_designer')
-    } else if (type === " on the active Data Quality rule"){
-        cy.wait('@data_quality_rule')
-        if(Cypress.$('.editlogic textarea').length){
-            cy.get('.editlogic').then(($logic) => {
-                cy.wrap($logic).should('not.have.descendants', 'textarea,button')
-            })
-        }
-    }
+
 }
 
 /**
