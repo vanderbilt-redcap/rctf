@@ -29,21 +29,13 @@ function performAction(action, element, disabled_text){
 }
 
 function before_click_monitor(type){
-    if (type === " on the Designate Instruments for My Events page") {
-        cy.intercept({
-            method: 'POST',
-            url: '/redcap_v' + Cypress.env('redcap_version') + '/Design/designate_forms_ajax*'
-        }).as('designate_instruments')
-    } else if (type === " and cancel the confirmation window"){
+    if (type === " and cancel the confirmation window"){
         window.rctfCancelNextConfirm = true
     }
 }
 
 function after_click_monitor(type){
-    if (type === " on the Designate Instruments for My Events page") {
-        if(Cypress.$('span#progress_save').length) cy.get('span#progress_save').should('not.be.visible')
-        cy.wait('@designate_instruments')
-    }
+
 }
 
 /**
