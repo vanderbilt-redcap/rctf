@@ -34,11 +34,6 @@ function before_click_monitor(type){
             method: 'POST',
             url: '/redcap_v' + Cypress.env('redcap_version') + '/Design/designate_forms_ajax*'
         }).as('designate_instruments')
-    } else if (type === " on the Online Designer page"){
-        cy.intercept({
-            method: 'GET',
-            url: '/redcap_v' + Cypress.env('redcap_version') + '/Design/online_designer_render_fields.php*'
-        }).as('online_designer')
     } else if (type === " and cancel the confirmation window"){
         window.rctfCancelNextConfirm = true
     }
@@ -48,8 +43,6 @@ function after_click_monitor(type){
     if (type === " on the Designate Instruments for My Events page") {
         if(Cypress.$('span#progress_save').length) cy.get('span#progress_save').should('not.be.visible')
         cy.wait('@designate_instruments')
-    } else if (type === " on the Online Designer page") {
-        cy.wait('@online_designer')
     }
 }
 
