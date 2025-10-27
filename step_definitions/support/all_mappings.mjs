@@ -97,7 +97,6 @@ window.parameterTypes = {
     recordIDEvent: ['record ID', 'event'],
     repeatability: ['enabled', 'disabled', 'modifiable', 'unchangeable'],
     saveButtonRouteMonitoring: [
-        ' on the Designate Instruments for My Events page',
         ' and cancel the confirmation window',
         ' and accept the confirmation window',
         ' and will leave the tab open when I return to the REDCap project',
