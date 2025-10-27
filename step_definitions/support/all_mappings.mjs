@@ -102,8 +102,6 @@ window.parameterTypes = {
         ' and cancel the confirmation window',
         ' and accept the confirmation window',
         ' to rename an instrument',
-        ' in the "Add New Field" dialog box',
-        ' in the "Edit Field" dialog box',
         ' and will leave the tab open when I return to the REDCap project',
         ' on the active Data Quality rule'
     ],
