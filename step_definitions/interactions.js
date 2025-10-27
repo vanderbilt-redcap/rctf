@@ -1,5 +1,3 @@
-const { Given } = require('@badeball/cypress-cucumber-preprocessor')
-
 function normalizeString(s){
     if(s === undefined){
         return undefined
@@ -117,7 +115,11 @@ function after_click_monitor(type){
     }
 }
 
-Cypress.Commands.add("retryUntilTimeout", function (action, start, lastRun) {
+Cypress.Commands.add("retryUntilTimeout", function (action, messageOnError, start, lastRun) {
+    if(messageOnError === undefined){
+        messageOnError = "Timeout reached via retryUntilTimeout().  Pass an error message to this function in order to get a more specific error in this case."
+    }
+
     if (start === undefined) {
         start = Date.now()
     }
@@ -126,18 +128,19 @@ Cypress.Commands.add("retryUntilTimeout", function (action, start, lastRun) {
         lastRun = false
     }
 
-    const isAfterTimeout = () => {
-        const elapsed = Date.now() - start
-        return elapsed > Cypress.config('defaultCommandTimeout')
-    }
-
     return action(lastRun).then((result) => {
-        if (result || (isAfterTimeout() && lastRun)) {
+        if (result) {
             return result
         }
+        else if (lastRun){
+            throw messageOnError
+        }
         else {
-            cy.wait(250).then(() => {
-                cy.retryUntilTimeout(action, start, isAfterTimeout())
+            const elapsed = Date.now() - start
+            const waitTime = elapsed < 1000 ? 250 : 1000
+            cy.wait(waitTime).then(() => {
+                const lastRun = elapsed > Cypress.config('defaultCommandTimeout')
+                cy.retryUntilTimeout(action, messageOnError, start, lastRun)
             })
         }
     })
@@ -364,6 +367,12 @@ function getPreferredSibling(text, originalMatch, one, two){
     })
 
     if(
+        !matchOrParent
+        ||
+        !oneOrParent
+        ||
+        !twoOrParent
+        ||
         matchOrParent === oneOrParent
         ||
         matchOrParent === twoOrParent
@@ -490,11 +499,6 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
             `input[type=button][value*=${JSON.stringify(text)}]`,
             `input[type=submit][value*=${JSON.stringify(text)}]`,
         ].join(', ')
-
-        if(!lastRun){
-            // Favor visible items until the lastRun.  Keep in mind items that must be scrolled into view aren't considered visible.
-            selector += ':visible'
-        }
 
         return cy.get(selector).filterMatches(text).then(matches => {
             if(!Array.isArray(matches)){
@@ -646,11 +650,8 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
 
             return null
         })
-    }).then((match) => {
-        if (!match) {
-            throw 'The specified element could not be found'
-        }
-
+    }, 'The specified element could not be found')
+    .then((match) => {
         console.log('getLabeledElement() return value', match)
 
         return match
@@ -961,10 +962,16 @@ Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} fi
 Given('I enter the code that was emailed to the current user into the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}', (...args) => {
     const getCodeFromEmail = () => {
         return cy.request('http://localhost:8025/api/v1/messages').then(response => {
-            const lastMessage = response.body[0].Content
-
-            // Make null the default return value
+            // Make null the default return value & override any previous subject
             cy.wrap(null)
+
+            const messages = response.body 
+            if(messages.length === 0){
+                // Maybe it hasn't come through yet.  Return to retry.
+                return
+            }
+
+            const lastMessage = messages[0].Content
 
             const timeSinceSent = Date.now() - new Date(lastMessage.Headers.Date)
             if(timeSinceSent > 10000){

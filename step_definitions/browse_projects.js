@@ -1,5 +1,3 @@
-const { Given } = require('@badeball/cypress-cucumber-preprocessor')
-
 /**
  * @module BrowseProjects
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>

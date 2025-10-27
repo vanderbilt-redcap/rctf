@@ -249,7 +249,55 @@ Cypress.Commands.overwrite(
                 cy.wrap(subject).then($el => {
                     return Cypress.dom.isDetached($el) ? Cypress.$($el): $el
                 }).click(options)
+                .then($el => {
+                    $el = $el[0]
+                    // Use $el.href here since it will return absolute urls even when relative urls are specified
+                    const href = $el.href ?? ''
+                    if(
+                        href.startsWith('http')
+                        &&
+                        // Use $el.getAttribute('href') here to test the relative url
+                        !$el.getAttribute('href')?.startsWith('#')
+                        &&
+                        !href.includes('DataEntry/file_download.php')
+                    ){
+                         /**
+                         * The page should reload now.  We make sure the link element stops existing
+                         * as a way of waiting until the DOM is reloaded before continueing.
+                         * This prevents next steps from unexpectedly matching elements on the previous page.
+                         */
+                        return cy.retryUntilTimeout(() => {
+                            return cy.wrap(
+                                Cypress.dom.isDetached($el)
+                                ||
+                                Cypress.$('#stayOnPageReminderDialog:visible').length > 0
+                            )
+                        }, 'Failed to detect page load after link click')
+                    }
+                })
+                .window().then((win) => {
+                    if(
+                        win.location.href.includes('ProjectSetup/index')
+                        &&
+                        (
+                            subject[0].innerText.includes('Enable')
+                            ||
+                            subject[0].innerText.includes('Disable')
+                        )
+                    ){
+                        /**
+                         * This accounts for a 200ms setTimeout() in saveProjectSetting() that delays the page load,
+                         * and apparently takes longer than 500ms to fire a percentage of the time.
+                         * If we don't wait, within() calls on the next step will match elements on the soon to be unloaded page.
+                         */
+                        cy.log('Waiting for potential page load after project setting changes')
+                        cy.wait(1000)
+                    }
 
+                    /**
+                     * Used to check for jQuery.active === 0 here.  It mostly worked, but there were exceptions.  The value is stuck on 1 in B.6.4.1200.
+                     */
+                })
             } else {
                 return originalFn(subject, options)
             }
@@ -274,6 +322,7 @@ Cypress.Commands.overwrite('within', (...args) => {
         return subject
     }
     else{
+        console.log('cy.within() called with subject: ', subject[0])
         return originalWithin(...args)
     }
 })

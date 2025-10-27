@@ -1,3 +1,6 @@
+const { Given } = require('@badeball/cypress-cucumber-preprocessor')
+globalThis.Given = Given
+
 window.compareVersions = require('compare-versions')
 
 require('@4tw/cypress-drag-drop')
@@ -40,7 +43,11 @@ function check_feature_filename_format(){
         parts[3].length === 4 &&
         parts[4].startsWith(' - ')
     )){
-        throw 'Feature files names must match the following general format: A.#.#.####. - Short description.feature'
+        throw 'Feature filenames must match the following general format: A.#.#.####. - Short description.feature'
+    }
+    
+    if(parts[4].includes('(')){
+        throw 'Feature filenames must not contain parenthesis since cloud.cypress.io does not support them'
     }
 }
 
@@ -52,7 +59,7 @@ function reset_database(){
     cy.base_db_seed()
 }
 
-function load_core_step_definitions (Given, When, Then, defineParameterType){
+function load_core_step_definitions (){
     require('./step_definitions/index')
 }
 
@@ -72,13 +79,13 @@ function load_support_files(){
 function rctf_initialize() {
     preprocessor = require('@badeball/cypress-cucumber-preprocessor')
 
-    const { Given, BeforeStep, defineParameterType } = preprocessor
+    const { BeforeStep } = preprocessor
 
     let lastFailingFeature
 
     load_support_files()
     load_core_commands()
-    load_core_step_definitions(Given, defineParameterType)
+    load_core_step_definitions()
 
     //This is where we initialize the stuff we need in a basic install
     before(() => {
@@ -227,7 +234,7 @@ function rctf_initialize() {
                             return 'failed'
                         }
                         else{
-                            return 'suceeded'
+                            return 'succeeded'
                         }
                     }
 
