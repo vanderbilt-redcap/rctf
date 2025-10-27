@@ -103,7 +103,6 @@ window.parameterTypes = {
         ' and accept the confirmation window',
         ' to rename an instrument',
         ' and will leave the tab open when I return to the REDCap project',
-        ' on the active Data Quality rule'
     ],
     select: ['selected', 'unselected'],
     tableName: ['', ' of the User Rights table', ' of the Reports table', ' of the Participant List table'],

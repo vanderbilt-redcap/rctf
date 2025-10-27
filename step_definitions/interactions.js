@@ -44,11 +44,6 @@ function before_click_monitor(type){
             method: 'GET',
             url: '/redcap_v' + Cypress.env('redcap_version') + '/Design/online_designer_render_fields.php*'
         }).as('online_designer')
-    } else if (type === " on the active Data Quality rule"){
-        cy.intercept({
-            method: 'POST',
-            url: '/redcap_v' + Cypress.env('redcap_version') + '/DataQuality/edit_rule_ajax.php*'
-        }).as('data_quality_rule')
     } else if (type === " and cancel the confirmation window"){
         window.rctfCancelNextConfirm = true
     }
@@ -62,13 +57,6 @@ function after_click_monitor(type){
         cy.wait('@designate_instruments')
     } else if (type === " on the Online Designer page") {
         cy.wait('@online_designer')
-    } else if (type === " on the active Data Quality rule"){
-        cy.wait('@data_quality_rule')
-        if(Cypress.$('.editlogic textarea').length){
-            cy.get('.editlogic').then(($logic) => {
-                cy.wrap($logic).should('not.have.descendants', 'textarea,button')
-            })
-        }
     }
 }
 
