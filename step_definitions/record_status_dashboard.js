@@ -32,7 +32,7 @@ Given("I locate the bubble for the {string} instrument on event {string} for rec
  * @param {string} arm_name - name of the arm as displayed in the dropdown menu (e.g. Arm 1: Arm 1)
  * @description Selects a specific record from the Add / Edit record page
  */
-Given(/I select record ID "(.*)" from arm name "(.*)" on the (Add|View) \/ Edit record page$/, (record_id, arm_name) => {
+Given(/I select record ID "(.*)" from arm name "(.*)" on the (Add|View) \/ Edit record page$/, (record_id, arm_name, add_or_view) => {
     cy.get('select#arm_name').select(arm_name)
     cy.get('select#record').select(record_id)
 })

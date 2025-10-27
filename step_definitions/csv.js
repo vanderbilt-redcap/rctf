@@ -21,21 +21,21 @@
  * @param {DataTable} headings the DataTable of headings this file should have
  * @description Verifies headers and rows of the CSV file.
  */
-Given("the downloaded CSV with filename {string}( should have)( has) the( ){headerOrNot}( row)(s) below", (filename, header, table) => {
+Given("the downloaded CSV with filename {string}( should have)( has) the( ){headerOrNot}( row)(s) below", (filename, header, dataTable) => {
     cy.download_file(filename).then( ($text) => {
         cy.task('parseCsv', {csv_string: $text}).then((csv_rows) => {
             const headings = csv_rows[0]
-            const table_rows = table.hashes()
+            const table_rows = dataTable.hashes()
             let col_tables = {}
 
             if(header === "header and" || header === "header" ) {
                 for (let $i = 0; $i <= headings.length; $i++) {
-                    for (let i = 0; i < table.rawTable[0].length; i++) {
-                        if (table.rawTable[0][i] !== undefined &&
-                            col_tables[table.rawTable[0][i]] === undefined &&
-                            table.rawTable[0][i] === headings[$i]) {
-                            expect(headings[$i]).to.equal(table.rawTable[0][i])
-                            col_tables[table.rawTable[0][i]] = {index: $i}
+                    for (let i = 0; i < dataTable.rawTable[0].length; i++) {
+                        if (dataTable.rawTable[0][i] !== undefined &&
+                            col_tables[dataTable.rawTable[0][i]] === undefined &&
+                            dataTable.rawTable[0][i] === headings[$i]) {
+                            expect(headings[$i]).to.equal(dataTable.rawTable[0][i])
+                            col_tables[dataTable.rawTable[0][i]] = {index: $i}
                         }
                     }
                 }
@@ -46,8 +46,8 @@ Given("the downloaded CSV with filename {string}( should have)( has) the( ){head
                     let csv_line = csv_rows[row + 1]
                     let current_row = table_rows[row]
 
-                    for (let key = 0; key < table.rawTable[0].length && key < csv_line.length; key++) {
-                        let col_key = table.rawTable[0][key]
+                    for (let key = 0; key < dataTable.rawTable[0].length && key < csv_line.length; key++) {
+                        let col_key = dataTable.rawTable[0][key]
                         let col_index = col_tables[col_key]['index']
                         expect(csv_line[col_index]).to.include(current_row[col_key])
                     }
@@ -56,6 +56,7 @@ Given("the downloaded CSV with filename {string}( should have)( has) the( ){head
         })
     })
 })
+
 /**
  * @module CSV
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>

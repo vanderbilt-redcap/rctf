@@ -129,33 +129,6 @@ Given("I {shouldOrShouldNot} see a signature for the {string} field in the downl
     })
 })
 
-Cypress.Commands.add("assertPDFContainsDataTable", {prevSubject: true}, function (pdf, dataTable) {
-    function findDateFormat(str) {
-        for (const format in window.dateFormats) {
-            const regex = window.dateFormats[format]
-            const match = str.includes(format)
-            if (match) {
-                expect(window.dateFormats).to.haveOwnProperty(format)
-                return str.replace(format, '')
-            }
-        }
-        return null
-    }
-    
-    dataTable['rawTable'].forEach((row, row_index) => {
-        row.forEach((dataTableCell) => {
-            const result = findDateFormat(dataTableCell)
-            if (result === null) {
-                expect(pdf.text).to.include(dataTableCell)
-            } else {
-                result.split(' ').forEach((item) => {
-                    expect(pdf.text).to.include(item)
-                })
-            }
-        })
-    })
-})
-
 function loadPDF(record, survey, next){
     //Make sure DataTables has loaded before we do anything here
     cy.wait_for_datatables().assertWindowProperties()
@@ -220,61 +193,6 @@ function loadPDF(record, survey, next){
  */
 Given("I should see the following values in the last file downloaded", (dataTable) => {
     cy.task('fetchLatestDownload', { fileExtension: false }).assertContains(dataTable)
-})
-
-Cypress.Commands.add('assertContains', {prevSubject: true}, (path, dataTable) => {
-    if(!path){
-        throw 'A recent file could not be found!'
-    }
-    
-    const extension = path.split('.').pop()
-    if(extension === 'pdf'){
-        cy.task('readPdf', { pdf_file: path }).assertPDFContainsDataTable(dataTable)
-    }
-    else{
-        throw 'This step needs to be expanded to support this file type: ' + path
-    }
-})
-
-Cypress.Commands.add('findMostRecentAzureFile', () => {
-    /**
-     * Azurite does not simply store files in a directory that we can directly access.
-     * We created this method to access them.
-     */
-    return cy.request({
-        url: '/azure/get-most-recent-file.php',
-        encoding: 'binary',
-    }).then((response) => {
-        expect(response.status).to.eq(200);
-
-        const filename = response.headers['content-disposition']
-            .split('filename=')[1]
-            .split('"')[1]                    
-
-        cy.task('createTempFile', {filename, content: response.body})
-    })
-})
-
-Cypress.Commands.add('findMostRecentS3File', () => {
-    cy.exec('docker exec mybucket.minio.local mc ls --json /data/mybucket/').then(result => {
-        const lines = result.stdout.split('\n')
-        let mostRecent = null
-        lines.forEach(line => {
-            const fileInfo = JSON.parse(line)
-            fileInfo.lastModified = new Date(fileInfo.lastModified)
-            if(mostRecent === null || fileInfo.lastModified > mostRecent.lastModified){
-                mostRecent = fileInfo
-            }
-        })
-
-        const filename = mostRecent.key.split('/')[0]
-        cy.exec('docker exec mybucket.minio.local mc cp local/mybucket/' + filename + ' /tmp').then(() => {
-            const path = '../tmp/' + filename
-            cy.exec('docker cp mybucket.minio.local:/tmp/' + filename + ' ' + path).then(() => {
-                return path
-            })
-        })
-    })
 })
 
 /**

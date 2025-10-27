@@ -1,10 +1,14 @@
-const { Given } = require('@badeball/cypress-cucumber-preprocessor')
-globalThis.Given = Given
+// Check to see if Given is defined. We may be calling get-step-usage.sh which uses an alternate definition.
+if(!globalThis.Given){
+    const { Given, defineParameterType } = require('@badeball/cypress-cucumber-preprocessor')
+    globalThis.Given = Given
+    globalThis.defineParameterType = defineParameterType
+    
+    globalThis.compareVersions = require('compare-versions')
 
-window.compareVersions = require('compare-versions')
-
-require('@4tw/cypress-drag-drop')
-require('@foreachbe/cypress-tinymce')
+    require('@4tw/cypress-drag-drop')
+    require('@foreachbe/cypress-tinymce')
+}
 
 function intercept_vanderbilt_requests(){
     //The following prevents constant requests to Vanderbilt since we're just testing

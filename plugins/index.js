@@ -36,8 +36,7 @@ const {createEsbuildPlugin}  = require("@badeball/cypress-cucumber-preprocessor/
 const glob = require('glob')
 
 module.exports = (cypressOn, config) => {
-    let on = cypressOn
-    on = require('cypress-on-fix')(cypressOn)
+    const on = require('cypress-on-fix')(cypressOn)
 
     const getRCTF = async () =>{
         const imported = await import('../rctf.mjs') 
@@ -276,7 +275,7 @@ module.exports = (cypressOn, config) => {
 
         async fetchLatestDownload({fileExtension}){
             const threshold = new Date();
-            threshold.setTime(threshold.getTime() - 10000); // Only look for very recent downloads
+            threshold.setTime(threshold.getTime() - 5000); // Only look for very recent downloads to make sure we don't falsely match a file from a previous download
 
             const fetchOnce = () => {
                 const downloadsDir = shell.pwd() + '/cypress/downloads/'

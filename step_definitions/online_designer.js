@@ -5,7 +5,7 @@
  * @param {string} choices - the choices in string format
  * @param {string} addEditField
  */
-Given('I {enterType} Choice(s) of {string} in(to) the open "{addEditField}" dialog box', (enter_type, choices) => {
+Given('I {enterType} Choice(s) of {string} in(to) the open "{addEditField}" dialog box', (enter_type, choices, add_edit_field) => {
     let field_choices = cy.select_field_choices()
     if(enter_type === "clear field and enter") {
         field_choices.clear()
@@ -26,7 +26,7 @@ Given('I {enterType} Choice(s) of {string} in(to) the open "{addEditField}" dial
  * @param {string} addEditField
  * @description Edits the field label of the open dialog box
  */
-Given('I enter {string} into the Field Label of the open "{addEditField}" dialog box', (field_label) => {
+Given('I enter {string} into the Field Label of the open "{addEditField}" dialog box', (field_label, add_edit_field) => {
     cy.get('textarea#field_label').clear().type(field_label)
 })
 
@@ -37,7 +37,7 @@ Given('I enter {string} into the Field Label of the open "{addEditField}" dialog
  * @param {string} addEditField
  * @description Edits the variable name of the open dialog box
  */
-Given('I enter {string} into the Variable Name of the open "{addEditField}" dialog box', (field_label) => {
+Given('I enter {string} into the Variable Name of the open "{addEditField}" dialog box', (field_label, add_edit_field) => {
     cy.get('input#field_name').clear().type(field_label)
 })
 
@@ -48,7 +48,7 @@ Given('I enter {string} into the Variable Name of the open "{addEditField}" dial
  * @param {string} addEditField
  * @description Enters specified equation into a Calculated Field within an open "Edit Field" dialog box
  */
-Given('I enter the equation {string} into Calculation Equation of the open "{addEditField}" dialog box', (equation) => {
+Given('I enter the equation {string} into Calculation Equation of the open "{addEditField}" dialog box', (equation, add_edit_field) => {
     cy.get('textarea#element_enum').click()
     cy.get('div.ace_content').type("{shift}{home}{del}" + equation)
     cy.get('button').contains('Update & Close Editor').click()
@@ -61,7 +61,7 @@ Given('I enter the equation {string} into Calculation Equation of the open "{add
  * @param {string} addEditField
  * @description Selects option from the Field Type dropdown in open "Edit Field" dialog box
  */
-Given('I select {string} from the Field Type dropdown of the open "{addEditField}" dialog box', (dropdown_option) => {
+Given('I select {string} from the Field Type dropdown of the open "{addEditField}" dialog box', (dropdown_option, add_edit_field) => {
     cy.get('select#field_type').select(dropdown_option)
 })
 
@@ -72,7 +72,7 @@ Given('I select {string} from the Field Type dropdown of the open "{addEditField
  * @param {string} addEditField
  * @description Selects option from the Validation dropdown in open "Edit Field" dialog box
  */
-Given('I select {string} from the Validation dropdown of the open "{addEditField}" dialog box', (dropdown_option) => {
+Given('I select {string} from the Validation dropdown of the open "{addEditField}" dialog box', (dropdown_option, add_edit_field) => {
     cy.get('select#val_type').select(dropdown_option)
 })
 

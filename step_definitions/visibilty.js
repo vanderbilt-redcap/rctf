@@ -61,17 +61,17 @@ Given('I (should )see the {dropdownType} field labeled {string} with the option 
  * @param {dataTable} options the Data Table of selectable options
  * @description Visibility - Visually verifies that the element selector has the options listed
  */
-Given("I should see the {dropdownType} field labeled {string} with the options below", (type, label, options) => {
+Given("I should see the {dropdownType} field labeled {string} with the options below", (type, label, dataTable) => {
     let label_selector = `:contains("${label}"):visible`
 
     cy.top_layer(label_selector).within(() => {
-        for(let i = 0; i < options.rawTable.length; i++){
-            let element_selector = `select:has(option:contains(${JSON.stringify(options.rawTable[i][0])})):visible`
+        for(let i = 0; i < dataTable.rawTable.length; i++){
+            let element_selector = `select:has(option:contains(${JSON.stringify(dataTable.rawTable[i][0])})):visible`
             if (type === "multiselect" || type === "radio") {
-                element_selector = `div:has(label:contains(${JSON.stringify(options.rawTable[i][0])})):visible`
+                element_selector = `div:has(label:contains(${JSON.stringify(dataTable.rawTable[i][0])})):visible`
             }
             let element = cy.get_labeled_element(element_selector, label)
-            element.should('contain', options.rawTable[i][0])
+            element.should('contain', dataTable.rawTable[i][0])
         }
     })
 })
