@@ -34,12 +34,6 @@ function before_click_monitor(type){
             method: 'GET',
             url: '/redcap_v' + Cypress.env('redcap_version') + "/Design/online_designer_render_fields.php?*"
         }).as('save_field')
-    } else if (type === " on the dialog box for the Repeatable Instruments and Events module"){
-        cy.window().its('performance.navigation.type').should('eq', 0)
-        cy.intercept({
-            method: 'POST',
-            url: '/redcap_v' + Cypress.env('redcap_version') + "/*RepeatInstanceController:saveSetup*"
-        }).as('repeat_save')
     } else if (type === " on the Designate Instruments for My Events page") {
         cy.intercept({
             method: 'POST',
@@ -68,9 +62,6 @@ function before_click_monitor(type){
 function after_click_monitor(type){
     if(type === ' in the "Add New Field" dialog box' || type === ' in the "Edit Field" dialog box' ){
         cy.wait('@save_field')
-    } else if (type === " on the dialog box for the Repeatable Instruments and Events module"){
-        cy.wait('@repeat_save')
-        cy.window().its('performance.navigation.type').should('eq', 1)
     } else if (type === " to rename an instrument"){
         cy.wait('@rename_instrument')
     } else if (type === " on the Designate Instruments for My Events page") {

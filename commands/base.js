@@ -245,6 +245,8 @@ Cypress.Commands.overwrite(
                 subject[0].nodeName === "BUTTON" ||
                 subject[0].nodeName === "INPUT" && subject[0].type === "button" && subject[0].onclick === ""
             ){
+                const body = Cypress.$('body')
+
                 //If our other detachment prevention measures failed, let's check to see if it detached and deal with it
                 cy.wrap(subject).then($el => {
                     return Cypress.dom.isDetached($el) ? Cypress.$($el): $el
@@ -254,12 +256,20 @@ Cypress.Commands.overwrite(
                     // Use $el.href here since it will return absolute urls even when relative urls are specified
                     const href = $el.href ?? ''
                     if(
-                        href.startsWith('http')
-                        &&
-                        // Use $el.getAttribute('href') here to test the relative url
-                        !$el.getAttribute('href')?.startsWith('#')
-                        &&
-                        !href.includes('DataEntry/file_download.php')
+                        (
+                            href.startsWith('http')
+                            &&
+                            // Use $el.getAttribute('href') here to test the relative url
+                            !$el.getAttribute('href')?.startsWith('#')
+                            &&
+                            !href.includes('DataEntry/file_download.php')
+                        )
+                        ||
+                        (
+                            subject[0].closest('[aria-describedby=repeatingInstanceEnableDialog]') !== null
+                            &&
+                            subject[0].innerText.includes('Save')
+                        )
                     ){
                          /**
                          * The page should reload now.  We make sure the link element stops existing
@@ -268,7 +278,7 @@ Cypress.Commands.overwrite(
                          */
                         return cy.retryUntilTimeout(() => {
                             return cy.wrap(
-                                Cypress.dom.isDetached($el)
+                                Cypress.dom.isDetached(body)
                                 ||
                                 Cypress.$('#stayOnPageReminderDialog:visible').length > 0
                             )

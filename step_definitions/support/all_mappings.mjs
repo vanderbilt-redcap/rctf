@@ -97,7 +97,6 @@ window.parameterTypes = {
     recordIDEvent: ['record ID', 'event'],
     repeatability: ['enabled', 'disabled', 'modifiable', 'unchangeable'],
     saveButtonRouteMonitoring: [
-        ' on the dialog box for the Repeatable Instruments and Events module',
         ' on the Designate Instruments for My Events page',
         ' on the Online Designer page',
         ' and cancel the confirmation window',
