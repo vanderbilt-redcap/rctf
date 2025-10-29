@@ -933,6 +933,15 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
  */
 Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectOption) {
     return cy.retryUntilTimeout((lastRun) => {
+        cy.document().then(document => {
+            const attributeName = 'data-bs-original-title'
+            document.querySelectorAll(`[${attributeName}*="<"]`).forEach(element => {
+                // Remove html tags from bootstrap titles to allow matching things like "<b>Edit</b> Branching Logic"
+                const attributeText = element.getAttribute(attributeName)
+                element.setAttribute(attributeName, new DOMParser().parseFromString(attributeText, 'text/html').body.textContent)
+            })
+        })
+
         let selector = [
             `input[placeholder=${JSON.stringify(text)}]`,
             `:contains(${JSON.stringify(text)})`,
