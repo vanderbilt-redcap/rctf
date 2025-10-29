@@ -933,12 +933,6 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
  */
 Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectOption) {
     return cy.retryUntilTimeout((lastRun) => {
-        /**
-         * We tried using "window().then(win => win.$(`:contains..." to combine the following two cases,
-         * but it could not find iframe content like cy.get() can.
-         * We also tried Cypress.$, but it seems to return similar results to cy.get().
-         * Example from A.6.4.0200.: I click on the radio labeled "Keep ALL data saved so far." in the dialog box in the iframe
-        */
         let selector = [
             `input[placeholder=${JSON.stringify(text)}]`,
             `:contains(${JSON.stringify(text)})`,
