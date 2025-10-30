@@ -74,31 +74,10 @@ Given("I download a file by clicking on the link labeled {string}", (text) => {
  * @param {string} record - the ID of the record the PDF is associated with
  * @param {string} survey - the Survey / Event of the record the PDF is associated with
  * @description Downloads a PDF file from the PDF Archive for a particular record ID and survey
+ * @deprecated
  */
 Given("I download the PDF by clicking on the link for Record {string} and Survey {string} in the File Repository table", (record, survey) => {
-    //Make sure DataTables has loaded before we do anything here
-    cy.wait_for_datatables().assertWindowProperties()
-
-    //Make sure the page is not loading
-    if(Cypress.$('#file-repository-table_processing:visible').length){
-        cy.get('#file-repository-table_processing').should('have.css', 'display', 'none')
-    }
-
-    //This initial query gets the column number of the <th> containing "Record" so that we can use that to find the correct base_element to select
-     cy.get(`${window.tableMappings['file repository']}:visible tr th`).
-        contains('Record').
-        invoke('index').then(($col_index) =>{
-         const col_num = $col_index + 1
-
-         const base_element = `${window.tableMappings['file repository']}:visible tr:has(td:nth-child(${col_num}):has(a:contains(${JSON.stringify(record)}))):has(:contains(${JSON.stringify(survey)}))`
-         const element_selector = `td i.fa-file-pdf`
-
-         cy.top_layer(element_selector, base_element).within(() => {
-             cy.get('td:has(i.fa-file-pdf) a').then(($a) => {
-                 cy.wrap($a).click()
-             })
-         })
-    })
+    throw `This step has been deprecated in favore of steps like the following: And I click on the link labeled "_formParticipantConsent_id1_"`
 })
 
 /**
