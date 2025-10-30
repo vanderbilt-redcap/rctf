@@ -213,6 +213,16 @@ Given("I click on the( ){ordinal} link labeled {string}", (ordinal, text) => {
 
 /**
  * @module Interactions
+ * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
+ * @param {string} text - the text on the anchor element you want to click
+ * @description Clicks on an anchor element with a specific text label.
+ */
+Given("I click on the( ){ordinal} icon labeled {string}", (ordinal, text) => {
+    cy.getLabeledElement('icon', text, ordinal).click()
+})
+
+/**
+ * @module Interactions
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
  * @param {string} text - the text on the button element you want to click
  * @param {string} label - the lable of the row with the button you want to click
