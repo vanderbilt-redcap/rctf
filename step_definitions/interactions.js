@@ -205,27 +205,10 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} text - the text on the anchor element you want to click
- * @param {string} saveButtonRouteMonitoring
- * @param {string} baseElement
  * @description Clicks on an anchor element with a specific text label.
  */
-Given("I click on the( ){ordinal}( ){fileRepoIcons} link( ){labeledExactly} {string}{saveButtonRouteMonitoring}{baseElement}", (ordinal, file_repo_icons, exactly, text, link_type, base_element) => {
-    let ord = 0
-    if(ordinal !== undefined) ord = window.ordinalChoices[ordinal]
-
-    cy.not_loading()
-
-    if(base_element === undefined){
-        base_element = ''
-    }
-    let outer_element = window.elementChoices[base_element]
-    if(exactly === 'labeled exactly') {
-        cy.top_layer(`a:contains(${JSON.stringify(text)}):visible`, outer_element).within(() => {
-            cy.get('a:visible').contains(new RegExp("^" + text + "$", "g")).eq(ord).click()
-        })
-    } else {
-        cy.getLabeledElement('link', text, ordinal).click()
-    }
+Given("I click on the( ){ordinal} link labeled {string}", (ordinal, text) => {
+    cy.getLabeledElement('link', text, ordinal).click()
 })
 
 /**
