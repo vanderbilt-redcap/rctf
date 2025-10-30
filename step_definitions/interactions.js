@@ -218,14 +218,13 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} linkNames
  * @param {string} text - the text on the anchor element you want to click
  * @param {string} saveButtonRouteMonitoring
  * @param {string} toDownloadFile
  * @param {string} baseElement
  * @description Clicks on an anchor element with a specific text label.
  */
-Given("I click on the( ){ordinal}( ){onlineDesignerFieldIcons}( ){fileRepoIcons}( ){linkNames}( ){labeledExactly} {string}{saveButtonRouteMonitoring}{toDownloadFile}{baseElement}", (ordinal, designer_field_icons, file_repo_icons, link_name, exactly, text, link_type, download, base_element) => {
+Given("I click on the( ){ordinal}( ){onlineDesignerFieldIcons}( ){fileRepoIcons} link( ){labeledExactly} {string}{saveButtonRouteMonitoring}{toDownloadFile}{baseElement}", (ordinal, designer_field_icons, file_repo_icons, link_name, exactly, text, link_type, download, base_element) => {
     before_click_monitor(link_type)
 
     let ord = 0

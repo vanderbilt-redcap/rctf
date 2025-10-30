@@ -77,7 +77,6 @@ window.parameterTypes = {
     ],
     labeledElement: labeledElementTypes,
     labeledExactly: ['labeled', 'labeled exactly', 'for the instrument row labeled', 'for the variable', 'for the File Repository file named', 'for Data Quality Rule #', 'within the Record Locking Customization table for the Data Collection Instrument named', 'the enabled survey icon link for the instrument row', 'the enabled survey icon link for the instrument row', 'for the Discrepant field labeled', 'within the Record Locking Customization table for the Data Collection Instrument named', 'for the field labeled'],
-    linkNames: ['link', 'tab', 'instrument', 'icon'],
     loginTypes: ['attempt to login to REDCap with', 'am still logged in to REDCap with', 'login to REDCap with', 'successfully login to REDCap with', 'provide E-Signature credentials for'],
     projectRequestLabel: ['Create Project', 'Send Request'],
     notSeeDC: ['should see a Data Collection Instrument named', 'should NOT see a Data Collection Instrument named', 'should no longer see a Data Collection Instrument named'],
