@@ -1188,7 +1188,7 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
                 return !(row.closest('table').classList.contains('form-label-table'))
             })
 
-            cy.wrap(results).filterMatches(text).then(results => {
+            cy.wrap(results).filterMatches(rowLabel).then(results => {
                 if(results.length === 0){
                     throw 'Row with given label not found'
                 }
