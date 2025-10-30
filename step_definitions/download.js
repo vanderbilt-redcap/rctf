@@ -77,7 +77,7 @@ Given("I download a file by clicking on the link labeled {string}", (text) => {
  * @deprecated
  */
 Given("I download the PDF by clicking on the link for Record {string} and Survey {string} in the File Repository table", (record, survey) => {
-    throw `This step has been deprecated in favore of steps like the following: And I click on the link labeled "_formParticipantConsent_id1_"`
+    throw `This step has been deprecated in favor of steps like the following: And I click on the link labeled "_formParticipantConsent_id1_"`
 })
 
 /**
