@@ -28,16 +28,6 @@ function performAction(action, element, disabled_text){
     }
 }
 
-function before_click_monitor(type){
-    if (type === " and cancel the confirmation window"){
-        window.rctfCancelNextConfirm = true
-    }
-}
-
-function after_click_monitor(type){
-
-}
-
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
@@ -85,8 +75,6 @@ function after_click_monitor(type){
  */
 Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button {labeledExactly} {string}{saveButtonRouteMonitoring}{baseElement}{iframeVisibility}{toDownloadFile}", (article_type, online_designer_button, ordinal, exactly, text, button_type, base_element, iframe, download) => {
     cy.then(() => {
-        before_click_monitor(button_type)
-    }).then(() => {
         let ord = 0
         if(ordinal !== undefined) ord = window.ordinalChoices[ordinal]
 
@@ -210,8 +198,6 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
         if(base_element === " on the Add/Edit Branching Logic dialog box" || base_element === " in the Add/Edit Branching Logic dialog box"){
             cy.wait(2000)
         }
-    }).then(() => {
-        after_click_monitor(button_type)
     })
 })
 
@@ -224,8 +210,6 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
  * @description Clicks on an anchor element with a specific text label.
  */
 Given("I click on the( ){ordinal}( ){fileRepoIcons} link( ){labeledExactly} {string}{saveButtonRouteMonitoring}{baseElement}", (ordinal, file_repo_icons, exactly, text, link_type, base_element) => {
-    before_click_monitor(link_type)
-
     let ord = 0
     if(ordinal !== undefined) ord = window.ordinalChoices[ordinal]
 
@@ -242,8 +226,6 @@ Given("I click on the( ){ordinal}( ){fileRepoIcons} link( ){labeledExactly} {str
     } else {
         cy.getLabeledElement('link', text, ordinal).click()
     }
-
-    after_click_monitor(link_type)
 })
 
 /**
@@ -1204,4 +1186,13 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
          */
         throw 'Support for omitting both column & row labels is not yet implemented.  Please ask if you need it!'
     }
+})
+
+/**
+ * @module Interactions
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @description Cancels the confirmation dialog displayed during the following step 
+ */
+Given("I remember to click cancel on the confirmation dialog that appears after the following step", () => {
+   window.rctfCancelNextConfirm = true
 })
