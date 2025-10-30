@@ -1085,7 +1085,7 @@ Given("I click on the {string} {labeledElement} within (a)(the) {tableTypes} tab
  * @param {disabled} disabled_text - optional "is disabeld" text
  * @description Performs an action on a labeled element in the specified table row and/or column
  */
-Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optionalQuotedString}( )in the (column labeled ){optionalQuotedString}( and the )row labeled {string}( that){disabled}", (action, articleType, labeledElement, text, columnLabel, rowLabel, disabled_text) => {
+Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labeled ){optionalQuotedString}( )in the (column labeled ){optionalQuotedString}( and the )row labeled {string}( that){disabled}", (action, articleType, ordinal, labeledElement, text, columnLabel, rowLabel, disabled_text) => {
     const performActionOnTarget = (target) =>{
         console.log('performActionOnTarget target', target)
         if(action === 'should NOT see'){
@@ -1107,7 +1107,7 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
                 }
 
                 if(text){
-                    cy.getLabeledElement(labeledElement, text).then(result =>{
+                    cy.getLabeledElement(labeledElement, text, ordinal).then(result =>{
                         next(action, result)
                     })
                 }
