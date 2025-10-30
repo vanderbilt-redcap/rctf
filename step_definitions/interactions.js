@@ -224,7 +224,7 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
  * @param {string} baseElement
  * @description Clicks on an anchor element with a specific text label.
  */
-Given("I click on the( ){ordinal}( ){onlineDesignerFieldIcons}( ){fileRepoIcons} link( ){labeledExactly} {string}{saveButtonRouteMonitoring}{toDownloadFile}{baseElement}", (ordinal, designer_field_icons, file_repo_icons, link_name, exactly, text, link_type, download, base_element) => {
+Given("I click on the( ){ordinal}( ){onlineDesignerFieldIcons}( ){fileRepoIcons} link( ){labeledExactly} {string}{saveButtonRouteMonitoring}{toDownloadFile}{baseElement}", (ordinal, designer_field_icons, file_repo_icons, exactly, text, link_type, download, base_element) => {
     before_click_monitor(link_type)
 
     let ord = 0
@@ -301,7 +301,7 @@ Given("I click on the( ){ordinal}( ){onlineDesignerFieldIcons}( ){fileRepoIcons}
         })
 
     } else {
-        cy.getLabeledElement(link_name, text, ordinal).click()
+        cy.getLabeledElement('link', text, ordinal).click()
     }
 
     after_click_monitor(link_type)
