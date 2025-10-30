@@ -220,11 +220,10 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} text - the text on the anchor element you want to click
  * @param {string} saveButtonRouteMonitoring
- * @param {string} toDownloadFile
  * @param {string} baseElement
  * @description Clicks on an anchor element with a specific text label.
  */
-Given("I click on the( ){ordinal}( ){fileRepoIcons} link( ){labeledExactly} {string}{saveButtonRouteMonitoring}{toDownloadFile}{baseElement}", (ordinal, file_repo_icons, exactly, text, link_type, download, base_element) => {
+Given("I click on the( ){ordinal}( ){fileRepoIcons} link( ){labeledExactly} {string}{saveButtonRouteMonitoring}{baseElement}", (ordinal, file_repo_icons, exactly, text, link_type, base_element) => {
     before_click_monitor(link_type)
 
     let ord = 0
@@ -240,24 +239,10 @@ Given("I click on the( ){ordinal}( ){fileRepoIcons} link( ){labeledExactly} {str
         base_element = ''
     }
     let outer_element = window.elementChoices[base_element]
-
-    if(download.includes("to download a file")) {
-        const loadScript = '<script> setTimeout(() => location.reload(), 2000); </script>';
-        cy.get('body').invoke('append', loadScript);
-    }
-
     if(exactly === 'labeled exactly') {
         cy.top_layer(`a:contains(${JSON.stringify(text)}):visible`, outer_element).within(() => {
             cy.get('a:visible').contains(new RegExp("^" + text + "$", "g")).eq(ord).click()
         })
-    } else if(download.includes('with records in')) {
-        let keyword = download.includes('rows') ? 'rows' : 'columns'
-
-        cy.top_layer(`a:contains(${JSON.stringify(text)}):visible`, outer_element).within(() => {
-            //Note: This is a pretty brittle approach, but it works ... best way to handle this weird edge case where we are looking for "Download your Data Import Template", which has two hits
-            cy.get(`a:contains(${JSON.stringify(text)}):visible`).eq(keyword === "rows" ? 0 : 1).contains(text).eq(ord).click()
-        })
-
     } else {
         cy.getLabeledElement('link', text, ordinal).click()
     }
