@@ -14,7 +14,6 @@ window.parameterTypes = {
     ordinal: transformKeysToRegExp(window.ordinalChoices),
     recordStatusIcons: transformKeysToRegExp(window.recordStatusIcons),
     fileRepoIcons: transformKeysToRegExp(window.fileRepoIcons),
-    onlineDesignerFieldIcons: transformKeysToRegExp(window.onlineDesignerFieldIcons),
     participantListIcons: transformKeysToRegExp(window.participantListIcons),
     action: ['click on', 'check', 'uncheck', 'should see', 'should NOT see'],
     addEditField: ['Add New Field', 'Edit Field'],

@@ -224,7 +224,7 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
  * @param {string} baseElement
  * @description Clicks on an anchor element with a specific text label.
  */
-Given("I click on the( ){ordinal}( ){onlineDesignerFieldIcons}( ){fileRepoIcons} link( ){labeledExactly} {string}{saveButtonRouteMonitoring}{toDownloadFile}{baseElement}", (ordinal, designer_field_icons, file_repo_icons, exactly, text, link_type, download, base_element) => {
+Given("I click on the( ){ordinal}( ){fileRepoIcons} link( ){labeledExactly} {string}{saveButtonRouteMonitoring}{toDownloadFile}{baseElement}", (ordinal, file_repo_icons, exactly, text, link_type, download, base_element) => {
     before_click_monitor(link_type)
 
     let ord = 0
@@ -246,49 +246,7 @@ Given("I click on the( ){ordinal}( ){onlineDesignerFieldIcons}( ){fileRepoIcons}
         cy.get('body').invoke('append', loadScript);
     }
 
-    if(exactly === "for the field labeled") {
-        let contains = ''
-        text.split(' ').forEach((val) => {
-            contains += `:has(:contains(${JSON.stringify(val)}))`
-        })
-
-        outer_element = `tr${contains}:visible`
-        cy.top_layer(`a:visible`, outer_element).within(() => {
-            cy.get(`${window.onlineDesignerFieldIcons[designer_field_icons]}`).eq(ord).scrollIntoView().click({force: true})
-        })
-    } else if(exactly === "for Data Quality Rule #") {
-        outer_element = `table:visible tr:has(div.rulenum:contains(${JSON.stringify(text)})):visible`
-        cy.top_layer(`a:visible`, outer_element).within(() => {
-            cy.get(`${window.onlineDesignerFieldIcons[designer_field_icons]}`).eq(ord).scrollIntoView().click({force: true})
-        })
-    } else if(exactly === "for the Discrepant field labeled") {
-        outer_element = `table:visible tr:has(:contains(${JSON.stringify(text)})):visible`
-        cy.top_layer(`a:visible`, outer_element).within(() => {
-            cy.get(`${window.onlineDesignerFieldIcons[designer_field_icons]}`).eq(ord).scrollIntoView().click({force: true})
-        })
-    } else if(exactly === "for the variable") {
-        const legacy_selector = `table[id*=design-]:contains(${JSON.stringify(`Variable: ${text}`)}):visible`
-        const current_selector = `table[id*=design-]:contains(${JSON.stringify(`Field Name: ${text}`)}):visible`
-        cy.top_layer(`a:visible`, `${legacy_selector},${current_selector}`).within(() => {
-            cy.get(`${window.onlineDesignerFieldIcons[designer_field_icons]}`).eq(ord).scrollIntoView().click({force: true})
-        })
-    } else if(exactly === "for the File Repository file named"){
-        outer_element = `${window.tableMappings['file repository']}:visible tr:has(:contains(${JSON.stringify(text)}))`
-        cy.top_layer(`a:contains(${JSON.stringify(text)})`, outer_element).within(() => {
-            if(file_repo_icons === undefined){
-                file_repo_icons = designer_field_icons
-            }
-            cy.get(`${window.fileRepoIcons[file_repo_icons]}`).eq(ord).click()
-        })
-    } else if(exactly === "within the Record Locking Customization table for the Data Collection Instrument named"){
-        outer_element = `${window.tableMappings['record locking']}:visible tr:has(:contains(${JSON.stringify(text)}))`
-        cy.top_layer(`a:has(img:visible)`, outer_element).within(() => {
-            if(file_repo_icons === undefined){
-                file_repo_icons = designer_field_icons
-            }
-            cy.get(`${window.onlineDesignerFieldIcons[file_repo_icons]}`).eq(ord).click()
-        })
-    } else if(exactly === 'labeled exactly') {
+    if(exactly === 'labeled exactly') {
         cy.top_layer(`a:contains(${JSON.stringify(text)}):visible`, outer_element).within(() => {
             cy.get('a:visible').contains(new RegExp("^" + text + "$", "g")).eq(ord).click()
         })
