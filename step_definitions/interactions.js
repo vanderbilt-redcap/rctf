@@ -231,10 +231,6 @@ Given("I click on the( ){ordinal}( ){fileRepoIcons} link( ){labeledExactly} {str
 
     cy.not_loading()
 
-    if(base_element === " in the File Repository table"){
-        cy.wait_for_datatables().assertWindowProperties()
-    }
-
     if(base_element === undefined){
         base_element = ''
     }
