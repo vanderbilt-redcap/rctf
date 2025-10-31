@@ -257,10 +257,14 @@ Cypress.Commands.overwrite(
                     // Use $el.href here since it will return absolute urls even when relative urls are specified
                     const href = $el.href ?? ''
                     if(
-                        href.startsWith('http')
-                        &&
-                        // Use $el.getAttribute('href') here to test the relative url
-                        !$el.getAttribute('href')?.startsWith('#')
+                        (
+                            href.startsWith('http')
+                            &&
+                            // Use $el.getAttribute('href') here to test the relative url
+                            !$el.getAttribute('href')?.startsWith('#')
+                        )
+                        ||
+                        $el.innerText.includes('Save & Exit Form')
                     ){
                          /**
                          * The page should reload now.  We make sure the link element stops existing
