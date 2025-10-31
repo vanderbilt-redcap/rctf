@@ -1140,10 +1140,6 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
         const escapedRowLabel = rowLabel.replaceAll('"', '\\"')
         const rowContainsSelector = `tr :contains("${escapedRowLabel}")`
         cy.get(rowContainsSelector).filterMatches(rowLabel).then(results => {
-            results = results.filter((i, row) => {
-                return !(row.closest('table').classList.contains('form-label-table'))
-            })
-
             if(results.length === 0){
                 throw 'Row with given label not found'
             }
@@ -1152,7 +1148,12 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
                 throw 'Multiple rows found for the given label'
             }
             
-            const row = results[0].closest('tr')
+            let row = results[0].closest('tr')
+            if(row.closest('table').classList.contains('form-label-table')){
+                // Use the next parent row rather than the nested table's row
+                row = row.closest('tr')
+            }
+
             let next
             if(row.closest('table').closest('div').id.startsWith('setupChklist-')){
                 /**
