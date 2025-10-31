@@ -303,11 +303,9 @@ Cypress.Commands.overwrite(
                         const returnValue = win.jQuery === undefined || win.jQuery.active === 0
                         if(!returnValue){
                             /**
-                             * Some ajax actions show a quick success dialog then reload the page.  Wait for a potential reload to start.
-                             * Currently set to zero because it may not be necessary, but we're keeping these lines around in case they
-                             * become necessary in the future.
+                             * Add a slight delay to give any actions resulting from the ajax call time to take action (like re-render parts of the page).
                              */
-                            waitAfterAjax = 0
+                            waitAfterAjax = 100
                         }
 
                         return cy.wrap(returnValue)
