@@ -1151,7 +1151,7 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
             let row = results[0].closest('tr')
             if(row.closest('table').classList.contains('form-label-table')){
                 // Use the next parent row rather than the nested table's row
-                row = row.closest('tr')
+                row = row.parentElement.closest('tr')
             }
 
             let next
