@@ -1138,37 +1138,35 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
     }
     else if(rowLabel){
         const escapedRowLabel = rowLabel.replaceAll('"', '\\"')
-        const rowContainsSelector = `tr:contains("${escapedRowLabel}")`
-        cy.get(rowContainsSelector).then(results => {
+        const rowContainsSelector = `tr :contains("${escapedRowLabel}")`
+        cy.get(rowContainsSelector).filterMatches(rowLabel).then(results => {
             results = results.filter((i, row) => {
                 return !(row.closest('table').classList.contains('form-label-table'))
             })
 
-            cy.wrap(results).filterMatches(rowLabel).then(results => {
-                if(results.length === 0){
-                    throw 'Row with given label not found'
-                }
-                else if(results.length > 1){
-                    console.log('rows found', results)
-                    throw 'Multiple rows found for the given label'
-                }
-                
-                const row = results[0]
-                let next
-                if(row.closest('table').closest('div').id.startsWith('setupChklist-')){
-                    /**
-                     * We're on the Project Setup page.
-                     * What look like table rows here are just divs that require special handling. 
-                     */
-                    next = cy.get(rowContainsSelector.replace('tr', 'div')).filterMatches(text)
-                }
-                else{
-                    next = cy.wrap(row);
-                }
+            if(results.length === 0){
+                throw 'Row with given label not found'
+            }
+            else if(results.length > 1){
+                console.log('elements found matching row label', results)
+                throw 'Multiple rows found for the given label'
+            }
+            
+            const row = results[0].closest('tr')
+            let next
+            if(row.closest('table').closest('div').id.startsWith('setupChklist-')){
+                /**
+                 * We're on the Project Setup page.
+                 * What look like table rows here are just divs that require special handling. 
+                 */
+                next = cy.get(rowContainsSelector.replace('tr', 'div')).filterMatches(rowLabel).closest('div')
+            }
+            else{
+                next = cy.wrap(row);
+            }
 
-                next.then(row => {
-                    performActionOnTarget(row)
-                })
+            next.then(row => {
+                performActionOnTarget(row)
             })
         })
     }
