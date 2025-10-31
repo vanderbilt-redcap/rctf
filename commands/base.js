@@ -256,20 +256,12 @@ Cypress.Commands.overwrite(
                     // Use $el.href here since it will return absolute urls even when relative urls are specified
                     const href = $el.href ?? ''
                     if(
-                        (
-                            href.startsWith('http')
-                            &&
-                            // Use $el.getAttribute('href') here to test the relative url
-                            !$el.getAttribute('href')?.startsWith('#')
-                            &&
-                            !href.includes('DataEntry/file_download.php')
-                        )
-                        ||
-                        (
-                            subject[0].closest('[aria-describedby=repeatingInstanceEnableDialog]') !== null
-                            &&
-                            subject[0].innerText.includes('Save')
-                        )
+                        href.startsWith('http')
+                        &&
+                        // Use $el.getAttribute('href') here to test the relative url
+                        !$el.getAttribute('href')?.startsWith('#')
+                        &&
+                        !href.includes('DataEntry/file_download.php')
                     ){
                          /**
                          * The page should reload now.  We make sure the link element stops existing
