@@ -264,8 +264,6 @@ Cypress.Commands.overwrite(
                             !$el.getAttribute('href')?.startsWith('#')
                         )
                         ||
-                        $el.innerText.includes('Create Project')
-                        ||
                         $el.innerText.includes('Save & Exit Form')
                     ){
                          /**
