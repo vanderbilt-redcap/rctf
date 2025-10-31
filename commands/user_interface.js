@@ -215,7 +215,12 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
                 return
             }
 
-            row = cy.get(td_selector).eq(row_number)
+            if(row_number === 0) {
+                row = cy.get(`tr ${row_cell_type} :contains("${row_label}")`).filterMatches(row_label).closest('tr')
+            }
+            else{
+                row = cy.get(td_selector).eq(row_number)
+            }
 
             if(no_col_match_body && body_table === 'table'){
                 row.then(result =>{
