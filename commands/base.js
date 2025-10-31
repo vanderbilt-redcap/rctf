@@ -309,7 +309,7 @@ Cypress.Commands.overwrite(
                             /**
                              * Add a slight delay to give any actions resulting from the ajax call time to take action (like re-render parts of the page).
                              */
-                            waitAfterAjax = 100
+                            waitAfterAjax = 250
                         }
 
                         return cy.wrap(returnValue)
