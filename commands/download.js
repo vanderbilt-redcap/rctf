@@ -63,3 +63,7 @@ Cypress.Commands.add('download_file', (filename) => {
 Cypress.Commands.add("fileExists", (filePath) => {
     return cy.task('fileExists', filePath)
 })
+
+Cypress.Commands.add("getFileMTime", (filePath) => {
+    return cy.task('getFileMTime', filePath)
+})

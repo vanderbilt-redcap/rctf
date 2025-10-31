@@ -246,6 +246,7 @@ Cypress.Commands.overwrite(
                 subject[0].nodeName === "INPUT" && subject[0].type === "button" && subject[0].onclick === ""
             ){
                 const body = Cypress.$('body')
+                const timeBeforeClick = Date.now()
 
                 //If our other detachment prevention measures failed, let's check to see if it detached and deal with it
                 cy.wrap(subject).then($el => {
@@ -260,8 +261,6 @@ Cypress.Commands.overwrite(
                         &&
                         // Use $el.getAttribute('href') here to test the relative url
                         !$el.getAttribute('href')?.startsWith('#')
-                        &&
-                        !href.includes('DataEntry/file_download.php')
                     ){
                          /**
                          * The page should reload now.  We make sure the link element stops existing
@@ -269,11 +268,25 @@ Cypress.Commands.overwrite(
                          * This prevents next steps from unexpectedly matching elements on the previous page.
                          */
                         return cy.retryUntilTimeout(() => {
-                            return cy.wrap(
-                                Cypress.dom.isDetached(body)
-                                ||
-                                Cypress.$('#stayOnPageReminderDialog:visible').length > 0
-                            )
+                            let downloadDetected = false
+                            return cy.task('fetchLatestDownload', {fileExtension: null, retry: false}).then(filePath => {
+                                if(filePath){
+                                    cy.getFileMTime(filePath).then(mtime => {
+                                        if(mtime > timeBeforeClick){
+                                            // The click triggered a download.  Stop waiting for a page reload that will never happen. 
+                                            downloadDetected = true
+                                        }
+                                    })
+                                }
+                            }).then(() => {
+                                return cy.wrap(
+                                    downloadDetected
+                                    ||
+                                    Cypress.dom.isDetached(body)
+                                    ||
+                                    Cypress.$('#stayOnPageReminderDialog:visible').length > 0
+                                )
+                            })
                         }, 'Failed to detect page load after link click')
                     }
                 })
