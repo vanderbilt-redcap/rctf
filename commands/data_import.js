@@ -15,6 +15,7 @@ Cypress.Commands.add('create_cdisc_project', (project_name, project_type, cdisc_
             return url
         })
     })
+    cy.get('#setupChklist-modify_project') // Ensure the following page finishes loading before continuing
 })
 
 Cypress.Commands.add('import_data_file', (fixture_file,pid) => {
