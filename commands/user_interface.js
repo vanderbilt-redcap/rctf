@@ -216,7 +216,7 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
             }
 
             if(row_number === 0) {
-                row = cy.get(`tr ${row_cell_type} :contains("${row_label}")`).filterMatches(row_label).closest('tr')
+                row = cy.get(`tr ${row_cell_type}:contains("${row_label}")`).filterMatches(row_label).closest('tr')
             }
             else{
                 row = cy.get(td_selector).eq(row_number)
