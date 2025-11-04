@@ -311,6 +311,8 @@ Cypress.Commands.overwrite(
                                     Cypress.dom.isDetached(disappearingElement)
                                     ||
                                     Cypress.$('#stayOnPageReminderDialog:visible').length > 0
+                                    ||
+                                    Cypress.$('[aria-describedby="esign_popup"]').length > 0 // C.2.19.0500
                                 )
                             })
                         }, 'Failed to detect page load after link click')
