@@ -870,6 +870,7 @@ Given("I {enterType} {string} into the field with the placeholder text of {strin
     const selector = 'input[placeholder="' + placeholder + '"]:visible,input[value="' + placeholder + '"]:visible'
 
     const elm = cy.get(selector)
+    elm.focus() // REDCap performs some required initialization actions on focus in some cases (e.g. removing placeholders on the User Rights page)
 
     if(enter_type === "enter"){
         elm.type(text)
