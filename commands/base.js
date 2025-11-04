@@ -265,6 +265,13 @@ Cypress.Commands.overwrite(
                         )
                         ||
                         $el.innerText.includes('Save & Exit Form')
+                        ||
+                        (
+                            // Wait for page reload after repeating instruments dialog save (e.g. B.6.4.1400)
+                            $el.innerText.includes('Save')
+                            &&
+                            $el.closest('[aria-describedby="repeatingInstanceEnableDialog"]')
+                        )
                     ){
                          /**
                          * The page should reload now.  We make sure the link element stops existing
