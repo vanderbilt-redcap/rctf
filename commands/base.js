@@ -223,25 +223,37 @@ Cypress.Commands.add('get_top_layer', (element = 'div[role=dialog]:visible,html'
     }).then(() => cy.wrap(top_layer)) //yield top_layer to any further chained commands
 })
 
-const shouldWaitForReloadAfterClick = ($el) => {
+const getElementThatShouldDisappearAfterClick = ($el) => {
+    if($el.id === 'assignDagRoleBtn'){
+        // Wait for page reload after adding user via role C.3.30.1800
+        return $el
+    }
+
     // Use $el.href here since it will return absolute urls even when relative urls are specified
     const href = $el.href ?? ''
 
-    return  (
-                href.startsWith('http')
-                &&
-                // Use $el.getAttribute('href') here to test the relative url
-                !$el.getAttribute('href')?.startsWith('#')
-            )
-            ||
-            $el.innerText.includes('Save & Exit Form')
-            ||
-            (
-                // Wait for page reload after repeating instruments dialog save (e.g. B.6.4.1400)
-                $el.innerText.includes('Save')
-                &&
-                $el.closest('[aria-describedby="repeatingInstanceEnableDialog"]')
-            )
+    if(
+        (
+            href.startsWith('http')
+            &&
+            // Use $el.getAttribute('href') here to test the relative url
+            !$el.getAttribute('href')?.startsWith('#')
+        )
+        ||
+        $el.innerText.includes('Save & Exit Form')
+        ||
+        (
+            // Wait for page reload after repeating instruments dialog save (e.g. B.6.4.1400)
+            $el.innerText.includes('Save')
+            &&
+            $el.closest('[aria-describedby="repeatingInstanceEnableDialog"]')
+        )
+    ){
+        // The whole page should be reloaded after any of these actions
+        return Cypress.$('body')
+    }
+
+    return null
 }
 
 Cypress.Commands.overwrite(
@@ -266,7 +278,7 @@ Cypress.Commands.overwrite(
                 subject[0].nodeName === "BUTTON" ||
                 subject[0].nodeName === "INPUT" && subject[0].type === "button" && subject[0].onclick === ""
             ){
-                const body = Cypress.$('body')
+                const disappearingElement = getElementThatShouldDisappearAfterClick(subject[0])
                 const timeBeforeClick = Date.now()
 
                 //If our other detachment prevention measures failed, let's check to see if it detached and deal with it
@@ -275,7 +287,7 @@ Cypress.Commands.overwrite(
                 }).click(options)
                 .then($el => {
                     $el = $el[0]
-                    if(shouldWaitForReloadAfterClick($el)){
+                    if(disappearingElement){
                          /**
                          * The page should reload now.  We make sure the link element stops existing
                          * as a way of waiting until the DOM is reloaded before continueing.
@@ -296,7 +308,7 @@ Cypress.Commands.overwrite(
                                 return cy.wrap(
                                     downloadDetected
                                     ||
-                                    Cypress.dom.isDetached(body)
+                                    Cypress.dom.isDetached(disappearingElement)
                                     ||
                                     Cypress.$('#stayOnPageReminderDialog:visible').length > 0
                                 )
