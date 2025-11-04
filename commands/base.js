@@ -223,6 +223,27 @@ Cypress.Commands.add('get_top_layer', (element = 'div[role=dialog]:visible,html'
     }).then(() => cy.wrap(top_layer)) //yield top_layer to any further chained commands
 })
 
+const shouldWaitForReloadAfterClick = ($el) => {
+    // Use $el.href here since it will return absolute urls even when relative urls are specified
+    const href = $el.href ?? ''
+
+    return  (
+                href.startsWith('http')
+                &&
+                // Use $el.getAttribute('href') here to test the relative url
+                !$el.getAttribute('href')?.startsWith('#')
+            )
+            ||
+            $el.innerText.includes('Save & Exit Form')
+            ||
+            (
+                // Wait for page reload after repeating instruments dialog save (e.g. B.6.4.1400)
+                $el.innerText.includes('Save')
+                &&
+                $el.closest('[aria-describedby="repeatingInstanceEnableDialog"]')
+            )
+}
+
 Cypress.Commands.overwrite(
     'click',
     (originalFn, subject, options) => {
@@ -254,25 +275,7 @@ Cypress.Commands.overwrite(
                 }).click(options)
                 .then($el => {
                     $el = $el[0]
-                    // Use $el.href here since it will return absolute urls even when relative urls are specified
-                    const href = $el.href ?? ''
-                    if(
-                        (
-                            href.startsWith('http')
-                            &&
-                            // Use $el.getAttribute('href') here to test the relative url
-                            !$el.getAttribute('href')?.startsWith('#')
-                        )
-                        ||
-                        $el.innerText.includes('Save & Exit Form')
-                        ||
-                        (
-                            // Wait for page reload after repeating instruments dialog save (e.g. B.6.4.1400)
-                            $el.innerText.includes('Save')
-                            &&
-                            $el.closest('[aria-describedby="repeatingInstanceEnableDialog"]')
-                        )
-                    ){
+                    if(shouldWaitForReloadAfterClick($el)){
                          /**
                          * The page should reload now.  We make sure the link element stops existing
                          * as a way of waiting until the DOM is reloaded before continueing.
