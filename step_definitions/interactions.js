@@ -50,7 +50,7 @@ function performAction(action, element, disabled_text){
 
              cy.get('button#submit-btn-dropdown').
                 first().
-                click({ no_csrf_check: true }).
+                click().
                 closest('div').
                 find('a').
                 contains(text).
@@ -1018,7 +1018,7 @@ Given('I click on the date picker widget on the field labeled {string}', (label)
  */
 Given('I click on the {string} button for the field labeled {string}', (button_label, label) => {
     cy.get(`label:contains(${JSON.stringify(label)})`).parentsUntil('tr').parent().within(() => {
-        cy.get(`button:contains(${JSON.stringify(button_label)}):visible`).click({no_csrf_check: true})
+        cy.get(`button:contains(${JSON.stringify(button_label)}):visible`).click()
     })
 })
 

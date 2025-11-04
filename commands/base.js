@@ -256,120 +256,110 @@ Cypress.Commands.overwrite(
     (originalFn, subject, options) => {
 
         window.aboutToUnload = true
+        if(options === undefined) options = {} //If no options object exists, create it
+        //console.log(subject)
 
-        //If we say no CSRF check, then skip it ...
-        if(options !== undefined && options['no_csrf_check']){
-            delete(options['no_csrf_check'])
-            return originalFn(subject, options)
+        if(subject[0].nodeName === "A" ||
+            subject[0].nodeName === "BUTTON" ||
+            subject[0].nodeName === "INPUT" && subject[0].type === "button" && subject[0].onclick === ""
+        ){
+            const disappearingElement = getElementThatShouldDisappearAfterClick(subject[0])
+            const timeBeforeClick = Date.now()
 
-            //For all other cases, check for CSRF token
-        } else {
-            if(options === undefined) options = {} //If no options object exists, create it
-            options['no_csrf_check'] = true //Add the "no_csrf_check" to get back to the original click method!
-
-            //console.log(subject)
-
-            if(subject[0].nodeName === "A" ||
-                subject[0].nodeName === "BUTTON" ||
-                subject[0].nodeName === "INPUT" && subject[0].type === "button" && subject[0].onclick === ""
-            ){
-                const disappearingElement = getElementThatShouldDisappearAfterClick(subject[0])
-                const timeBeforeClick = Date.now()
-
-                //If our other detachment prevention measures failed, let's check to see if it detached and deal with it
-                cy.wrap(subject).then($el => {
-                    return Cypress.dom.isDetached($el) ? Cypress.$($el): $el
-                }).click(options)
-                .then($el => {
-                    $el = $el[0]
-                    if(disappearingElement){
-                         /**
-                         * The page should reload now.  We make sure the link element stops existing
-                         * as a way of waiting until the DOM is reloaded before continueing.
-                         * This prevents next steps from unexpectedly matching elements on the previous page.
-                         */
-                        return cy.retryUntilTimeout(() => {
-                            let downloadDetected = false
-                            return cy.task('fetchLatestDownload', {fileExtension: null, retry: false}).then(filePath => {
-                                if(filePath){
-                                    cy.getFileMTime(filePath).then(mtime => {
-                                        if(mtime > timeBeforeClick){
-                                            // The click triggered a download.  Stop waiting for a page reload that will never happen. 
-                                            downloadDetected = true
-                                        }
-                                    })
-                                }
-                            }).then(() => {
-                                return cy.wrap(
-                                    downloadDetected
-                                    ||
-                                    Cypress.dom.isDetached(disappearingElement)
-                                    ||
-                                    Cypress.$('#stayOnPageReminderDialog:visible').length > 0
-                                    ||
-                                    Cypress.$('[aria-describedby="esign_popup"]').length > 0 // C.2.19.0500
-                                    ||
-                                    Cypress.$('[aria-describedby="certify_create"]').length > 0 // A.6.4.0100
-                                )
-                            })
-                        }, 'Failed to detect page load after link click')
-                    }
-                })
-                .window().then((win) => {
-                    let waitAfterAjax = 0
-                    cy.retryUntilTimeout(() => {
+            //If our other detachment prevention measures failed, let's check to see if it detached and deal with it
+            cy.wrap(subject).then($el => {
+                $el = Cypress.dom.isDetached($el) ? Cypress.$($el): $el
+                return originalFn($el, options)
+            })
+            .then($el => {
+                $el = $el[0]
+                if(disappearingElement){
                         /**
-                         * Wait until any pending jQuery requests complete before continuing.
-                         * This serves a similar purpose to cy.intercept(), but in a simpler & more generic way,
-                         * since cy.intercept() is asyncronous and can't cause cypress to wait to execute the next step
-                         * without an explicit cy.wait(@someAlias) call.  Using jQuery's request count is much simpler
-                         * than explicitly supportly every page load & ajax request in REDCap.
-                        */
-                        const returnValue = 
-                            win.jQuery === undefined
-                            ||
-                            win.jQuery.active === 0
-                            ||
-                            subject[0].innerText.includes('Request delete project') // Work around exception in REDCap
-                        
-                        if(!returnValue){
-                            /**
-                             * Add a slight delay to give any actions resulting from the ajax call time to take action (like re-render parts of the page).
-                             */
-                            waitAfterAjax = 250
-                        }
-
-                        return cy.wrap(returnValue)
-                    }, 'The jQuery request count never fell to zero!')
-                    .then(() => {
-                        cy.wait(waitAfterAjax)
-                    })
-
-                    if(
-                        win.location.href.includes('ProjectSetup/index')
-                        &&
-                        (
-                            subject[0].innerText.includes('Enable')
-                            ||
-                            subject[0].innerText.includes('Disable')
-                        )
-                    ){
-                        /**
-                         * This accounts for a 200ms setTimeout() in saveProjectSetting() that delays the page load,
-                         * and apparently takes longer than 500ms to fire a percentage of the time.
-                         * If we don't wait, within() calls on the next step will match elements on the soon to be unloaded page.
-                         */
-                        cy.log('Waiting for potential page load after project setting changes')
-                        cy.wait(1000)
-                    }
-
-                    /**
-                     * Used to check for jQuery.active === 0 here.  It mostly worked, but there were exceptions.  The value is stuck on 1 in B.6.4.1200.
+                     * The page should reload now.  We make sure the link element stops existing
+                     * as a way of waiting until the DOM is reloaded before continueing.
+                     * This prevents next steps from unexpectedly matching elements on the previous page.
                      */
+                    return cy.retryUntilTimeout(() => {
+                        let downloadDetected = false
+                        return cy.task('fetchLatestDownload', {fileExtension: null, retry: false}).then(filePath => {
+                            if(filePath){
+                                cy.getFileMTime(filePath).then(mtime => {
+                                    if(mtime > timeBeforeClick){
+                                        // The click triggered a download.  Stop waiting for a page reload that will never happen. 
+                                        downloadDetected = true
+                                    }
+                                })
+                            }
+                        }).then(() => {
+                            return cy.wrap(
+                                downloadDetected
+                                ||
+                                Cypress.dom.isDetached(disappearingElement)
+                                ||
+                                Cypress.$('#stayOnPageReminderDialog:visible').length > 0
+                                ||
+                                Cypress.$('[aria-describedby="esign_popup"]').length > 0 // C.2.19.0500
+                                ||
+                                Cypress.$('[aria-describedby="certify_create"]').length > 0 // A.6.4.0100
+                            )
+                        })
+                    }, 'Failed to detect page load after link click')
+                }
+            })
+            .window().then((win) => {
+                let waitAfterAjax = 0
+                cy.retryUntilTimeout(() => {
+                    /**
+                     * Wait until any pending jQuery requests complete before continuing.
+                     * This serves a similar purpose to cy.intercept(), but in a simpler & more generic way,
+                     * since cy.intercept() is asyncronous and can't cause cypress to wait to execute the next step
+                     * without an explicit cy.wait(@someAlias) call.  Using jQuery's request count is much simpler
+                     * than explicitly supportly every page load & ajax request in REDCap.
+                    */
+                    const returnValue = 
+                        win.jQuery === undefined
+                        ||
+                        win.jQuery.active === 0
+                        ||
+                        subject[0].innerText.includes('Request delete project') // Work around exception in REDCap
+                    
+                    if(!returnValue){
+                        /**
+                         * Add a slight delay to give any actions resulting from the ajax call time to take action (like re-render parts of the page).
+                         */
+                        waitAfterAjax = 250
+                    }
+
+                    return cy.wrap(returnValue)
+                }, 'The jQuery request count never fell to zero!')
+                .then(() => {
+                    cy.wait(waitAfterAjax)
                 })
-            } else {
-                return originalFn(subject, options)
-            }
+
+                if(
+                    win.location.href.includes('ProjectSetup/index')
+                    &&
+                    (
+                        subject[0].innerText.includes('Enable')
+                        ||
+                        subject[0].innerText.includes('Disable')
+                    )
+                ){
+                    /**
+                     * This accounts for a 200ms setTimeout() in saveProjectSetting() that delays the page load,
+                     * and apparently takes longer than 500ms to fire a percentage of the time.
+                     * If we don't wait, within() calls on the next step will match elements on the soon to be unloaded page.
+                     */
+                    cy.log('Waiting for potential page load after project setting changes')
+                    cy.wait(1000)
+                }
+
+                /**
+                 * Used to check for jQuery.active === 0 here.  It mostly worked, but there were exceptions.  The value is stuck on 1 in B.6.4.1200.
+                 */
+            })
+        } else {
+            return originalFn(subject, options)
         }
     }
 )
