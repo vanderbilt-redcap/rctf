@@ -241,6 +241,8 @@ const getElementThatShouldDisappearAfterClick = ($el) => {
         )
         ||
         $el.innerText.includes('Save & Exit Form')
+        ||
+        $el.innerText.includes('Create Project')
     ){
         // The whole page should be reloaded after any of these actions
         return Cypress.$('body')
@@ -306,6 +308,8 @@ Cypress.Commands.overwrite(
                                     Cypress.$('#stayOnPageReminderDialog:visible').length > 0
                                     ||
                                     Cypress.$('[aria-describedby="esign_popup"]').length > 0 // C.2.19.0500
+                                    ||
+                                    Cypress.$('[aria-describedby="certify_create"]').length > 0 // A.6.4.0100
                                 )
                             })
                         }, 'Failed to detect page load after link click')
