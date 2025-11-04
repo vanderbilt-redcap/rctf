@@ -43,7 +43,7 @@ function performAction(action, element, disabled_text){
          //If the button shows up on the main section, we can click it like a typical element
          if(btn.length){
 
-             cy.get('button').contains(text).click({ no_csrf_check: true })
+             cy.get('button').contains(text).click()
 
          //If the button does NOT show up on main section, let's find it in the dropdown section
          } else {
