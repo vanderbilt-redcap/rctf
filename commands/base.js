@@ -311,7 +311,13 @@ Cypress.Commands.overwrite(
                          * without an explicit cy.wait(@someAlias) call.  Using jQuery's request count is much simpler
                          * than explicitly supportly every page load & ajax request in REDCap.
                         */
-                        const returnValue = win.jQuery === undefined || win.jQuery.active === 0
+                        const returnValue = 
+                            win.jQuery === undefined
+                            ||
+                            win.jQuery.active === 0
+                            ||
+                            subject[0].innerText.includes('Request delete project') // Work around exception in REDCap
+                        
                         if(!returnValue){
                             /**
                              * Add a slight delay to give any actions resulting from the ajax call time to take action (like re-render parts of the page).
