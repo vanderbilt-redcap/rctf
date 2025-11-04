@@ -1141,15 +1141,28 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
         const escapedRowLabel = rowLabel.replaceAll('"', '\\"')
         const rowContainsSelector = `tr :contains("${escapedRowLabel}")`
         cy.get(rowContainsSelector).filterMatches(rowLabel).then(results => {
-            if(results.length === 0){
+            const rows = []
+            let lastRow
+            results.each((i, element) => {
+                const row = element.closest('tr')
+
+                // If multiple elements on a single row match, make sure we only consider that row once (e.g. C.3.30.1800)
+                if(row !== lastRow){
+                    rows.push(row)
+                }
+
+                lastRow = row
+            })
+
+            if(rows.length === 0){
                 throw 'Row with given label not found'
             }
-            else if(results.length > 1){
-                console.log('elements found matching row label', results)
+            else if(rows.length > 1){
+                console.log('elements found matching row label', rows)
                 throw 'Multiple rows found for the given label'
             }
             
-            let row = results[0].closest('tr')
+            let row = rows[0]
             if(row.closest('table').classList.contains('form-label-table')){
                 // Use the next parent row rather than the nested table's row
                 row = row.parentElement.closest('tr')
