@@ -1140,7 +1140,7 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
 
             return null
         })
-    }, 'The specified element could not be found')
+    }, `The ${type} labeled "${text}" could not be found`)
     .then((match) => {
         console.log('getLabeledElement() return value', match)
 
