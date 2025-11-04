@@ -43,7 +43,7 @@ function performAction(action, element, disabled_text){
          //If the button shows up on the main section, we can click it like a typical element
          if(btn.length){
 
-             cy.get('button').contains(text).click()
+             cy.wrap(btn[0]).click()
 
          //If the button does NOT show up on main section, let's find it in the dropdown section
          } else {
