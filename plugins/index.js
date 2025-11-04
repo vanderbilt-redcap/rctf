@@ -292,6 +292,7 @@ module.exports = (cypressOn, config) => {
                 files = files
                     .filter(file => {
                         return path.extname(file) !== '.crdownload'
+                        && file !== 'downloads.html' // The is a temp file Chrome writes sometimes then quickly removes
                     })
                     .map(file => ({ file, mtime: fs.statSync(path.join(downloadsDir, file)).mtime }))
                     .sort((a, b) => b.mtime - a.mtime)
