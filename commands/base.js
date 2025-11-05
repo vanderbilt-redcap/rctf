@@ -358,6 +358,9 @@ Cypress.Commands.overwrite(
                  * Used to check for jQuery.active === 0 here.  It mostly worked, but there were exceptions.  The value is stuck on 1 in B.6.4.1200.
                  */
             })
+            .then(() => {
+                return subject
+            })
         } else {
             return originalFn(subject, options)
         }
