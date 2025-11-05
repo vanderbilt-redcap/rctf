@@ -869,14 +869,13 @@ Given("I wait for (another ){int} {timeType}", (time, unit) => {
 Given("I {enterType} {string} into the field with the placeholder text of {string}", (enter_type, text, placeholder) => {
     const selector = 'input[placeholder="' + placeholder + '"]:visible,input[value="' + placeholder + '"]:visible'
 
-    const elm = cy.get(selector)
-    elm.focus() // REDCap performs some required initialization actions on focus in some cases (e.g. removing placeholders on the User Rights page)
-
-    if(enter_type === "enter"){
-        elm.type(text)
-    } else if (enter_type === "clear field and enter") {
-        elm.clear().type(text)
-    }
+    /**
+     * We used to skip the clear() call and append text based on the enterType param,
+     * but that caused hard to predict intermittent failures in some case.
+     * Always clearing creates more consistent behavior, and is generally what the
+     * user interprets the step to do anyway.
+     */
+    cy.get(selector).clear().type(text)
 })
 
 /**
