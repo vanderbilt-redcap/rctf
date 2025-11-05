@@ -155,7 +155,7 @@ Given("I should see {string} in the data entry form field {string}", function (f
  * @param {string} baseElement
  * @description Verifies that a visible element of the specified type containing `text` exists
  */
-Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButtons}( ){labeledElement}( ){labeledExactly}( ){string}{baseElement}{iframeVisibility}( )( that){disabled}", (article_type, prefix, online_buttons, el, labeled_exactly, text, base_element, iframe, disabled_text) => {
+Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButtons}( ){labeledElement}( ){labeledExactly}( ){string}{baseElement}( )( that){disabled}", (article_type, prefix, online_buttons, el, labeled_exactly, text, base_element, disabled_text) => {
     let opt_str = prefix
     let base
     let subsel = ''
@@ -259,15 +259,13 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
 
         let element_selector = window.elementChoices[base_element]
 
-        base = (iframe === " in the iframe" || window.elementChoices[base_element] === 'iframe') ?
-            cy.frameLoaded().then(() => { cy.iframe() }) :
-            cy.get(`${window.elementChoices[base_element]}:has(${sel})`)
+        base = cy.get_top_layer()
 
         base.first().within(($elm) => {
             return expect($elm).length.to.be.greaterThan(0)
         }).then((next_section) => {
 
-            if (iframe === " in the iframe" || window.elementChoices[base_element] === 'iframe' || base_element === ' in the dialog box') {
+            if (base_element === ' in the dialog box') {
                 base.within(($elm) => {
                     cy.wrap($elm).find(sel).should('contain', text)
 
@@ -307,20 +305,18 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
                     text = online_buttons
                 }
 
-                cy.top_layer(sel, element_selector).then(($elm) => {
-                    cy.wrap($elm).find(sel).then(($element) => {
-                        if(el === 'button' && !$element.is('button')) {
-                            cy.wrap($element).invoke('attr', 'value').should('include', text)
-                        } else if (window.icons.hasOwnProperty(online_buttons)) {
-                            cy.wrap($element).should('have.descendants', window.icons[online_buttons])
-                        } else {
-                            cy.wrap($element).assertTextVisibility(text, true)
-                        }
-                    })
+                base.find(sel).then(($element) => {
+                    if(el === 'button' && !$element.is('button')) {
+                        cy.wrap($element).invoke('attr', 'value').should('include', text)
+                    } else if (window.icons.hasOwnProperty(online_buttons)) {
+                        cy.wrap($element).should('have.descendants', window.icons[online_buttons])
+                    } else {
+                        cy.wrap($element).assertTextVisibility(text, true)
+                    }
 
                     if (disabled_text === "is disabled") {
                         // We used to use should('be.disabled') here, but it didn't work on C.3.30.0900
-                        cy.wrap($elm).find(sel).should('have.attr', 'disabled')
+                        cy.wrap($element).should('have.attr', 'disabled')
                     }
                 })
             }

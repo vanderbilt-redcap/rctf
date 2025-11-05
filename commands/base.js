@@ -203,7 +203,7 @@ Cypress.Commands.add('button_or_input', (text_label) => {
 })
 
 //yields the visible div with the highest z-index, or the <html> if none are found
-Cypress.Commands.add('get_top_layer', (element = 'div[role=dialog]:visible,html', retryUntil) => {
+Cypress.Commands.add('get_top_layer', (element = 'html,div[role=dialog]:visible,iframe:visible:not(.tox-edit-area__iframe)', retryUntil) => {
     let top_layer
     cy.get(element).should($els => {
         //if more than body found, find element with highest z-index
@@ -218,9 +218,27 @@ Cypress.Commands.add('get_top_layer', (element = 'div[role=dialog]:visible,html'
                 //return zp - zc
             })
         }
-        top_layer = $els.last()
-        retryUntil(top_layer) //run assertions, so get can retry on failure
-    }).then(() => cy.wrap(top_layer)) //yield top_layer to any further chained commands
+        top_layer = $els.last() // Get the last since they are sorted in order of appearance in the DOM
+        if(retryUntil){
+            retryUntil(top_layer) //run assertions, so get can retry on failure
+        }
+    }).then(() => {
+        let next = cy.wrap(top_layer) //yield top_layer to any further chained commands
+
+        if(top_layer[0].tagName === 'IFRAME'){
+            next = next.iframe().then(iframeBody => {
+                // Wait for the iframe-overlay to exist to ensure the content is loaded before continuing
+                cy.wrap(iframeBody).find('.iframe-overlay')
+
+                // Without this wait Mark saw inexplicable intermittent failures on his local on the following step: I should see "Permanently delete this project?"
+                cy.wait(100)
+
+                return cy.wrap(iframeBody)
+            })
+        }
+
+        return next
+    }) 
 })
 
 const getElementThatShouldDisappearAfterClick = ($el) => {
@@ -441,7 +459,8 @@ Cypress.Commands.add("closestIncludingChildren", {prevSubject: true}, function (
 })
 
 Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subject, text, shouldBeVisible) {
-    
+    cy.log('assertTextVisibility', subject, text, shouldBeVisible)
+
     text = text
         .replace(/ +/g, ' ') // Collapse adjacent spaces to match innerText()'s behavior.
         .replace(/\\n/g, '\n') // Remove autoescaped new lines so that they will match properly
