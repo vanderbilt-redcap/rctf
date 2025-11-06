@@ -227,10 +227,7 @@ Cypress.Commands.add('get_top_layer', (element = 'html,div[role=dialog]:visible,
 
         if(top_layer[0].tagName === 'IFRAME'){
             next = next.iframe().then(iframeBody => {
-                // Wait for the iframe-overlay to exist to ensure the content is loaded before continuing
-                cy.wrap(iframeBody).find('.iframe-overlay')
-
-                // Without this wait Mark saw inexplicable intermittent failures on his local on the following step: I should see "Permanently delete this project?"
+                // Without this wait Mark saw inexplicable intermittent failures on his local even after waiting for ".iframe-overlay" to exist on the following step: I should see "Permanently delete this project?"
                 cy.wait(100)
 
                 return cy.wrap(iframeBody)
