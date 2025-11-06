@@ -467,57 +467,68 @@ Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subj
     }
 
     cy.retryUntilTimeout((lastRun) => {
-        let found = false
-        subject.each((index, item) => {
-            if (!item.checkVisibility()) {
-                cy.log('assertTextVisibility() - Stale subject(s) detected.  The page must have partially or fully reloaded.  Attempting to get new reference(s) to the same subject(s)...')
-                let selector = subject.selector
-                if(!selector){
-                    selector = 'body'
-                }
-                
-                subject = Cypress.$(selector)
-                subject.selector = selector
-                item = subject[index]
+        const action = (subject) => {
+            let found = false
+            subject.each((index, item) => {
+                if (!item.checkVisibility()) {
+                    cy.log('assertTextVisibility() - Stale subject(s) detected.  The page must have partially or fully reloaded.  Attempting to get new reference(s) to the same subject(s)...')
+                    let selector = subject.selector
+                    if(!selector){
+                        selector = 'body'
+                    }
+                    
+                    subject = Cypress.$(selector)
+                    subject.selector = selector
+                    item = subject[index]
 
-                if(item === undefined){
-                    // The number of items matched must be smaller after the page load.  Return and check the new list on the next retry.
-                    return
+                    if(item === undefined){
+                        // The number of items matched must be smaller after the page load.  Return and check the new list on the next retry.
+                        return
+                    }
                 }
+
+                /**
+                 * We use innerText.indexOf() rather than the ':contains()' selector
+                 * to avoid matching text within hidden tags and <script> tags,
+                 * since they are not actually visible.
+                 * 
+                 * This previously caused steps looking for text like "SUCCEED"
+                 * to always work even when they should fail because that string
+                 * exists inside a <script> tag on most pages. 
+                 */
+                if(item.innerText.includes(text)){
+                    found = true
+                }
+            })
+            
+            let error
+            if(found && !shouldBeVisible){
+                error = 'Unexpected text was found: ' + text
+            }
+            else if(!found && shouldBeVisible){
+                error = 'Expected text was not found: ' + text
             }
 
-            /**
-             * We use innerText.indexOf() rather than the ':contains()' selector
-             * to avoid matching text within hidden tags and <script> tags,
-             * since they are not actually visible.
-             * 
-             * This previously caused steps looking for text like "SUCCEED"
-             * to always work even when they should fail because that string
-             * exists inside a <script> tag on most pages. 
-             */
-            if(item.innerText.includes(text)){
-                found = true
-            }
-        })
-        
-        let error
-        if(found && !shouldBeVisible){
-            error = 'Unexpected text was found: ' + text
-        }
-        else if(!found && shouldBeVisible){
-            error = 'Expected text was not found: ' + text
-        }
-
-        if(error){
-            if(lastRun){
-                throw error
+            if(error){
+                if(lastRun){
+                    throw error
+                }
+                else{
+                    return cy.wrap(false) // false will trigger a retry
+                }
             }
             else{
-                return cy.wrap(false) // false will trigger a retry
+                return cy.wrap(true)
             }
         }
+
+        if(subject){
+            return action(subject)
+        }
         else{
-            return cy.wrap(true)
+            return cy.get_top_layer().then(topLayer => {
+                return action(topLayer)
+            })
         }
     })
 })

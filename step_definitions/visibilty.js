@@ -321,7 +321,8 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
                     } else if (window.icons.hasOwnProperty(online_buttons)) {
                         cy.wrap($element).should('have.descendants', window.icons[online_buttons])
                     } else {
-                        cy.wrap($element).assertTextVisibility(text, true)
+                        // Wrap null so that assertTextVisibility() calls get_top_layer() repeatedly if necessary
+                        cy.wrap(null).assertTextVisibility(text, true)
                     }
 
                     if (disabled_text === "is disabled") {
