@@ -469,7 +469,7 @@ Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subj
     cy.retryUntilTimeout((lastRun) => {
         let found = false
         subject.each((index, item) => {
-            if (!Cypress.dom.isAttached(item)) {
+            if (!item.checkVisibility()) {
                 cy.log('assertTextVisibility() - Stale subject(s) detected.  The page must have partially or fully reloaded.  Attempting to get new reference(s) to the same subject(s)...')
                 let selector = subject.selector
                 if(!selector){

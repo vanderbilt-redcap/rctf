@@ -305,7 +305,17 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
                     text = online_buttons
                 }
 
-                base.find(sel).then(($element) => {
+                cy.waitUntil(() => {
+                    // It's important to use a get_top_layer().within() inside a waitUntil() in case a previous dialog is displayed and we want to wait for it to disappear (e.g. C.3.31.0300)
+                    return cy.get_top_layer().within(() => {
+                        cy.wrap(false)
+
+                        const element = Cypress.$(sel)[0]
+                        if(element){
+                            cy.wrap(element)
+                        }
+                    })
+                }).then(($element) => {
                     if(el === 'button' && !$element.is('button')) {
                         cy.wrap($element).invoke('attr', 'value').should('include', text)
                     } else if (window.icons.hasOwnProperty(online_buttons)) {
