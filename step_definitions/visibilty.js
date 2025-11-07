@@ -305,10 +305,6 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
                 cy.waitUntil(() => {
                     // It's important to use get_top_layer() inside waitUntil() in case a previous dialog is displayed and we want to wait for it to disappear (e.g. C.3.31.0300)
                     return cy.get_top_layer().then(topLayer => {
-                        if(Cypress.dom.isDetached(topLayer)){
-                            return 
-                        }
-
                         const result = topLayer.find(sel)
                         if(result.length > 0){
                             cy.wrap(result)

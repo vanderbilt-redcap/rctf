@@ -219,6 +219,7 @@ Cypress.Commands.add('get_top_layer', (element = 'html,div[role=dialog]:visible,
             })
         }
         top_layer = $els.last() // Get the last since they are sorted in order of appearance in the DOM
+        expect(Cypress.dom.isDetached(top_layer)).to.be.false
         if(retryUntil){
             retryUntil(top_layer) //run assertions, so get can retry on failure
         }
