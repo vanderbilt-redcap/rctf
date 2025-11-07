@@ -198,6 +198,16 @@ Given("I should see a downloaded file named {string}", (filenamePlaceholder) => 
 
 /**
  * @module Visibility
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @param {string} text
+ * @description Verifies that the specified fields exists in the Online Designer
+ */
+Given("I should see a field named {string}", (text) => {
+    cy.get(`table[role=presentation]:visible tr:visible td:visible:contains(${text})`).contains(text)
+})
+
+/**
+ * @module Visibility
  * @author Corey DeBacker <debacker@wisc.edu>
  * @param {string} labeledElement
  * @param {string} label - the label of the link that should be seen on screen (matches partially)
@@ -253,8 +263,6 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){labeledElement}( l
                     }
                 })()
             })
-        } else if (prefix === 'a field named'){
-            cy.get(`table[role=presentation]:visible tr:visible td:visible:contains(${text})`).contains(text)
         }
     } else {
 
