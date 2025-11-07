@@ -186,6 +186,18 @@ Given("I should see the exact time in the field labeled {string}", (text) => {
 
 /**
  * @module Visibility
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @param {string} filenamePlaceholder
+ * @description Verifies that a file with the specified filename placeholder was recently downloaded.  Date format strings in the filename placeholder will match any date/time.
+ */
+Given("I should see a downloaded file named {string}", (filenamePlaceholder) => {
+    cy.fetch_timestamped_file(filenamePlaceholder).then((filename) => {
+        expect(filename).to.not.be.empty
+    })
+})
+
+/**
+ * @module Visibility
  * @author Corey DeBacker <debacker@wisc.edu>
  * @param {string} labeledElement
  * @param {string} label - the label of the link that should be seen on screen (matches partially)
@@ -243,10 +255,6 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){labeledElement}( l
             })
         } else if (prefix === 'a field named'){
             cy.get(`table[role=presentation]:visible tr:visible td:visible:contains(${text})`).contains(text)
-        } else if(prefix === "a downloaded file named") {
-            cy.fetch_timestamped_file(text).then((filename) => {
-                expect(filename).to.exist
-            })
         }
     } else {
 
