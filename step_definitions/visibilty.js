@@ -155,17 +155,12 @@ Given("I should see {string} in the data entry form field {string}", function (f
  * @param {string} baseElement
  * @description Verifies that a visible element of the specified type containing `text` exists
  */
-Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButtons}( ){labeledElement}( labeled)( ){string}( )( that){disabled}", (article_type, prefix, online_buttons, el, text, disabled_text) => {
+Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){labeledElement}( labeled)( ){string}( )( that){disabled}", (article_type, prefix, el, text, disabled_text) => {
     let opt_str = prefix
     let base
     let subsel = ''
 
     if(el !== ''){ subsel = {'link': 'a', 'button': 'button', 'field': 'tr', 'section break': 'td.header', 'checkbox': 'input[type=checkbox]', 'dropdown': 'select', 'icon': 'i'}[el] }
-
-    //It's possible for the survey icon to appear even if the instrument itself is not a link
-    if(el === 'link' && online_buttons !== undefined && online_buttons.includes('survey icon')){
-        subsel = ''
-    }
 
     let disabled_status = disabled_text !== undefined && disabled_text === "is disabled" ? ':disabled': ':not([disabled])'
 
@@ -250,13 +245,6 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
 
     } else {
 
-        if (window.parameterTypes['onlineDesignerButtons'].includes(online_buttons)) {
-            if (!window.icons.hasOwnProperty(online_buttons)) {
-                online_buttons = online_buttons.replaceAll('"', '')
-                sel = `${subsel}:contains("${online_buttons}"):visible` + (el === 'button' ? `,input[value="${online_buttons}"]:visible${disabled_status}` : '')
-            }
-        }
-
         base = cy.get_top_layer()
 
         base.then((next_section) => {
@@ -269,8 +257,6 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
             }).then(($element) => {
                 if(el === 'button' && !$element.is('button')) {
                     cy.wrap($element).invoke('attr', 'value').should('include', text)
-                } else if (window.icons.hasOwnProperty(online_buttons)) {
-                    cy.wrap($element).should('have.descendants', window.icons[online_buttons])
                 } else {
                     // Wrap null so that assertTextVisibility() calls get_top_layer() repeatedly if necessary
                     cy.wrap(null).assertTextVisibility(text, true)
