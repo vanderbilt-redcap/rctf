@@ -231,9 +231,7 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){labeledElement}( l
         should('be.visible').
         should('have.descendants', window.icons[text])
     } else if(window.parameterTypes['visibilityPrefix'].includes(prefix)){
-        if (prefix === 'Data Collection Instrument named'){
-            cy.instrument_visibility('', '', text)
-        } else if (prefix === 'an alert box with the following text:'){
+        if (prefix === 'an alert box with the following text:'){
             return new Cypress.Promise((resolve) => {
                 (function waitForAlert(i = 0) {
                     const hasAlertBeenDisplayed = (text) => {
