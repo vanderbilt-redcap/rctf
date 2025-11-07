@@ -287,19 +287,6 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
                 } else if (labeled_exactly === "in the row labeled") {
                     sel = `td:visible ${sel}`
                     element_selector = `${element_selector}:visible table:visible tr:contains(${JSON.stringify(text)}):visible`
-                } else if (labeled_exactly === "for the instrument row labeled") {
-                    if (window.icons.hasOwnProperty(online_buttons)) {
-                        sel = `td:visible :has(${window.icons[online_buttons]})`
-                    } else {
-                        sel = `td:visible ${sel}`
-                    }
-
-                    //We are converting to lower case because this will generally match on the instrument name (and prevent duplicate matches)
-                    let selector = `tr:has(td:contains(${JSON.stringify(text)}):first:visible)`
-                    element_selector = `${element_selector}:visible ${window.tableMappings['data collection instruments']}:visible ${selector}`
-
-                    //We do this here because the value we're looking for in the assertion is the button label NOT the row label
-                    text = online_buttons
                 }
 
                 cy.get_top_layer().then(topLayer => {
