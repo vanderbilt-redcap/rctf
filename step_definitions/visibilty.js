@@ -160,6 +160,32 @@ Given("I should see today's date in the field labeled {string}", (text) => {
 
 /**
  * @module Visibility
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @param {string} text
+ * @description Verifies that exact time is contained in the specified field
+ */
+Given("I should see the exact time in the field labeled {string}", (text) => {
+    const today = new Date();
+    const hours = String(today.getHours()).padStart(2, '0')
+    const minutes = String(today.getMinutes()).padStart(2, '0')
+    const seconds = String(today.getSeconds()).padStart(2, '0')
+
+    const expectedValue = `${hours}:${minutes}:${seconds}`
+
+    cy.getLabeledElement('input', text).invoke('val').then((actualValue) => {
+        let [h, m, s] = actualValue.split(':').map(Number)
+        const actualTimeInSeconds = (h * 3600) + (m * 60) + s
+
+        let [h_e, m_e, s_e] = expectedValue.split(':').map(Number)
+        const expectedTimeInTimeInSeconds = (h_e * 3600) + (m_e * 60) + s_e
+
+        //5 seconds tolerance
+        expect(actualTimeInSeconds).to.be.closeTo(expectedTimeInTimeInSeconds, 5)
+    })
+})
+
+/**
+ * @module Visibility
  * @author Corey DeBacker <debacker@wisc.edu>
  * @param {string} labeledElement
  * @param {string} label - the label of the link that should be seen on screen (matches partially)
@@ -224,36 +250,7 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){labeledElement}( l
             cy.fetch_timestamped_file(text).then((filename) => {
                 expect(filename).to.exist
             })
-        } else if(prefix === "the exact time in the"){
-            const today = new Date();
-            const year = today.getFullYear()
-            const month = String(today.getMonth() + 1).padStart(2, '0') // Months are zero-based
-            const day = String(today.getDate()).padStart(2, '0')
-            const hours = String(today.getHours()).padStart(2, '0')
-            const minutes = String(today.getMinutes()).padStart(2, '0')
-            const seconds = String(today.getSeconds()).padStart(2, '0')
-
-            const expectedValue = (prefix === "the exact time in the") ?
-                `${hours}:${minutes}:${seconds}` :
-                `${year}-${month}-${day}`
-
-            cy.get(sel).find('input').invoke('val')
-                .then((actualValue) => {
-                    if (prefix === "the exact time in the") {
-                        let [h, m, s] = actualValue.split(':').map(Number)
-                        const actualTimeInSeconds = (h * 3600) + (m * 60) + s
-
-                        let [h_e, m_e, s_e] = expectedValue.split(':').map(Number)
-                        const expectedTimeInTimeInSeconds = (h_e * 3600) + (m_e * 60) + s_e
-
-                        //5 seconds tolerance
-                        expect(actualTimeInSeconds).to.be.closeTo(expectedTimeInTimeInSeconds, 5)
-                    } else {
-                        expect(actualValue).to.eq(expectedValue)
-                    }
-                })
         }
-
     } else {
 
         base = cy.get_top_layer()
