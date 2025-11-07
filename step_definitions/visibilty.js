@@ -209,10 +209,7 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){labeledElement}( l
         should('be.visible').
         should('have.descendants', window.icons[text])
     } else if(window.parameterTypes['visibilityPrefix'].includes(prefix)){
-
-        if (prefix === "Project status:" && window.parameterTypes['projectStatus'].includes(text)) {
-            cy.get('div.menubox:contains("Project status:")').should('contain', text)
-        } else if (prefix === 'Data Collection Instrument named'){
+        if (prefix === 'Data Collection Instrument named'){
             cy.instrument_visibility('', '', text)
         } else if (prefix === 'an alert box with the following text:'){
             return new Cypress.Promise((resolve) => {
@@ -383,15 +380,6 @@ Given('I should see {string} in (the ){tableTypes} table', (text, table_type = '
     let selector = window.tableMappings[table_type]
     cy.get(`${selector}:visible`).contains('td', text, { matchCase: false })
 })
-
-/**
- * @module Visibility
- * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I (should) see Project status: "{projectStatus}"
- * @param {string} projectStatus
- * @description Identify project status
- */
-/* This method is defined inside "I should see (a)(the) {labeledElement} labeled {string} {baseElement}" */
 
 /**
  * @module Visibility
