@@ -110,5 +110,5 @@ window.parameterTypes = {
     ],
     toDownloadFile: [' to download a file', ' near "with records in rows" to download a file', ' near "with records in columns" to download a file'],
     userRightAction: ['add', 'remove'],
-    visibilityPrefix: ['an alert box with the following text:', 'a field named', 'a downloaded file named', 'Project status:', 'the exact time in the', "today's date in the"]
+    visibilityPrefix: ['an alert box with the following text:', 'a field named', 'a downloaded file named', 'Project status:', 'the exact time in the']
 }

@@ -149,6 +149,17 @@ Given("I should see {string} in the data entry form field {string}", function (f
 
 /**
  * @module Visibility
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @param {string} text
+ * @description Verifies that today's date is contained in the specified field
+ */
+Given("I should see today's date in the field labeled {string}", (text) => {
+    const expectedDate = (new Date).toISOString().split('T')[0]
+    cy.getLabeledElement('input', text).should('have.value', expectedDate);
+})
+
+/**
+ * @module Visibility
  * @author Corey DeBacker <debacker@wisc.edu>
  * @param {string} labeledElement
  * @param {string} label - the label of the link that should be seen on screen (matches partially)
@@ -213,7 +224,7 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){labeledElement}( l
             cy.fetch_timestamped_file(text).then((filename) => {
                 expect(filename).to.exist
             })
-        } else if(prefix === "the exact time in the" || prefix === "today's date in the"){
+        } else if(prefix === "the exact time in the"){
             const today = new Date();
             const year = today.getFullYear()
             const month = String(today.getMonth() + 1).padStart(2, '0') // Months are zero-based
