@@ -195,11 +195,6 @@ window.icons = {
     'x icon'                : `img[src*=cross]:visible`
 }
 
-//IMPORTANT: Programmatically add the validationTypes as element choices
-for (const validation_desc in window.validationTypes) {
-    window.elementChoices[` in the validation row labeled "${validation_desc}"`] = `tr[id=${window.validationTypes[validation_desc]}]`
-}
-
 window.ordinalChoices = {
     first: 0,
     second: 1,
