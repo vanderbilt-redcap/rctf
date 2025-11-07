@@ -272,19 +272,7 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
                 })
             } else {
 
-                if (labeled_exactly === "for the variable") {
-                    if (!window.parameterTypes['onlineDesignerButtons'].includes(online_buttons)) {
-                        //Trim off the quotes
-                        opt_str = opt_str.slice(1, -1)
-
-                        sel = `:contains("${opt_str}")`
-
-                        //We are converting to lower case because this will generally match on the instrument name (and prevent duplicate matches)
-                        let selector = `tr:contains(${JSON.stringify(`Variable: ${text}`)}):visible`
-                        element_selector = `${element_selector}:visible table:visible ${selector}`
-                    }
-
-                } else if (labeled_exactly === "in the row labeled") {
+                if (labeled_exactly === "in the row labeled") {
                     sel = `td:visible ${sel}`
                     element_selector = `${element_selector}:visible table:visible tr:contains(${JSON.stringify(text)}):visible`
                 }
