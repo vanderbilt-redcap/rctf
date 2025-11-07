@@ -155,7 +155,7 @@ Given("I should see {string} in the data entry form field {string}", function (f
  * @param {string} baseElement
  * @description Verifies that a visible element of the specified type containing `text` exists
  */
-Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButtons}( ){labeledElement}( ){labeledExactly}( ){string}( )( that){disabled}", (article_type, prefix, online_buttons, el, labeled_exactly, text, disabled_text) => {
+Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButtons}( ){labeledElement}( labeled)( ){string}( )( that){disabled}", (article_type, prefix, online_buttons, el, text, disabled_text) => {
     let opt_str = prefix
     let base
     let subsel = ''
@@ -181,7 +181,7 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
         if (prefix === "Project status:" && window.parameterTypes['projectStatus'].includes(text)) {
             cy.get('div.menubox:contains("Project status:")').should('contain', text)
         } else if (prefix === 'Data Collection Instrument named'){
-            cy.instrument_visibility('', labeled_exactly, text)
+            cy.instrument_visibility('', '', text)
         } else if (prefix === 'an alert box with the following text:'){
             return new Cypress.Promise((resolve) => {
                 (function waitForAlert(i = 0) {
