@@ -271,12 +271,6 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
                     }
                 })
             } else {
-
-                if (labeled_exactly === "in the row labeled") {
-                    sel = `td:visible ${sel}`
-                    element_selector = `${element_selector}:visible table:visible tr:contains(${JSON.stringify(text)}):visible`
-                }
-
                 cy.get_top_layer().then(topLayer => {
                     const result = topLayer.find(sel)
                     if(result.length > 0){
