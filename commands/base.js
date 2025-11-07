@@ -239,8 +239,10 @@ Cypress.Commands.add('get_top_layer', (element = 'html,div[role=dialog]:visible,
 })
 
 const getElementThatShouldDisappearAfterClick = ($el) => {
-    if($el.id === 'assignDagRoleBtn'){
-        // Wait for page reload after adding user via role C.3.30.1800
+    if(
+        $el.id === 'assignDagRoleBtn' // C.3.30.1800
+        || $el.innerText === 'Save signature' // A.3.28.0600
+    ){
         return $el
     }
 
@@ -258,9 +260,16 @@ const getElementThatShouldDisappearAfterClick = ($el) => {
         $el.innerText.includes('Save & Exit Form')
         ||
         $el.innerText.includes('Create Project')
+        ||
+        (
+            // A.3.28.0600
+            $el.value === 'Save Changes'
+            &&
+            $el.closest('form')
+        )
     ){
         // The whole page should be reloaded after any of these actions
-        return Cypress.$('body')
+        return Cypress.$('body')[0]
     }
 
     return null
@@ -276,7 +285,7 @@ Cypress.Commands.overwrite(
 
         if(subject[0].nodeName === "A" ||
             subject[0].nodeName === "BUTTON" ||
-            subject[0].nodeName === "INPUT" && subject[0].type === "button" && subject[0].onclick === ""
+            (subject[0].nodeName === "INPUT" && ["button", "submit"].includes(subject[0].type) && ["", null].includes(subject[0].onclick))
         ){
             const disappearingElement = getElementThatShouldDisappearAfterClick(subject[0])
             const timeBeforeClick = Date.now()
@@ -289,7 +298,9 @@ Cypress.Commands.overwrite(
             .then($el => {
                 $el = $el[0]
                 if(disappearingElement){
-                        /**
+                    cy.log("Waiting for this element to disappear if it hasn't already", disappearingElement)
+
+                    /**
                      * The page should reload now.  We make sure the link element stops existing
                      * as a way of waiting until the DOM is reloaded before continueing.
                      * This prevents next steps from unexpectedly matching elements on the previous page.
@@ -309,7 +320,7 @@ Cypress.Commands.overwrite(
                             return cy.wrap(
                                 downloadDetected
                                 ||
-                                Cypress.dom.isDetached(disappearingElement)
+                                !disappearingElement.checkVisibility()
                                 ||
                                 Cypress.$('#stayOnPageReminderDialog:visible').length > 0
                                 ||

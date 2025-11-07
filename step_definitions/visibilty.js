@@ -261,10 +261,7 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
 
         base = cy.get_top_layer()
 
-        base.first().within(($elm) => {
-            return expect($elm).length.to.be.greaterThan(0)
-        }).then((next_section) => {
-
+        base.then((next_section) => {
             if (base_element === ' in the dialog box') {
                 base.within(($elm) => {
                     cy.wrap($elm).find(sel).should('contain', text)
@@ -306,13 +303,15 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
                 }
 
                 cy.waitUntil(() => {
-                    // It's important to use a get_top_layer().within() inside a waitUntil() in case a previous dialog is displayed and we want to wait for it to disappear (e.g. C.3.31.0300)
-                    return cy.get_top_layer().within(() => {
-                        cy.wrap(false)
+                    // It's important to use get_top_layer() inside waitUntil() in case a previous dialog is displayed and we want to wait for it to disappear (e.g. C.3.31.0300)
+                    return cy.get_top_layer().then(topLayer => {
+                        if(Cypress.dom.isDetached(topLayer)){
+                            return 
+                        }
 
-                        const element = Cypress.$(sel)[0]
-                        if(element){
-                            cy.wrap(element)
+                        const result = topLayer.find(sel)
+                        if(result.length > 0){
+                            cy.wrap(result)
                         }
                     })
                 }).then(($element) => {
