@@ -188,11 +188,13 @@ Given("I should see the exact time in the field labeled {string}", (text) => {
  * @module Visibility
  * @author Mark McEver <mark.mcever@vumc.org>
  * @param {string} filenamePlaceholder
- * @description Verifies that a file with the specified filename placeholder was recently downloaded.  Date format strings in the filename placeholder will match any date/time.
+ * @description Verifies that a file with the specified filename pattern was recently downloaded.  Date format strings in the filename pattern will match any date/time.
  */
-Given("I should see a downloaded file named {string}", (filenamePlaceholder) => {
-    cy.fetch_timestamped_file(filenamePlaceholder).then((filename) => {
-        expect(filename).to.not.be.empty
+Given("I should see a downloaded file named {string}", (filenamePattern) => {
+    cy.fetch_timestamped_file(filenamePattern).then((filename) => {
+        if(filename === ''){
+            throw 'A file matching the specified filename pattern could not be found'
+        }
     })
 })
 
