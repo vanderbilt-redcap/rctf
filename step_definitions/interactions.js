@@ -548,7 +548,7 @@ Given('I clear the field labeled {string}', (label) => {
  * @param {string} baseElement
  * @description Selects a checkbox field by its label
  */
-Given("(for the Event Name \")(the Column Name \")(for the Column Name \"){optionalString}(\", I )(I ){clickType} the{ordinal} {checkBoxRadio} {labeledExactly} {string}{baseElement}{iframeVisibility}", (event_name, check, ordinal, type, labeled_exactly, label, base_element, iframe) => {
+Given("(for the Event Name \"){optionalString}(\", I )(I ){clickType} the{ordinal} {checkBoxRadio} {labeledExactly} {string}{baseElement}{iframeVisibility}", (event_name, check, ordinal, type, labeled_exactly, label, base_element, iframe) => {
     cy.not_loading()
 
     //This is to accommodate for aliases such as "toggle button" which is actually a checkbox behind the scenes
