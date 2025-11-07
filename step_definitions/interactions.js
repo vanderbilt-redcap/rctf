@@ -151,11 +151,6 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
         } else {
 
             if(window.parameterTypes['onlineDesignerButtons'].includes(online_designer_button) &&
-                exactly === "for Data Quality Rule #") {
-                outer_element = `table:visible tr:has(div.rulenum:contains(${JSON.stringify(text)})):visible`
-                text = online_designer_button.replace(/"/g, '')
-
-            } else if(window.parameterTypes['onlineDesignerButtons'].includes(online_designer_button) &&
                 exactly === 'within the Record Locking Customization table for the Data Collection Instrument named') {
                 outer_element = `${window.tableMappings['record locking']}:visible tr:has(:contains(${JSON.stringify(text)}))`
                 text = online_designer_button.replace(/"/g, '') //Replace the button quotes with an empty string

@@ -75,7 +75,7 @@ window.parameterTypes = {
         'Save & Add New Instance',
     ],
     labeledElement: labeledElementTypes,
-    labeledExactly: ['labeled', 'labeled exactly', 'for Data Quality Rule #', 'within the Record Locking Customization table for the Data Collection Instrument named', 'for the Discrepant field labeled', 'within the Record Locking Customization table for the Data Collection Instrument named', 'for the field labeled'],
+    labeledExactly: ['labeled', 'labeled exactly', 'within the Record Locking Customization table for the Data Collection Instrument named', 'for the Discrepant field labeled', 'within the Record Locking Customization table for the Data Collection Instrument named', 'for the field labeled'],
     loginTypes: ['attempt to login to REDCap with', 'am still logged in to REDCap with', 'login to REDCap with', 'successfully login to REDCap with', 'provide E-Signature credentials for'],
     projectRequestLabel: ['Create Project', 'Send Request'],
     notSeeDC: ['should see a Data Collection Instrument named', 'should NOT see a Data Collection Instrument named', 'should no longer see a Data Collection Instrument named'],
