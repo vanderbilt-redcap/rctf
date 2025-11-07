@@ -203,7 +203,7 @@ Cypress.Commands.add('button_or_input', (text_label) => {
 })
 
 //yields the visible div with the highest z-index, or the <html> if none are found
-Cypress.Commands.add('get_top_layer', (element = 'html,div[role=dialog]:visible,iframe.todo-iframe,iframe#SURVEY_SIMULATED_NEW_TAB', retryUntil) => {
+Cypress.Commands.add('get_top_layer', (element = 'html,div[role=dialog]:visible,[id^=popup_],iframe.todo-iframe,iframe#SURVEY_SIMULATED_NEW_TAB', retryUntil) => {
     let top_layer
     cy.get(element).should($els => {
         //if more than body found, find element with highest z-index
