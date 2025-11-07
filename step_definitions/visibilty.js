@@ -266,36 +266,29 @@ Given("I (should )see( ){articleType}( )( ){labeledElement}( labeled)( ){string}
     // double quotes need to be re-escaped before inserting into :contains() selector
     let sel = `${subsel}:contains(${JSON.stringify(text)}):visible` + (el === 'button' ? `,input[value=${JSON.stringify(text)}]:visible${disabled_status}` : '')
 
-    if (window.icons.hasOwnProperty(text)) {
-        cy.get(`${window.elementChoices[base_element]}:has(${window.icons[text]}):visible`).
-        should('be.visible').
-        should('have.descendants', window.icons[text])
-    } else {
+    base = cy.get_top_layer()
 
-        base = cy.get_top_layer()
+    base.then((next_section) => {
 
-        base.then((next_section) => {
+        cy.get_top_layer().then(topLayer => {
+            const result = topLayer.find(sel)
+            if(result.length > 0){
+                cy.wrap(result)
+            }
+        }).then(($element) => {
+            if(el === 'button' && !$element.is('button')) {
+                cy.wrap($element).invoke('attr', 'value').should('include', text)
+            } else {
+                // Wrap null so that assertTextVisibility() calls get_top_layer() repeatedly if necessary
+                cy.wrap(null).assertTextVisibility(text, true)
+            }
 
-            cy.get_top_layer().then(topLayer => {
-                const result = topLayer.find(sel)
-                if(result.length > 0){
-                    cy.wrap(result)
-                }
-            }).then(($element) => {
-                if(el === 'button' && !$element.is('button')) {
-                    cy.wrap($element).invoke('attr', 'value').should('include', text)
-                } else {
-                    // Wrap null so that assertTextVisibility() calls get_top_layer() repeatedly if necessary
-                    cy.wrap(null).assertTextVisibility(text, true)
-                }
-
-                if (disabled_text === "is disabled") {
-                    // We used to use should('be.disabled') here, but it didn't work on C.3.30.0900
-                    cy.wrap($element).should('have.attr', 'disabled')
-                }
-            })
+            if (disabled_text === "is disabled") {
+                // We used to use should('be.disabled') here, but it didn't work on C.3.30.0900
+                cy.wrap($element).should('have.attr', 'disabled')
+            }
         })
-    }
+    })
 })
 
 /**
