@@ -155,7 +155,7 @@ Given("I should see {string} in the data entry form field {string}", function (f
  * @param {string} baseElement
  * @description Verifies that a visible element of the specified type containing `text` exists
  */
-Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButtons}( ){labeledElement}( ){labeledExactly}( ){string}{baseElement}( )( that){disabled}", (article_type, prefix, online_buttons, el, labeled_exactly, text, base_element, disabled_text) => {
+Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButtons}( ){labeledElement}( ){labeledExactly}( ){string}( )( that){disabled}", (article_type, prefix, online_buttons, el, labeled_exactly, text, disabled_text) => {
     let opt_str = prefix
     let base
     let subsel = ''
@@ -257,41 +257,30 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
             }
         }
 
-        let element_selector = window.elementChoices[base_element]
-
         base = cy.get_top_layer()
 
         base.then((next_section) => {
-            if (base_element === ' in the dialog box') {
-                base.within(($elm) => {
-                    cy.wrap($elm).find(sel).should('contain', text)
 
-                    if (disabled_text === "is disabled") {
-                        cy.wrap($elm).find(sel).should('be.disabled')
-                    }
-                })
-            } else {
-                cy.get_top_layer().then(topLayer => {
-                    const result = topLayer.find(sel)
-                    if(result.length > 0){
-                        cy.wrap(result)
-                    }
-                }).then(($element) => {
-                    if(el === 'button' && !$element.is('button')) {
-                        cy.wrap($element).invoke('attr', 'value').should('include', text)
-                    } else if (window.icons.hasOwnProperty(online_buttons)) {
-                        cy.wrap($element).should('have.descendants', window.icons[online_buttons])
-                    } else {
-                        // Wrap null so that assertTextVisibility() calls get_top_layer() repeatedly if necessary
-                        cy.wrap(null).assertTextVisibility(text, true)
-                    }
+            cy.get_top_layer().then(topLayer => {
+                const result = topLayer.find(sel)
+                if(result.length > 0){
+                    cy.wrap(result)
+                }
+            }).then(($element) => {
+                if(el === 'button' && !$element.is('button')) {
+                    cy.wrap($element).invoke('attr', 'value').should('include', text)
+                } else if (window.icons.hasOwnProperty(online_buttons)) {
+                    cy.wrap($element).should('have.descendants', window.icons[online_buttons])
+                } else {
+                    // Wrap null so that assertTextVisibility() calls get_top_layer() repeatedly if necessary
+                    cy.wrap(null).assertTextVisibility(text, true)
+                }
 
-                    if (disabled_text === "is disabled") {
-                        // We used to use should('be.disabled') here, but it didn't work on C.3.30.0900
-                        cy.wrap($element).should('have.attr', 'disabled')
-                    }
-                })
-            }
+                if (disabled_text === "is disabled") {
+                    // We used to use should('be.disabled') here, but it didn't work on C.3.30.0900
+                    cy.wrap($element).should('have.attr', 'disabled')
+                }
+            })
         })
     }
 })
