@@ -208,14 +208,52 @@ Given("I should see a field named {string}", (text) => {
 
 /**
  * @module Visibility
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @param {string} text
+ * @description Verifies that an alert box was displayed with the specified text
+ */
+Given("I should see an alert box with the following text: {string}", (text) => {
+    return new Cypress.Promise((resolve) => {
+        (function waitForAlert(i = 0) {
+            const hasAlertBeenDisplayed = (text) => {
+                let found = false
+                if (window.lastAlert !== undefined){
+                    Object.keys(window.lastAlert).forEach((alert) => {
+                        const age = Date.now() - window.lastAlert[alert]
+                        if(age > 10000){
+                            // This alert is likely from several steps ago and should not be matched
+                            delete window.lastAlert[alert]
+                        }
+
+                        if(alert.includes(text)){
+                            found = true
+                        }
+                    })
+                }
+
+                return found
+            }
+
+            if(hasAlertBeenDisplayed(text)){
+                resolve('done')
+            }
+            else if (i < 10){
+                setTimeout(waitForAlert, 500, (i + 1))
+            }
+        })()
+    })
+})
+
+
+/**
+ * @module Visibility
  * @author Corey DeBacker <debacker@wisc.edu>
  * @param {string} labeledElement
  * @param {string} label - the label of the link that should be seen on screen (matches partially)
  * @param {string} baseElement
  * @description Verifies that a visible element of the specified type containing `text` exists
  */
-Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){labeledElement}( labeled)( ){string}( )( that){disabled}", (article_type, prefix, el, text, disabled_text) => {
-    let opt_str = prefix
+Given("I (should )see( ){articleType}( )( ){labeledElement}( labeled)( ){string}( )( that){disabled}", (article_type, el, text, disabled_text) => {
     let base
     let subsel = ''
 
@@ -230,38 +268,6 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){labeledElement}( l
         cy.get(`${window.elementChoices[base_element]}:has(${window.icons[text]}):visible`).
         should('be.visible').
         should('have.descendants', window.icons[text])
-    } else if(window.parameterTypes['visibilityPrefix'].includes(prefix)){
-        if (prefix === 'an alert box with the following text:'){
-            return new Cypress.Promise((resolve) => {
-                (function waitForAlert(i = 0) {
-                    const hasAlertBeenDisplayed = (text) => {
-                        let found = false
-                        if (window.lastAlert !== undefined){
-                            Object.keys(window.lastAlert).forEach((alert) => {
-                                const age = Date.now() - window.lastAlert[alert]
-                                if(age > 10000){
-                                    // This alert is likely from several steps ago and should not be matched
-                                    delete window.lastAlert[alert]
-                                }
-
-                                if(alert.includes(text)){
-                                    found = true
-                                }
-                            })
-                        }
-
-                        return found
-                    }
-
-                    if(hasAlertBeenDisplayed(text)){
-                        resolve('done')
-                    }
-                    else if (i < 10){
-                        setTimeout(waitForAlert, 500, (i + 1))
-                    }
-                })()
-            })
-        }
     } else {
 
         base = cy.get_top_layer()
