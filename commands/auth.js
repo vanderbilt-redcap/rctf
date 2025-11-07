@@ -70,12 +70,12 @@ Cypress.Commands.add('checkCookieAndLogin', (options) => {
             try {
                 expect(cookies).to.have.length.greaterThan(0);
 
-                let sessionCookieFound = false
+                let sessionCookieFound = false;
                 cookies.forEach(cookie => {
-                    if(cookie.name.startsWith('redcap_session_')){
-                        sessionCookieFound = true
+                    if (cookie.name.startsWith('redcap_session_') || cookie.name.startsWith('PHPSESSID')) {
+                        sessionCookieFound = true;
                     }
-                })
+                });
                 
                 if(!sessionCookieFound){
                     throw 'Session cookie not found!'
