@@ -330,6 +330,11 @@ Cypress.Commands.overwrite(
                                 Cypress.$('[aria-describedby="certify_create"]').length > 0 // A.6.4.0100
                             )
                         })
+                        /**
+                         * Arbitrary wait after page load to hopefully avoid flaky tests
+                         * caused by various javascript page initilization tasks.
+                         */
+                        .wait(100)
                     }, 'Failed to detect page load after link click')
                 }
             })
