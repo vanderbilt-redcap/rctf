@@ -302,14 +302,11 @@ Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButt
                     text = online_buttons
                 }
 
-                cy.waitUntil(() => {
-                    // It's important to use get_top_layer() inside waitUntil() in case a previous dialog is displayed and we want to wait for it to disappear (e.g. C.3.31.0300)
-                    return cy.get_top_layer().then(topLayer => {
-                        const result = topLayer.find(sel)
-                        if(result.length > 0){
-                            cy.wrap(result)
-                        }
-                    })
+                cy.get_top_layer().then(topLayer => {
+                    const result = topLayer.find(sel)
+                    if(result.length > 0){
+                        cy.wrap(result)
+                    }
                 }).then(($element) => {
                     if(el === 'button' && !$element.is('button')) {
                         cy.wrap($element).invoke('attr', 'value').should('include', text)
