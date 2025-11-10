@@ -64,16 +64,12 @@ function performAction(action, element, disabled_text){
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} articleType
- * @param {string} onlineDesignerButtons
  * @param {string} ordinal
- * @param {string} labeledExactly
  * @param {string} saveButtonRouteMonitoring
  * @param {string} baseElement
- * @param {string} iframeVisibility
- * @param {string} toDownloadFile
  * @description Clicks on a button element with a specific text label.
  */
-Given("I click on( ){articleType}( ){ordinal}( )button {labeledExactly} {string}{saveButtonRouteMonitoring}{baseElement}", (article_type, ordinal, exactly, text, button_type, base_element) => {
+Given("I click on( ){articleType}( ){ordinal}( )button labeled {string}{saveButtonRouteMonitoring}{baseElement}", (article_type, ordinal, text, button_type, base_element) => {
     cy.then(() => {
         let ord = 0
         if(ordinal !== undefined) ord = window.ordinalChoices[ordinal]
@@ -108,60 +104,32 @@ Given("I click on( ){articleType}( ){ordinal}( )button {labeledExactly} {string}
             const base = cy.frameLoaded().then(() => { cy.iframe() })
 
             if(outer_element === 'iframe'){
-                if(exactly === 'labeled exactly'){
-                    let sel = 'button:visible,input[value*=""]:visible'
 
-                    base.within(() => {
-                        cy.get(sel).contains(new RegExp("^" + text + "$", "g")).eq(ord).click(force)
-                    })
-                } else {
-                    let sel = `button:contains("${text}"):visible,input[value*="${text}"]:visible`
+                let sel = `button:contains("${text}"):visible,input[value*="${text}"]:visible`
 
-                    base.within(() => {
+                base.within(() => {
+                    cy.get(sel).eq(ord).click(force)
+                })
+            } else {
+                let sel = `button:contains("${text}"):visible,input[value*="${text}"]:visible`
+
+                base.within(() => {
+                    cy.top_layer(sel, outer_element).within(() => {
                         cy.get(sel).eq(ord).click(force)
                     })
-                }
-            } else {
-
-                if(exactly === 'labeled exactly'){
-                    let sel = 'button:visible,input[value*=""]:visible'
-
-                    base.within(() => {
-                        cy.top_layer(sel, outer_element).within(() => {
-                            cy.get(sel).contains(new RegExp("^" + text + "$", "g")).eq(ord).click(force)
-                        })
-                    })
-                } else {
-                    let sel = `button:contains("${text}"):visible,input[value*="${text}"]:visible`
-
-                    base.within(() => {
-                        cy.top_layer(sel, outer_element).within(() => {
-                            cy.get(sel).eq(ord).click(force)
-                        })
-                    })
-                }
-
+                })
             }
 
         } else {
-            if(exactly === 'labeled exactly') {
-                let sel = `button:contains("${text}"):visible,input[value*=""]:visible`
-
-                cy.top_layer(sel, outer_element).within(() => {
-                    cy.get(':button:visible,input[value*=""]:visible').contains(new RegExp("^" + text + "$", "g")).eq(ord).click(force)
+            cy.get_top_layer().within(() => {
+                cy.getLabeledElement('button', text, ordinal).then($button => {
+                    if(text.includes("Open public survey")){ //Handle the "Open public survey" and "Open public survey + Logout" cases
+                        cy.open_survey_in_same_tab($button, !(button_type !== undefined && button_type === " and will leave the tab open when I return to the REDCap project"), (text === 'Log out+ Open survey'))
+                    } else {
+                        cy.wrap($button).click()
+                    }
                 })
-
-            } else {
-                cy.get_top_layer().within(() => {
-                    cy.getLabeledElement('button', text, ordinal).then($button => {
-                        if(text.includes("Open public survey")){ //Handle the "Open public survey" and "Open public survey + Logout" cases
-                            cy.open_survey_in_same_tab($button, !(button_type !== undefined && button_type === " and will leave the tab open when I return to the REDCap project"), (text === 'Log out+ Open survey'))
-                        } else {
-                            cy.wrap($button).click()
-                        }
-                    })
-                })
-            }
+            })
         }
 
         if(text === "Enable" && base_element === ' in the "Use surveys in this project?" row in the "Main project settings" section'){
