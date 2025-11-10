@@ -73,7 +73,7 @@ function performAction(action, element, disabled_text){
  * @param {string} toDownloadFile
  * @description Clicks on a button element with a specific text label.
  */
-Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button {labeledExactly} {string}{saveButtonRouteMonitoring}{baseElement}{iframeVisibility}{toDownloadFile}", (article_type, online_designer_button, ordinal, exactly, text, button_type, base_element, iframe, download) => {
+Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button {labeledExactly} {string}{saveButtonRouteMonitoring}{baseElement}{iframeVisibility}", (article_type, online_designer_button, ordinal, exactly, text, button_type, base_element, iframe) => {
     cy.then(() => {
         let ord = 0
         if(ordinal !== undefined) ord = window.ordinalChoices[ordinal]
@@ -98,11 +98,6 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
                 url: '/redcap_v' + Cypress.env('redcap_version') + '/ProjectSetup/modify_project_setting_ajax.php?pid=*'
             }).as('disable_survey')
             window.survey_disable_attempt = true
-        }
-
-        if(download.includes("to download a file")) {
-            const loadScript = '<script> setTimeout(() => location.reload(), 2000); </script>'
-            cy.get('body').invoke('append', loadScript)
         }
 
         let outer_element = window.elementChoices[base_element]
