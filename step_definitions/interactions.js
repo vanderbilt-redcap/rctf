@@ -73,7 +73,7 @@ function performAction(action, element, disabled_text){
  * @param {string} toDownloadFile
  * @description Clicks on a button element with a specific text label.
  */
-Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button {labeledExactly} {string}{saveButtonRouteMonitoring}{baseElement}", (article_type, online_designer_button, ordinal, exactly, text, button_type, base_element) => {
+Given("I click on( ){articleType}( ){ordinal}( )button {labeledExactly} {string}{saveButtonRouteMonitoring}{baseElement}", (article_type, ordinal, exactly, text, button_type, base_element) => {
     cy.then(() => {
         let ord = 0
         if(ordinal !== undefined) ord = window.ordinalChoices[ordinal]
@@ -145,18 +145,6 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
 
         } else {
 
-            if(window.parameterTypes['onlineDesignerButtons'].includes(online_designer_button) &&
-                exactly === 'within the Record Locking Customization table for the Data Collection Instrument named') {
-                outer_element = `${window.tableMappings['record locking']}:visible tr:has(:contains(${JSON.stringify(text)}))`
-                text = online_designer_button.replace(/"/g, '') //Replace the button quotes with an empty string
-
-                //This is the key to the Online Designer buttons being identified!
-            } else if(window.parameterTypes['onlineDesignerButtons'].includes(online_designer_button)){
-                outer_element = `table:visible tr:has(td:has(div:has(div:contains("${text}"))))`
-                text = online_designer_button.replace(/"/g, '') //Replace the button quotes with an empty string
-            }
-
-            if(exactly === 'labeled exactly') {
                 let sel = `button:contains("${text}"):visible,input[value*=""]:visible`
 
                 cy.top_layer(sel, outer_element).within(() => {
