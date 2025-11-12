@@ -203,7 +203,13 @@ Cypress.Commands.add('button_or_input', (text_label) => {
 })
 
 //yields the visible div with the highest z-index, or the <html> if none are found
-Cypress.Commands.add('get_top_layer', (element = 'html,div[role=dialog]:visible,[id^=popup_],iframe.todo-iframe,iframe#SURVEY_SIMULATED_NEW_TAB', retryUntil) => {
+Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
+    if(element === null){
+        element = 'html'
+        element += ',iframe.todo-iframe' // A.6.4.0200
+        element += ',iframe#SURVEY_SIMULATED_NEW_TAB' //
+    }
+
     let top_layer
     cy.get(element).should($els => {
         //if more than body found, find element with highest z-index
@@ -1049,7 +1055,12 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
             `input[type=submit][value*=${JSON.stringify(text)}]`,
         ].join(', ')
 
-        return cy.get(selector).filterMatches(text).then(matches => {
+
+        const results = cy.get_top_layer().then(topLayer => {
+            cy.wrap(topLayer.find(selector))
+        })
+
+        return results.filterMatches(text).then(matches => {
             if(!Array.isArray(matches)){
                 /**
                  * It seems like this line should be run all the time,

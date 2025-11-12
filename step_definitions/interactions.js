@@ -121,14 +121,12 @@ Given("I click on( ){articleType}( ){ordinal}( )button labeled {string}{saveButt
             }
 
         } else {
-            cy.get_top_layer().within(() => {
-                cy.getLabeledElement('button', text, ordinal).then($button => {
-                    if(text.includes("Open public survey")){ //Handle the "Open public survey" and "Open public survey + Logout" cases
-                        cy.open_survey_in_same_tab($button, !(button_type !== undefined && button_type === " and will leave the tab open when I return to the REDCap project"), (text === 'Log out+ Open survey'))
-                    } else {
-                        cy.wrap($button).click()
-                    }
-                })
+            cy.getLabeledElement('button', text, ordinal).then($button => {
+                if(text.includes("Open public survey")){ //Handle the "Open public survey" and "Open public survey + Logout" cases
+                    cy.open_survey_in_same_tab($button, !(button_type !== undefined && button_type === " and will leave the tab open when I return to the REDCap project"), (text === 'Log out+ Open survey'))
+                } else {
+                    cy.wrap($button).click()
+                }
             })
         }
 
@@ -558,10 +556,8 @@ Given("(for the Event Name \"){optionalString}(\", I )(I ){clickType} the{ordina
     }
 
     function findAndClickElement(label_selector, outer_element, element_selector, label, labeled_exactly){
-        cy.top_layer(label_selector, outer_element).within(() => {
-            cy.getLabeledElement(type, label, ordinal).then(element => {
-                clickElement(cy.wrap(element))
-            })
+        cy.getLabeledElement(type, label, ordinal).then(element => {
+            clickElement(cy.wrap(element))
         })
     }
 
