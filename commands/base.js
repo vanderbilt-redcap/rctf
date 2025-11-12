@@ -206,8 +206,8 @@ Cypress.Commands.add('button_or_input', (text_label) => {
 Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
     if(element === null){
         element = 'html'
-        element += ',iframe.todo-iframe' // A.6.4.0200
-        element += ',iframe#SURVEY_SIMULATED_NEW_TAB' //
+        element += ',iframe.todo-iframe' // A.6.4.0200, B.6.4.1200
+        element += ',iframe#SURVEY_SIMULATED_NEW_TAB' // C.3.24.0105, C.3.24.1500, C.3.24.1700
     }
 
     let top_layer
