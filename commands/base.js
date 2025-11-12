@@ -205,6 +205,12 @@ Cypress.Commands.add('button_or_input', (text_label) => {
 //yields the visible div with the highest z-index, or the <html> if none are found
 Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
     if(element === null){
+        /**
+         * We used to also check for dialogs & popups here, but that was too brittle
+         * as top layer changed during page loads and dialog shows/hides.
+         * Instead, we should build top layer checking with retry logic into
+         * other generalized matching methods.  See getLabeledElement() for a good pattern.
+         */
         element = 'html'
         element += ',iframe.todo-iframe' // A.6.4.0200, B.6.4.1200
         element += ',iframe#SURVEY_SIMULATED_NEW_TAB' // C.3.24.0105, C.3.24.1500, C.3.24.1700
