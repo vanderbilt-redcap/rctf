@@ -247,7 +247,10 @@ Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
             })
         }
 
-        return next
+        return next.then(result => {
+            console.log('get_top_layer() returning', result)
+            cy.wrap(result)
+        })
     }) 
 })
 
