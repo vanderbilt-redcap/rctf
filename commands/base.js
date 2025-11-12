@@ -1055,9 +1055,8 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
             `input[type=submit][value*=${JSON.stringify(text)}]`,
         ].join(', ')
 
-
         const results = cy.get_top_layer().then(topLayer => {
-            cy.wrap(topLayer.find(selector))
+            return topLayer.find(selector)
         })
 
         return results.filterMatches(text).then(matches => {
