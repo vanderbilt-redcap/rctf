@@ -149,183 +149,146 @@ Given("I should see {string} in the data entry form field {string}", function (f
 
 /**
  * @module Visibility
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @param {string} text
+ * @description Verifies that today's date is contained in the specified field
+ */
+Given("I should see today's date in the field labeled {string}", (text) => {
+    const expectedDate = (new Date).toISOString().split('T')[0]
+    cy.getLabeledElement('input', text).should('have.value', expectedDate);
+})
+
+/**
+ * @module Visibility
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @param {string} text
+ * @description Verifies that exact time is contained in the specified field
+ */
+Given("I should see the exact time in the field labeled {string}", (text) => {
+    const today = new Date();
+    const hours = String(today.getHours()).padStart(2, '0')
+    const minutes = String(today.getMinutes()).padStart(2, '0')
+    const seconds = String(today.getSeconds()).padStart(2, '0')
+
+    const expectedValue = `${hours}:${minutes}:${seconds}`
+
+    cy.getLabeledElement('input', text).invoke('val').then((actualValue) => {
+        let [h, m, s] = actualValue.split(':').map(Number)
+        const actualTimeInSeconds = (h * 3600) + (m * 60) + s
+
+        let [h_e, m_e, s_e] = expectedValue.split(':').map(Number)
+        const expectedTimeInTimeInSeconds = (h_e * 3600) + (m_e * 60) + s_e
+
+        //5 seconds tolerance
+        expect(actualTimeInSeconds).to.be.closeTo(expectedTimeInTimeInSeconds, 5)
+    })
+})
+
+/**
+ * @module Visibility
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @param {string} filenamePlaceholder
+ * @description Verifies that a file with the specified filename pattern was recently downloaded.  Date format strings in the filename pattern will match any date/time.
+ */
+Given("I should see a downloaded file named {string}", (filenamePattern) => {
+    cy.fetch_timestamped_file(filenamePattern).then((filename) => {
+        if(filename === ''){
+            throw 'A file matching the specified filename pattern could not be found'
+        }
+    })
+})
+
+/**
+ * @module Visibility
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @param {string} text
+ * @description Verifies that the specified fields exists in the Online Designer
+ */
+Given("I should see a field named {string}", (text) => {
+    cy.get(`table[role=presentation]:visible tr:visible td:visible:contains(${text})`).contains(text)
+})
+
+/**
+ * @module Visibility
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @param {string} text
+ * @description Verifies that an alert box was displayed with the specified text
+ */
+Given("I should see an alert box with the following text: {string}", (text) => {
+    return new Cypress.Promise((resolve) => {
+        (function waitForAlert(i = 0) {
+            const hasAlertBeenDisplayed = (text) => {
+                let found = false
+                if (window.lastAlert !== undefined){
+                    Object.keys(window.lastAlert).forEach((alert) => {
+                        const age = Date.now() - window.lastAlert[alert]
+                        if(age > 10000){
+                            // This alert is likely from several steps ago and should not be matched
+                            delete window.lastAlert[alert]
+                        }
+
+                        if(alert.includes(text)){
+                            found = true
+                        }
+                    })
+                }
+
+                return found
+            }
+
+            if(hasAlertBeenDisplayed(text)){
+                resolve('done')
+            }
+            else if (i < 10){
+                setTimeout(waitForAlert, 500, (i + 1))
+            }
+        })()
+    })
+})
+
+
+/**
+ * @module Visibility
  * @author Corey DeBacker <debacker@wisc.edu>
  * @param {string} labeledElement
  * @param {string} label - the label of the link that should be seen on screen (matches partially)
  * @param {string} baseElement
  * @description Verifies that a visible element of the specified type containing `text` exists
  */
-Given("I (should )see( ){articleType}( ){visibilityPrefix}( ){onlineDesignerButtons}( ){labeledElement}( ){labeledExactly}( ){string}{baseElement}{iframeVisibility}( )( that){disabled}", (article_type, prefix, online_buttons, el, labeled_exactly, text, base_element, iframe, disabled_text) => {
-    let opt_str = prefix
+Given("I (should )see( ){articleType}( )( ){labeledElement}( labeled)( ){string}( )( that){disabled}", (article_type, el, text, disabled_text) => {
     let base
     let subsel = ''
 
     if(el !== ''){ subsel = {'link': 'a', 'button': 'button', 'field': 'tr', 'section break': 'td.header', 'checkbox': 'input[type=checkbox]', 'dropdown': 'select', 'icon': 'i'}[el] }
-
-    //It's possible for the survey icon to appear even if the instrument itself is not a link
-    if(el === 'link' && online_buttons !== undefined && online_buttons.includes('survey icon')){
-        subsel = ''
-    }
 
     let disabled_status = disabled_text !== undefined && disabled_text === "is disabled" ? ':disabled': ':not([disabled])'
 
     // double quotes need to be re-escaped before inserting into :contains() selector
     let sel = `${subsel}:contains(${JSON.stringify(text)}):visible` + (el === 'button' ? `,input[value=${JSON.stringify(text)}]:visible${disabled_status}` : '')
 
-    if (window.icons.hasOwnProperty(text)) {
-        cy.get(`${window.elementChoices[base_element]}:has(${window.icons[text]}):visible`).
-        should('be.visible').
-        should('have.descendants', window.icons[text])
-    } else if(window.parameterTypes['visibilityPrefix'].includes(prefix)){
+    base = cy.get_top_layer()
 
-        if (prefix === "Project status:" && window.parameterTypes['projectStatus'].includes(text)) {
-            cy.get('div.menubox:contains("Project status:")').should('contain', text)
-        } else if (prefix === 'Data Collection Instrument named'){
-            cy.instrument_visibility('', labeled_exactly, text)
-        } else if (prefix === 'an alert box with the following text:'){
-            return new Cypress.Promise((resolve) => {
-                (function waitForAlert(i = 0) {
-                    const hasAlertBeenDisplayed = (text) => {
-                        let found = false
-                        if (window.lastAlert !== undefined){
-                            Object.keys(window.lastAlert).forEach((alert) => {
-                                const age = Date.now() - window.lastAlert[alert]
-                                if(age > 10000){
-                                    // This alert is likely from several steps ago and should not be matched
-                                    delete window.lastAlert[alert]
-                                }
+    base.then((next_section) => {
 
-                                if(alert.includes(text)){
-                                    found = true
-                                }
-                            })
-                        }
-
-                        return found
-                    }
-
-                    if(hasAlertBeenDisplayed(text)){
-                        resolve('done')
-                    }
-                    else if (i < 10){
-                        setTimeout(waitForAlert, 500, (i + 1))
-                    }
-                })()
-            })
-        } else if (prefix === 'a field named'){
-            cy.get(`table[role=presentation]:visible tr:visible td:visible:contains(${text})`).contains(text)
-        } else if(prefix === "a downloaded file named") {
-            cy.fetch_timestamped_file(text).then((filename) => {
-                expect(filename).to.exist
-            })
-        } else if(prefix === "the exact time in the" || prefix === "today's date in the"){
-            const today = new Date();
-            const year = today.getFullYear()
-            const month = String(today.getMonth() + 1).padStart(2, '0') // Months are zero-based
-            const day = String(today.getDate()).padStart(2, '0')
-            const hours = String(today.getHours()).padStart(2, '0')
-            const minutes = String(today.getMinutes()).padStart(2, '0')
-            const seconds = String(today.getSeconds()).padStart(2, '0')
-
-            const expectedValue = (prefix === "the exact time in the") ?
-                `${hours}:${minutes}:${seconds}` :
-                `${year}-${month}-${day}`
-
-            cy.get(sel).find('input').invoke('val')
-                .then((actualValue) => {
-                    if (prefix === "the exact time in the") {
-                        let [h, m, s] = actualValue.split(':').map(Number)
-                        const actualTimeInSeconds = (h * 3600) + (m * 60) + s
-
-                        let [h_e, m_e, s_e] = expectedValue.split(':').map(Number)
-                        const expectedTimeInTimeInSeconds = (h_e * 3600) + (m_e * 60) + s_e
-
-                        //5 seconds tolerance
-                        expect(actualTimeInSeconds).to.be.closeTo(expectedTimeInTimeInSeconds, 5)
-                    } else {
-                        expect(actualValue).to.eq(expectedValue)
-                    }
-                })
-        }
-
-    } else {
-
-        if (window.parameterTypes['onlineDesignerButtons'].includes(online_buttons)) {
-            if (!window.icons.hasOwnProperty(online_buttons)) {
-                online_buttons = online_buttons.replaceAll('"', '')
-                sel = `${subsel}:contains("${online_buttons}"):visible` + (el === 'button' ? `,input[value="${online_buttons}"]:visible${disabled_status}` : '')
+        cy.get_top_layer().then(topLayer => {
+            const result = topLayer.find(sel)
+            if(result.length > 0){
+                cy.wrap(result)
             }
-        }
-
-        let element_selector = window.elementChoices[base_element]
-
-        base = (iframe === " in the iframe" || window.elementChoices[base_element] === 'iframe') ?
-            cy.frameLoaded().then(() => { cy.iframe() }) :
-            cy.get(`${window.elementChoices[base_element]}:has(${sel})`)
-
-        base.first().within(($elm) => {
-            return expect($elm).length.to.be.greaterThan(0)
-        }).then((next_section) => {
-
-            if (iframe === " in the iframe" || window.elementChoices[base_element] === 'iframe' || base_element === ' in the dialog box') {
-                base.within(($elm) => {
-                    cy.wrap($elm).find(sel).should('contain', text)
-
-                    if (disabled_text === "is disabled") {
-                        cy.wrap($elm).find(sel).should('be.disabled')
-                    }
-                })
+        }).then(($element) => {
+            if(el === 'button' && !$element.is('button')) {
+                cy.wrap($element).invoke('attr', 'value').should('include', text)
             } else {
+                // Wrap null so that assertTextVisibility() calls get_top_layer() repeatedly if necessary
+                cy.wrap(null).assertTextVisibility(text, true)
+            }
 
-                if (labeled_exactly === "for the variable") {
-                    if (!window.parameterTypes['onlineDesignerButtons'].includes(online_buttons)) {
-                        //Trim off the quotes
-                        opt_str = opt_str.slice(1, -1)
-
-                        sel = `:contains("${opt_str}")`
-
-                        //We are converting to lower case because this will generally match on the instrument name (and prevent duplicate matches)
-                        let selector = `tr:contains(${JSON.stringify(`Variable: ${text}`)}):visible`
-                        element_selector = `${element_selector}:visible table:visible ${selector}`
-                    }
-
-                } else if (labeled_exactly === "in the row labeled") {
-                    sel = `td:visible ${sel}`
-                    element_selector = `${element_selector}:visible table:visible tr:contains(${JSON.stringify(text)}):visible`
-                } else if (labeled_exactly === "for the instrument row labeled") {
-                    if (window.icons.hasOwnProperty(online_buttons)) {
-                        sel = `td:visible :has(${window.icons[online_buttons]})`
-                    } else {
-                        sel = `td:visible ${sel}`
-                    }
-
-                    //We are converting to lower case because this will generally match on the instrument name (and prevent duplicate matches)
-                    let selector = `tr:has(td:contains(${JSON.stringify(text)}):first:visible)`
-                    element_selector = `${element_selector}:visible ${window.tableMappings['data collection instruments']}:visible ${selector}`
-
-                    //We do this here because the value we're looking for in the assertion is the button label NOT the row label
-                    text = online_buttons
-                }
-
-                cy.top_layer(sel, element_selector).then(($elm) => {
-                    cy.wrap($elm).find(sel).then(($element) => {
-                        if(el === 'button' && !$element.is('button')) {
-                            cy.wrap($element).invoke('attr', 'value').should('include', text)
-                        } else if (window.icons.hasOwnProperty(online_buttons)) {
-                            cy.wrap($element).should('have.descendants', window.icons[online_buttons])
-                        } else {
-                            cy.wrap($element).assertTextVisibility(text, true)
-                        }
-                    })
-
-                    if (disabled_text === "is disabled") {
-                        // We used to use should('be.disabled') here, but it didn't work on C.3.30.0900
-                        cy.wrap($elm).find(sel).should('have.attr', 'disabled')
-                    }
-                })
+            if (disabled_text === "is disabled") {
+                // We used to use should('be.disabled') here, but it didn't work on C.3.30.0900
+                cy.wrap($element).should('have.attr', 'disabled')
             }
         })
-    }
+    })
 })
 
 /**
@@ -432,15 +395,6 @@ Given('I should see {string} in (the ){tableTypes} table', (text, table_type = '
     let selector = window.tableMappings[table_type]
     cy.get(`${selector}:visible`).contains('td', text, { matchCase: false })
 })
-
-/**
- * @module Visibility
- * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @example I (should) see Project status: "{projectStatus}"
- * @param {string} projectStatus
- * @description Identify project status
- */
-/* This method is defined inside "I should see (a)(the) {labeledElement} labeled {string} {baseElement}" */
 
 /**
  * @module Visibility

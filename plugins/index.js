@@ -273,7 +273,7 @@ module.exports = (cypressOn, config) => {
             return `${php_path} -r "echo date_default_timezone_get();"`
         },
 
-        async fetchLatestDownload({fileExtension}){
+        async fetchLatestDownload({fileExtension, retry = true}){
             const threshold = new Date();
             threshold.setTime(threshold.getTime() - 5000); // Only look for very recent downloads to make sure we don't falsely match a file from a previous download
 
@@ -292,6 +292,7 @@ module.exports = (cypressOn, config) => {
                 files = files
                     .filter(file => {
                         return path.extname(file) !== '.crdownload'
+                        && file !== 'downloads.html' // The is a temp file Chrome writes sometimes then quickly removes
                     })
                     .map(file => ({ file, mtime: fs.statSync(path.join(downloadsDir, file)).mtime }))
                     .sort((a, b) => b.mtime - a.mtime)
@@ -317,7 +318,7 @@ module.exports = (cypressOn, config) => {
             const tries = 100
             for(let i=0; i<tries; i++){
                 const file = fetchOnce()
-                if(file){
+                if(file || !retry){
                     return file
                 }
 
@@ -325,6 +326,10 @@ module.exports = (cypressOn, config) => {
             }
 
             return ''
+        },
+        
+        getFileMTime(filePath) {
+            return fs.statSync(filePath).mtimeMs
         },
 
         fileExists(filePath) {

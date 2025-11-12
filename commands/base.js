@@ -203,7 +203,7 @@ Cypress.Commands.add('button_or_input', (text_label) => {
 })
 
 //yields the visible div with the highest z-index, or the <html> if none are found
-Cypress.Commands.add('get_top_layer', (element = 'div[role=dialog]:visible,html', retryUntil) => {
+Cypress.Commands.add('get_top_layer', (element = 'html,div[role=dialog]:visible,[id^=popup_],iframe.todo-iframe,iframe#SURVEY_SIMULATED_NEW_TAB', retryUntil) => {
     let top_layer
     cy.get(element).should($els => {
         //if more than body found, find element with highest z-index
@@ -218,99 +218,183 @@ Cypress.Commands.add('get_top_layer', (element = 'div[role=dialog]:visible,html'
                 //return zp - zc
             })
         }
-        top_layer = $els.last()
-        retryUntil(top_layer) //run assertions, so get can retry on failure
-    }).then(() => cy.wrap(top_layer)) //yield top_layer to any further chained commands
+        top_layer = $els.last() // Get the last since they are sorted in order of appearance in the DOM
+        expect(Cypress.dom.isDetached(top_layer)).to.be.false
+        if(retryUntil){
+            retryUntil(top_layer) //run assertions, so get can retry on failure
+        }
+    }).then(() => {
+        let next = cy.wrap(top_layer) //yield top_layer to any further chained commands
+
+        if(top_layer[0].tagName === 'IFRAME'){
+            next = next.iframe().then(iframeBody => {
+                // Without this wait Mark saw inexplicable intermittent failures on his local even after waiting for ".iframe-overlay" to exist on the following step: I should see "Permanently delete this project?"
+                cy.wait(100)
+
+                return cy.wrap(iframeBody)
+            })
+        }
+
+        return next
+    }) 
 })
+
+const getElementThatShouldDisappearAfterClick = ($el) => {
+    if(
+        $el.id === 'assignDagRoleBtn' // C.3.30.1800
+        || $el.innerText === 'Save signature' // A.3.28.0600
+    ){
+        return $el
+    }
+
+    // Use $el.href here since it will return absolute urls even when relative urls are specified
+    const href = $el.href ?? ''
+
+    if(
+        (
+            href.startsWith('http')
+            &&
+            // Use $el.getAttribute('href') here to test the relative url
+            !$el.getAttribute('href')?.startsWith('#')
+        )
+        ||
+        $el.innerText.includes('Save & Exit Form')
+        ||
+        $el.innerText.includes('Create Project')
+        ||
+        (
+            // A.3.28.0600
+            $el.value === 'Save Changes'
+            &&
+            $el.closest('form')
+        )
+    ){
+        // The whole page should be reloaded after any of these actions
+        return Cypress.$('body')[0]
+    }
+
+    return null
+}
 
 Cypress.Commands.overwrite(
     'click',
     (originalFn, subject, options) => {
 
         window.aboutToUnload = true
+        if(options === undefined) options = {} //If no options object exists, create it
+        //console.log(subject)
 
-        //If we say no CSRF check, then skip it ...
-        if(options !== undefined && options['no_csrf_check']){
-            delete(options['no_csrf_check'])
-            return originalFn(subject, options)
+        if(subject[0].nodeName === "A" ||
+            subject[0].nodeName === "BUTTON" ||
+            (subject[0].nodeName === "INPUT" && ["button", "submit"].includes(subject[0].type) && ["", null].includes(subject[0].onclick))
+        ){
+            const disappearingElement = getElementThatShouldDisappearAfterClick(subject[0])
+            const timeBeforeClick = Date.now()
 
-            //For all other cases, check for CSRF token
-        } else {
-            if(options === undefined) options = {} //If no options object exists, create it
-            options['no_csrf_check'] = true //Add the "no_csrf_check" to get back to the original click method!
-
-            //console.log(subject)
-
-            if(subject[0].nodeName === "A" ||
-                subject[0].nodeName === "BUTTON" ||
-                subject[0].nodeName === "INPUT" && subject[0].type === "button" && subject[0].onclick === ""
-            ){
-                const body = Cypress.$('body')
-
-                //If our other detachment prevention measures failed, let's check to see if it detached and deal with it
-                cy.wrap(subject).then($el => {
-                    return Cypress.dom.isDetached($el) ? Cypress.$($el): $el
-                }).click(options)
-                .then($el => {
-                    $el = $el[0]
-                    // Use $el.href here since it will return absolute urls even when relative urls are specified
-                    const href = $el.href ?? ''
-                    if(
-                        (
-                            href.startsWith('http')
-                            &&
-                            // Use $el.getAttribute('href') here to test the relative url
-                            !$el.getAttribute('href')?.startsWith('#')
-                            &&
-                            !href.includes('DataEntry/file_download.php')
-                        )
-                        ||
-                        (
-                            subject[0].closest('[aria-describedby=repeatingInstanceEnableDialog]') !== null
-                            &&
-                            subject[0].innerText.includes('Save')
-                        )
-                    ){
-                         /**
-                         * The page should reload now.  We make sure the link element stops existing
-                         * as a way of waiting until the DOM is reloaded before continueing.
-                         * This prevents next steps from unexpectedly matching elements on the previous page.
-                         */
-                        return cy.retryUntilTimeout(() => {
-                            return cy.wrap(
-                                Cypress.dom.isDetached(body)
-                                ||
-                                Cypress.$('#stayOnPageReminderDialog:visible').length > 0
-                            )
-                        }, 'Failed to detect page load after link click')
-                    }
-                })
-                .window().then((win) => {
-                    if(
-                        win.location.href.includes('ProjectSetup/index')
-                        &&
-                        (
-                            subject[0].innerText.includes('Enable')
-                            ||
-                            subject[0].innerText.includes('Disable')
-                        )
-                    ){
-                        /**
-                         * This accounts for a 200ms setTimeout() in saveProjectSetting() that delays the page load,
-                         * and apparently takes longer than 500ms to fire a percentage of the time.
-                         * If we don't wait, within() calls on the next step will match elements on the soon to be unloaded page.
-                         */
-                        cy.log('Waiting for potential page load after project setting changes')
-                        cy.wait(1000)
-                    }
+            //If our other detachment prevention measures failed, let's check to see if it detached and deal with it
+            cy.wrap(subject).then($el => {
+                $el = Cypress.dom.isDetached($el) ? Cypress.$($el): $el
+                return originalFn($el, options)
+            })
+            .then($el => {
+                $el = $el[0]
+                if(disappearingElement){
+                    cy.log("Waiting for this element to disappear if it hasn't already", disappearingElement)
 
                     /**
-                     * Used to check for jQuery.active === 0 here.  It mostly worked, but there were exceptions.  The value is stuck on 1 in B.6.4.1200.
+                     * The page should reload now.  We make sure the link element stops existing
+                     * as a way of waiting until the DOM is reloaded before continueing.
+                     * This prevents next steps from unexpectedly matching elements on the previous page.
                      */
+                    return cy.retryUntilTimeout(() => {
+                        let downloadDetected = false
+                        return cy.task('fetchLatestDownload', {fileExtension: null, retry: false}).then(filePath => {
+                            if(filePath){
+                                cy.getFileMTime(filePath).then(mtime => {
+                                    if(mtime > timeBeforeClick){
+                                        // The click triggered a download.  Stop waiting for a page reload that will never happen. 
+                                        downloadDetected = true
+                                    }
+                                })
+                            }
+                        }).then(() => {
+                            return cy.wrap(
+                                downloadDetected
+                                ||
+                                !disappearingElement.checkVisibility()
+                                ||
+                                Cypress.$('#stayOnPageReminderDialog:visible').length > 0
+                                ||
+                                Cypress.$('[aria-describedby="esign_popup"]').length > 0 // C.2.19.0500
+                                ||
+                                Cypress.$('[aria-describedby="certify_create"]').length > 0 // A.6.4.0100
+                            )
+                        })
+                        /**
+                         * Arbitrary wait after page load to hopefully avoid flaky tests
+                         * caused by various javascript page initilization tasks.
+                         */
+                        .wait(100)
+                    }, 'Failed to detect page load after link click')
+                }
+            })
+            .window().then((win) => {
+                let waitAfterAjax = 0
+                cy.retryUntilTimeout(() => {
+                    /**
+                     * Wait until any pending jQuery requests complete before continuing.
+                     * This serves a similar purpose to cy.intercept(), but in a simpler & more generic way,
+                     * since cy.intercept() is asyncronous and can't cause cypress to wait to execute the next step
+                     * without an explicit cy.wait(@someAlias) call.  Using jQuery's request count is much simpler
+                     * than explicitly supportly every page load & ajax request in REDCap.
+                    */
+                    const returnValue = 
+                        win.jQuery === undefined
+                        ||
+                        win.jQuery.active === 0
+                        ||
+                        subject[0].innerText.includes('Request delete project') // Work around exception in REDCap
+                    
+                    if(!returnValue){
+                        /**
+                         * Add a slight delay to give any actions resulting from the ajax call time to take action (like re-render parts of the page).
+                         */
+                        waitAfterAjax = 250
+                    }
+
+                    return cy.wrap(returnValue)
+                }, 'The jQuery request count never fell to zero!')
+                .then(() => {
+                    cy.wait(waitAfterAjax)
                 })
-            } else {
-                return originalFn(subject, options)
-            }
+
+                if(
+                    win.location.href.includes('ProjectSetup/index')
+                    &&
+                    (
+                        subject[0].innerText.includes('Enable')
+                        ||
+                        subject[0].innerText.includes('Disable')
+                    )
+                ){
+                    /**
+                     * This accounts for a 200ms setTimeout() in saveProjectSetting() that delays the page load,
+                     * and apparently takes longer than 500ms to fire a percentage of the time.
+                     * If we don't wait, within() calls on the next step will match elements on the soon to be unloaded page.
+                     */
+                    cy.log('Waiting for potential page load after project setting changes')
+                    cy.wait(1000)
+                }
+
+                /**
+                 * Used to check for jQuery.active === 0 here.  It mostly worked, but there were exceptions.  The value is stuck on 1 in B.6.4.1200.
+                 */
+            })
+            .then(() => {
+                return subject
+            })
+        } else {
+            return originalFn(subject, options)
         }
     }
 )
@@ -389,7 +473,8 @@ Cypress.Commands.add("closestIncludingChildren", {prevSubject: true}, function (
 })
 
 Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subject, text, shouldBeVisible) {
-    
+    cy.log('assertTextVisibility', subject, text, shouldBeVisible)
+
     text = text
         .replace(/ +/g, ' ') // Collapse adjacent spaces to match innerText()'s behavior.
         .replace(/\\n/g, '\n') // Remove autoescaped new lines so that they will match properly
@@ -399,57 +484,68 @@ Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subj
     }
 
     cy.retryUntilTimeout((lastRun) => {
-        let found = false
-        subject.each((index, item) => {
-            if (!Cypress.dom.isAttached(item)) {
-                cy.log('assertTextVisibility() - Stale subject(s) detected.  The page must have partially or fully reloaded.  Attempting to get new reference(s) to the same subject(s)...')
-                let selector = subject.selector
-                if(!selector){
-                    selector = 'body'
-                }
-                
-                subject = Cypress.$(selector)
-                subject.selector = selector
-                item = subject[index]
+        const action = (subject) => {
+            let found = false
+            subject.each((index, item) => {
+                if (!item.checkVisibility()) {
+                    cy.log('assertTextVisibility() - Stale subject(s) detected.  The page must have partially or fully reloaded.  Attempting to get new reference(s) to the same subject(s)...')
+                    let selector = subject.selector
+                    if(!selector){
+                        selector = 'body'
+                    }
+                    
+                    subject = Cypress.$(selector)
+                    subject.selector = selector
+                    item = subject[index]
 
-                if(item === undefined){
-                    // The number of items matched must be smaller after the page load.  Return and check the new list on the next retry.
-                    return
+                    if(item === undefined){
+                        // The number of items matched must be smaller after the page load.  Return and check the new list on the next retry.
+                        return
+                    }
                 }
+
+                /**
+                 * We use innerText.indexOf() rather than the ':contains()' selector
+                 * to avoid matching text within hidden tags and <script> tags,
+                 * since they are not actually visible.
+                 * 
+                 * This previously caused steps looking for text like "SUCCEED"
+                 * to always work even when they should fail because that string
+                 * exists inside a <script> tag on most pages. 
+                 */
+                if(item.innerText.includes(text)){
+                    found = true
+                }
+            })
+            
+            let error
+            if(found && !shouldBeVisible){
+                error = 'Unexpected text was found: ' + text
+            }
+            else if(!found && shouldBeVisible){
+                error = 'Expected text was not found: ' + text
             }
 
-            /**
-             * We use innerText.indexOf() rather than the ':contains()' selector
-             * to avoid matching text within hidden tags and <script> tags,
-             * since they are not actually visible.
-             * 
-             * This previously caused steps looking for text like "SUCCEED"
-             * to always work even when they should fail because that string
-             * exists inside a <script> tag on most pages. 
-             */
-            if(item.innerText.includes(text)){
-                found = true
-            }
-        })
-        
-        let error
-        if(found && !shouldBeVisible){
-            error = 'Unexpected text was found: ' + text
-        }
-        else if(!found && shouldBeVisible){
-            error = 'Expected text was not found: ' + text
-        }
-
-        if(error){
-            if(lastRun){
-                throw error
+            if(error){
+                if(lastRun){
+                    throw error
+                }
+                else{
+                    return cy.wrap(false) // false will trigger a retry
+                }
             }
             else{
-                return cy.wrap(false) // false will trigger a retry
+                return cy.wrap(true)
             }
         }
+
+        if(subject){
+            return action(subject)
+        }
         else{
-            return cy.wrap(true)
+            return cy.get_top_layer().then(topLayer => {
+                return action(topLayer)
+            })
         }
     })
 })
@@ -933,12 +1029,15 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
  */
 Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectOption) {
     return cy.retryUntilTimeout((lastRun) => {
-        /**
-         * We tried using "window().then(win => win.$(`:contains..." to combine the following two cases,
-         * but it could not find iframe content like cy.get() can.
-         * We also tried Cypress.$, but it seems to return similar results to cy.get().
-         * Example from A.6.4.0200.: I click on the radio labeled "Keep ALL data saved so far." in the dialog box in the iframe
-        */
+        cy.document().then(document => {
+            const attributeName = 'data-bs-original-title'
+            document.querySelectorAll(`[${attributeName}*="<"]`).forEach(element => {
+                // Remove html tags from bootstrap titles to allow matching things like "<b>Edit</b> Branching Logic"
+                const attributeText = element.getAttribute(attributeName)
+                element.setAttribute(attributeName, new DOMParser().parseFromString(attributeText, 'text/html').body.textContent)
+            })
+        })
+
         let selector = [
             `input[placeholder=${JSON.stringify(text)}]`,
             `:contains(${JSON.stringify(text)})`,
@@ -1098,7 +1197,7 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
 
             return null
         })
-    }, 'The specified element could not be found')
+    }, `The ${type} labeled "${text}" could not be found`)
     .then((match) => {
         console.log('getLabeledElement() return value', match)
 

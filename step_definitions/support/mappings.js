@@ -171,7 +171,6 @@ window.elementChoices = {
     ' in the action popup' : '[id=formActionDropdown]',
     ' in the Edit survey responses column' : 'table#form_rights:visible',
     ' in the open date picker widget' : 'div.ui-datepicker',
-    ' in the File Repository breadcrumb' : '#file-repository-table-parent:visible',
     ' in the File Repository table' : '#file-repository-table:visible',
     ' in the View Access section of User Access' : 'td[class=labelrc]:contains("View Access")',
     ' in the Edit Access section of User Access' : 'td[class=labelrc]:contains("Edit Access")'
@@ -193,11 +192,6 @@ window.icons = {
     'disabled icon'         : `img[src*=delete]:visible`,
     'checkmark icon'        : `img[src*=tick]:visible`,
     'x icon'                : `img[src*=cross]:visible`
-}
-
-//IMPORTANT: Programmatically add the validationTypes as element choices
-for (const validation_desc in window.validationTypes) {
-    window.elementChoices[` in the validation row labeled "${validation_desc}"`] = `tr[id=${window.validationTypes[validation_desc]}]`
 }
 
 window.ordinalChoices = {

@@ -14,7 +14,6 @@ window.parameterTypes = {
     ordinal: transformKeysToRegExp(window.ordinalChoices),
     recordStatusIcons: transformKeysToRegExp(window.recordStatusIcons),
     fileRepoIcons: transformKeysToRegExp(window.fileRepoIcons),
-    onlineDesignerFieldIcons: transformKeysToRegExp(window.onlineDesignerFieldIcons),
     participantListIcons: transformKeysToRegExp(window.participantListIcons),
     action: ['click on', 'check', 'uncheck', 'should see', 'should NOT see'],
     addEditField: ['Add New Field', 'Edit Field'],
@@ -76,8 +75,7 @@ window.parameterTypes = {
         'Save & Add New Instance',
     ],
     labeledElement: labeledElementTypes,
-    labeledExactly: ['labeled', 'labeled exactly', 'for the instrument row labeled', 'for the variable', 'for the File Repository file named', 'for Data Quality Rule #', 'within the Record Locking Customization table for the Data Collection Instrument named', 'the enabled survey icon link for the instrument row', 'the enabled survey icon link for the instrument row', 'for the Discrepant field labeled', 'within the Record Locking Customization table for the Data Collection Instrument named', 'for the field labeled'],
-    linkNames: ['link', 'tab', 'instrument', 'icon'],
+    labeledExactly: ['labeled', 'labeled exactly', 'within the Record Locking Customization table for the Data Collection Instrument named', 'for the Discrepant field labeled', 'within the Record Locking Customization table for the Data Collection Instrument named', 'for the field labeled'],
     loginTypes: ['attempt to login to REDCap with', 'am still logged in to REDCap with', 'login to REDCap with', 'successfully login to REDCap with', 'provide E-Signature credentials for'],
     projectRequestLabel: ['Create Project', 'Send Request'],
     notSeeDC: ['should see a Data Collection Instrument named', 'should NOT see a Data Collection Instrument named', 'should no longer see a Data Collection Instrument named'],
@@ -97,8 +95,6 @@ window.parameterTypes = {
     recordIDEvent: ['record ID', 'event'],
     repeatability: ['enabled', 'disabled', 'modifiable', 'unchangeable'],
     saveButtonRouteMonitoring: [
-        ' and cancel the confirmation window',
-        ' and accept the confirmation window',
         ' and will leave the tab open when I return to the REDCap project',
     ],
     select: ['selected', 'unselected'],
@@ -114,5 +110,4 @@ window.parameterTypes = {
     ],
     toDownloadFile: [' to download a file', ' near "with records in rows" to download a file', ' near "with records in columns" to download a file'],
     userRightAction: ['add', 'remove'],
-    visibilityPrefix: ['an alert box with the following text:', 'a field named', 'a downloaded file named', 'Project status:', 'the exact time in the', "today's date in the"]
 }

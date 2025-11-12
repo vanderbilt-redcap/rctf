@@ -28,16 +28,6 @@ function performAction(action, element, disabled_text){
     }
 }
 
-function before_click_monitor(type){
-    if (type === " and cancel the confirmation window"){
-        window.rctfCancelNextConfirm = true
-    }
-}
-
-function after_click_monitor(type){
-
-}
-
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
@@ -53,14 +43,14 @@ function after_click_monitor(type){
          //If the button shows up on the main section, we can click it like a typical element
          if(btn.length){
 
-             cy.get('button').contains(text).click({ no_csrf_check: true })
+             cy.wrap(btn[0]).click()
 
          //If the button does NOT show up on main section, let's find it in the dropdown section
          } else {
 
              cy.get('button#submit-btn-dropdown').
                 first().
-                click({ no_csrf_check: true }).
+                click().
                 closest('div').
                 find('a').
                 contains(text).
@@ -83,10 +73,8 @@ function after_click_monitor(type){
  * @param {string} toDownloadFile
  * @description Clicks on a button element with a specific text label.
  */
-Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button {labeledExactly} {string}{saveButtonRouteMonitoring}{baseElement}{iframeVisibility}{toDownloadFile}", (article_type, online_designer_button, ordinal, exactly, text, button_type, base_element, iframe, download) => {
+Given("I click on( ){articleType}( ){ordinal}( )button {labeledExactly} {string}{saveButtonRouteMonitoring}{baseElement}", (article_type, ordinal, exactly, text, button_type, base_element) => {
     cy.then(() => {
-        before_click_monitor(button_type)
-    }).then(() => {
         let ord = 0
         if(ordinal !== undefined) ord = window.ordinalChoices[ordinal]
 
@@ -112,16 +100,11 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
             window.survey_disable_attempt = true
         }
 
-        if(download.includes("to download a file")) {
-            const loadScript = '<script> setTimeout(() => location.reload(), 2000); </script>'
-            cy.get('body').invoke('append', loadScript)
-        }
-
         let outer_element = window.elementChoices[base_element]
 
         let force = base_element === ' in the dialog box' ? { force: true } : {}
 
-        if (iframe === " in the iframe" || outer_element === 'iframe'){
+        if (outer_element === 'iframe'){
             const base = cy.frameLoaded().then(() => { cy.iframe() })
 
             if(outer_element === 'iframe'){
@@ -162,23 +145,6 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
 
         } else {
 
-            if(window.parameterTypes['onlineDesignerButtons'].includes(online_designer_button) &&
-                exactly === "for Data Quality Rule #") {
-                outer_element = `table:visible tr:has(div.rulenum:contains(${JSON.stringify(text)})):visible`
-                text = online_designer_button.replace(/"/g, '')
-
-            } else if(window.parameterTypes['onlineDesignerButtons'].includes(online_designer_button) &&
-                exactly === 'within the Record Locking Customization table for the Data Collection Instrument named') {
-                outer_element = `${window.tableMappings['record locking']}:visible tr:has(:contains(${JSON.stringify(text)}))`
-                text = online_designer_button.replace(/"/g, '') //Replace the button quotes with an empty string
-
-                //This is the key to the Online Designer buttons being identified!
-            } else if(window.parameterTypes['onlineDesignerButtons'].includes(online_designer_button)){
-                outer_element = `table:visible tr:has(td:has(div:has(div:contains("${text}"))))`
-                text = online_designer_button.replace(/"/g, '') //Replace the button quotes with an empty string
-            }
-
-            if(exactly === 'labeled exactly') {
                 let sel = `button:contains("${text}"):visible,input[value*=""]:visible`
 
                 cy.top_layer(sel, outer_element).within(() => {
@@ -186,7 +152,7 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
                 })
 
             } else {
-                cy.get(outer_element).last().within(() => {
+                cy.get_top_layer().within(() => {
                     cy.getLabeledElement('button', text, ordinal).then($button => {
                         if(text.includes("Open public survey")){ //Handle the "Open public survey" and "Open public survey + Logout" cases
                             cy.open_survey_in_same_tab($button, !(button_type !== undefined && button_type === " and will leave the tab open when I return to the REDCap project"), (text === 'Log out+ Open survey'))
@@ -210,102 +176,27 @@ Given("I click on( ){articleType}( ){onlineDesignerButtons}( ){ordinal}( )button
         if(base_element === " on the Add/Edit Branching Logic dialog box" || base_element === " in the Add/Edit Branching Logic dialog box"){
             cy.wait(2000)
         }
-    }).then(() => {
-        after_click_monitor(button_type)
     })
 })
 
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} linkNames
  * @param {string} text - the text on the anchor element you want to click
- * @param {string} saveButtonRouteMonitoring
- * @param {string} toDownloadFile
- * @param {string} baseElement
  * @description Clicks on an anchor element with a specific text label.
  */
-Given("I click on the( ){ordinal}( ){onlineDesignerFieldIcons}( ){fileRepoIcons}( ){linkNames}( ){labeledExactly} {string}{saveButtonRouteMonitoring}{toDownloadFile}{baseElement}", (ordinal, designer_field_icons, file_repo_icons, link_name, exactly, text, link_type, download, base_element) => {
-    before_click_monitor(link_type)
+Given("I click on the( ){ordinal} link labeled {string}", (ordinal, text) => {
+    cy.getLabeledElement('link', text, ordinal).click()
+})
 
-    let ord = 0
-    if(ordinal !== undefined) ord = window.ordinalChoices[ordinal]
-
-    cy.not_loading()
-
-    if(base_element === " in the File Repository table"){
-        cy.wait_for_datatables().assertWindowProperties()
-    }
-
-    if(base_element === undefined){
-        base_element = ''
-    }
-    let outer_element = window.elementChoices[base_element]
-
-    if(download.includes("to download a file")) {
-        const loadScript = '<script> setTimeout(() => location.reload(), 2000); </script>';
-        cy.get('body').invoke('append', loadScript);
-    }
-
-    if(exactly === "for the field labeled") {
-        let contains = ''
-        text.split(' ').forEach((val) => {
-            contains += `:has(:contains(${JSON.stringify(val)}))`
-        })
-
-        outer_element = `tr${contains}:visible`
-        cy.top_layer(`a:visible`, outer_element).within(() => {
-            cy.get(`${window.onlineDesignerFieldIcons[designer_field_icons]}`).eq(ord).scrollIntoView().click({force: true})
-        })
-    } else if(exactly === "for Data Quality Rule #") {
-        outer_element = `table:visible tr:has(div.rulenum:contains(${JSON.stringify(text)})):visible`
-        cy.top_layer(`a:visible`, outer_element).within(() => {
-            cy.get(`${window.onlineDesignerFieldIcons[designer_field_icons]}`).eq(ord).scrollIntoView().click({force: true})
-        })
-    } else if(exactly === "for the Discrepant field labeled") {
-        outer_element = `table:visible tr:has(:contains(${JSON.stringify(text)})):visible`
-        cy.top_layer(`a:visible`, outer_element).within(() => {
-            cy.get(`${window.onlineDesignerFieldIcons[designer_field_icons]}`).eq(ord).scrollIntoView().click({force: true})
-        })
-    } else if(exactly === "for the variable") {
-        const legacy_selector = `table[id*=design-]:contains(${JSON.stringify(`Variable: ${text}`)}):visible`
-        const current_selector = `table[id*=design-]:contains(${JSON.stringify(`Field Name: ${text}`)}):visible`
-        cy.top_layer(`a:visible`, `${legacy_selector},${current_selector}`).within(() => {
-            cy.get(`${window.onlineDesignerFieldIcons[designer_field_icons]}`).eq(ord).scrollIntoView().click({force: true})
-        })
-    } else if(exactly === "for the File Repository file named"){
-        outer_element = `${window.tableMappings['file repository']}:visible tr:has(:contains(${JSON.stringify(text)}))`
-        cy.top_layer(`a:contains(${JSON.stringify(text)})`, outer_element).within(() => {
-            if(file_repo_icons === undefined){
-                file_repo_icons = designer_field_icons
-            }
-            cy.get(`${window.fileRepoIcons[file_repo_icons]}`).eq(ord).click()
-        })
-    } else if(exactly === "within the Record Locking Customization table for the Data Collection Instrument named"){
-        outer_element = `${window.tableMappings['record locking']}:visible tr:has(:contains(${JSON.stringify(text)}))`
-        cy.top_layer(`a:has(img:visible)`, outer_element).within(() => {
-            if(file_repo_icons === undefined){
-                file_repo_icons = designer_field_icons
-            }
-            cy.get(`${window.onlineDesignerFieldIcons[file_repo_icons]}`).eq(ord).click()
-        })
-    } else if(exactly === 'labeled exactly') {
-        cy.top_layer(`a:contains(${JSON.stringify(text)}):visible`, outer_element).within(() => {
-            cy.get('a:visible').contains(new RegExp("^" + text + "$", "g")).eq(ord).click()
-        })
-    } else if(download.includes('with records in')) {
-        let keyword = download.includes('rows') ? 'rows' : 'columns'
-
-        cy.top_layer(`a:contains(${JSON.stringify(text)}):visible`, outer_element).within(() => {
-            //Note: This is a pretty brittle approach, but it works ... best way to handle this weird edge case where we are looking for "Download your Data Import Template", which has two hits
-            cy.get(`a:contains(${JSON.stringify(text)}):visible`).eq(keyword === "rows" ? 0 : 1).contains(text).eq(ord).click()
-        })
-
-    } else {
-        cy.getLabeledElement(link_name, text, ordinal).click()
-    }
-
-    after_click_monitor(link_type)
+/**
+ * @module Interactions
+ * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
+ * @param {string} text - the text on the anchor element you want to click
+ * @description Clicks on an anchor element with a specific text label.
+ */
+Given("I click on the( ){ordinal} icon labeled {string}", (ordinal, text) => {
+    cy.getLabeledElement('icon', text, ordinal).click()
 })
 
 /**
@@ -321,6 +212,15 @@ Given("I click on the button labeled {string} for the row labeled {string}", (te
         // Find the button element
         cy.get('button[title="' + text +'"]').click()
     })
+})
+
+/**
+ * @module Interactions
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @description Presses the tab key to move focus away from the current input field
+ */
+Given('I press the tab key to unfocus the current input field', () => {
+    cy.press(Cypress.Keyboard.Keys.TAB)
 })
 
 /**
@@ -640,7 +540,7 @@ Given('I clear the field labeled {string}', (label) => {
  * @param {string} baseElement
  * @description Selects a checkbox field by its label
  */
-Given("(for the Event Name \")(the Column Name \")(for the Column Name \"){optionalString}(\", I )(I ){clickType} the{ordinal} {checkBoxRadio} {labeledExactly} {string}{baseElement}{iframeVisibility}", (event_name, check, ordinal, type, labeled_exactly, label, base_element, iframe) => {
+Given("(for the Event Name \"){optionalString}(\", I )(I ){clickType} the{ordinal} {checkBoxRadio} {labeledExactly} {string}{baseElement}{iframeVisibility}", (event_name, check, ordinal, type, labeled_exactly, label, base_element, iframe) => {
     cy.not_loading()
 
     //This is to accommodate for aliases such as "toggle button" which is actually a checkbox behind the scenes
@@ -956,13 +856,13 @@ Given("I wait for (another ){int} {timeType}", (time, unit) => {
 Given("I {enterType} {string} into the field with the placeholder text of {string}", (enter_type, text, placeholder) => {
     const selector = 'input[placeholder="' + placeholder + '"]:visible,input[value="' + placeholder + '"]:visible'
 
-    const elm = cy.get(selector)
-
-    if(enter_type === "enter"){
-        elm.type(text)
-    } else if (enter_type === "clear field and enter") {
-        elm.clear().type(text)
-    }
+    /**
+     * We used to skip the clear() call and append text based on the enterType param,
+     * but that caused hard to predict intermittent failures in some case.
+     * Always clearing creates more consistent behavior, and is generally what the
+     * user interprets the step to do anyway.
+     */
+    cy.get(selector).clear().type(text)
 })
 
 /**
@@ -1104,7 +1004,7 @@ Given('I click on the date picker widget on the field labeled {string}', (label)
  */
 Given('I click on the {string} button for the field labeled {string}', (button_label, label) => {
     cy.get(`label:contains(${JSON.stringify(label)})`).parentsUntil('tr').parent().within(() => {
-        cy.get(`button:contains(${JSON.stringify(button_label)}):visible`).click({no_csrf_check: true})
+        cy.get(`button:contains(${JSON.stringify(button_label)}):visible`).click()
     })
 })
 
@@ -1147,7 +1047,7 @@ Given("I click on the {string} {labeledElement} within (a)(the) {tableTypes} tab
  * @param {disabled} disabled_text - optional "is disabeld" text
  * @description Performs an action on a labeled element in the specified table row and/or column
  */
-Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optionalQuotedString}( )in the (column labeled ){optionalQuotedString}( and the )row labeled {string}( that){disabled}", (action, articleType, labeledElement, text, columnLabel, rowLabel, disabled_text) => {
+Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labeled ){optionalQuotedString}( )in the (column labeled ){optionalQuotedString}( and the )row labeled {string}( that){disabled}", (action, articleType, ordinal, labeledElement, text, columnLabel, rowLabel, disabled_text) => {
     const performActionOnTarget = (target) =>{
         console.log('performActionOnTarget target', target)
         if(action === 'should NOT see'){
@@ -1169,7 +1069,7 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
                 }
 
                 if(text){
-                    cy.getLabeledElement(labeledElement, text).then(result =>{
+                    cy.getLabeledElement(labeledElement, text, ordinal).then(result =>{
                         next(action, result)
                     })
                 }
@@ -1225,37 +1125,49 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
     }
     else if(rowLabel){
         const escapedRowLabel = rowLabel.replaceAll('"', '\\"')
-        const rowContainsSelector = `tr:contains("${escapedRowLabel}")`
-        cy.get(rowContainsSelector).then(results => {
-            results = results.filter((i, row) => {
-                return !(row.closest('table').classList.contains('form-label-table'))
+        const rowContainsSelector = `tr :contains("${escapedRowLabel}")`
+        cy.get(rowContainsSelector).filterMatches(rowLabel).then(results => {
+            const rows = []
+            let lastRow
+            results.each((i, element) => {
+                const row = element.closest('tr')
+
+                // If multiple elements on a single row match, make sure we only consider that row once (e.g. C.3.30.1800)
+                if(row !== lastRow){
+                    rows.push(row)
+                }
+
+                lastRow = row
             })
 
-            cy.wrap(results).filterMatches(text).then(results => {
-                if(results.length === 0){
-                    throw 'Row with given label not found'
-                }
-                else if(results.length > 1){
-                    console.log('rows found', results)
-                    throw 'Multiple rows found for the given label'
-                }
-                
-                const row = results[0]
-                let next
-                if(row.closest('table').closest('div').id.startsWith('setupChklist-')){
-                    /**
-                     * We're on the Project Setup page.
-                     * What look like table rows here are just divs that require special handling. 
-                     */
-                    next = cy.get(rowContainsSelector.replace('tr', 'div')).filterMatches(text)
-                }
-                else{
-                    next = cy.wrap(row);
-                }
+            if(rows.length === 0){
+                throw 'Row with given label not found'
+            }
+            else if(rows.length > 1){
+                console.log('elements found matching row label', rows)
+                throw 'Multiple rows found for the given label'
+            }
+            
+            let row = rows[0]
+            if(row.closest('table').classList.contains('form-label-table')){
+                // Use the next parent row rather than the nested table's row
+                row = row.parentElement.closest('tr')
+            }
 
-                next.then(row => {
-                    performActionOnTarget(row)
-                })
+            let next
+            if(row.closest('table').closest('div').id.startsWith('setupChklist-')){
+                /**
+                 * We're on the Project Setup page.
+                 * What look like table rows here are just divs that require special handling. 
+                 */
+                next = cy.get(rowContainsSelector.replace('tr', 'div')).filterMatches(rowLabel).closest('div')
+            }
+            else{
+                next = cy.wrap(row);
+            }
+
+            next.then(row => {
+                performActionOnTarget(row)
             })
         })
     }
@@ -1266,4 +1178,13 @@ Given("I {action} {articleType}( ){optionalLabeledElement}( )(labeled ){optional
          */
         throw 'Support for omitting both column & row labels is not yet implemented.  Please ask if you need it!'
     }
+})
+
+/**
+ * @module Interactions
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @description Cancels the confirmation dialog displayed during the following step 
+ */
+Given("I remember to click cancel on the confirmation dialog that appears after the following step", () => {
+   window.rctfCancelNextConfirm = true
 })

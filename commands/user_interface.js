@@ -215,7 +215,12 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
                 return
             }
 
-            row = cy.get(td_selector).eq(row_number)
+            if(row_number === 0) {
+                row = cy.get(`tr ${row_cell_type}:contains("${row_label}")`).filterMatches(row_label).closest('tr')
+            }
+            else{
+                row = cy.get(td_selector).eq(row_number)
+            }
 
             if(no_col_match_body && body_table === 'table'){
                 row.then(result =>{
@@ -224,6 +229,16 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
                 
                 return
             }
+
+            row.then(results => {
+                if(results.length === 0){
+                    throw 'Could not find a row containing the specified label'
+                }
+                else if(results.length > 1){
+                    console.log('Rows Matched:' , results)
+                    throw 'The row label matched multiple rows (see the console log for details). Please specify a string that only exists on the row you want to match.'
+                }
+            })
 
             row.each(($tr, $tri) => {
                 console.log(`table_cell_by_column_and_row_label() - Looking for the \`${row_cell_type}\` selector in this row: `, $tr)
