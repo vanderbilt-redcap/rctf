@@ -1028,6 +1028,8 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
  * as the root of some of our existing duplicate logic is the lack of built-in "if" support.
  */
 Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectOption) {
+    console.log('getLabeledElement()', arguments)
+    
     return cy.retryUntilTimeout((lastRun) => {
         cy.document().then(document => {
             const attributeName = 'data-bs-original-title'
