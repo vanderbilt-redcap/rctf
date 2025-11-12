@@ -408,6 +408,7 @@ Cypress.Commands.overwrite(
 Cypress.Commands.overwrite('within', (...args) => {
     const originalWithin = args.shift()
     const subject = args[0]
+    const callbackFn = args.pop()
 
     if(subject[0].tagName === 'HTML'){
         /**
@@ -417,12 +418,20 @@ Cypress.Commands.overwrite('within', (...args) => {
          * In this case we will never find our desired element because we are searching
          * within the previous page's HTML that is not desired and no longer displayed.
          */
-        const callbackFn = args.at(-1)
         callbackFn(subject)
         return subject
     }
     else{
         console.log('cy.within() called with subject: ', subject[0])
+        window.withinTarget = subject[0]
+
+        args.push((...callbackArgs) => {
+            callbackFn(...callbackArgs)
+            cy.then(() => {
+                delete window.withinTarget
+            })
+        })
+
         return originalWithin(...args)
     }
 })
@@ -1055,11 +1064,17 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
             `input[type=submit][value*=${JSON.stringify(text)}]`,
         ].join(', ')
 
-        const results = cy.get_top_layer().then(topLayer => {
-            return topLayer.find(selector)
-        })
+        let next
+        if(window.withinTarget){
+            next = cy.get(selector)
+        }
+        else{
+            next = cy.get_top_layer().then(topLayer => {
+                return topLayer.find(selector)
+            })
+        }
 
-        return results.filterMatches(text).then(matches => {
+        return next.filterMatches(text).then(matches => {
             if(!Array.isArray(matches)){
                 /**
                  * It seems like this line should be run all the time,
