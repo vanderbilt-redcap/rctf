@@ -442,17 +442,16 @@ Given('I clear the field labeled {string}', (label) => {
  * @param {string} ordinal
  * @param {string} checkBoxRadio
  * @param {string} label - the label associated with the checkbox field
- * @param {string} baseElement
  * @description Selects a checkbox field by its label
  */
-Given("(for the Event Name \"){optionalString}(\", I )(I ){clickType} the{ordinal} {checkBoxRadio} {labeledExactly} {string}{baseElement}", (event_name, check, ordinal, type, labeled_exactly, label, base_element) => {
+Given("(for the Event Name \"){optionalString}(\", I )(I ){clickType} the{ordinal} {checkBoxRadio} {labeledExactly} {string}", (event_name, check, ordinal, type, labeled_exactly, label) => {
     cy.not_loading()
 
     //This is to accommodate for aliases such as "toggle button" which is actually a checkbox behind the scenes
     check = window.checkBoxAliases.hasOwnProperty(check) ? window.checkBoxAliases[check] : check
     type = window.checkBoxAliases.hasOwnProperty(type) ? window.checkBoxAliases[type] : type
 
-    let outer_element = window.elementChoices[base_element]
+    let outer_element = window.elementChoices['']
     let label_selector = `:contains(${JSON.stringify(label)}):visible`
     let element_selector = `input[type=${type}]:visible:not([disabled])`
 
