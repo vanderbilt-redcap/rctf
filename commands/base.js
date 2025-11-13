@@ -1240,3 +1240,23 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
         return match
     })
 })
+
+window.isExternalModuleFeature = () => {
+    return window.original_spec_path.split('/redcap_source/modules/').length > 1
+}
+
+window.getFilePathForCurrentFeature = (path) => {
+    if(isExternalModuleFeature()){
+        // Make the path relative to parent dir of the feature file.
+        const parts = window.original_spec_path.split('/')
+        parts.pop()
+        const absolutePath = parts.join('/') + '/' + path
+
+        const redcapSourceIndex = absolutePath.indexOf('/redcap_source/modules/')
+
+        // Cypress requires paths relative to the redcap_cypress/cypress/fixtures dir.
+        path = '../../..' + absolutePath.substring(redcapSourceIndex)
+    }
+
+    return path
+}
