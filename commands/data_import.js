@@ -127,20 +127,6 @@ Cypress.Commands.add('read_directory', (dir) => {
     })
 })
 
-Cypress.Commands.add('upload_data_dictionary', (fixture_file, date_format = "DMY") => {
-    cy.upload_file('/dictionaries/' + fixture_file, 'csv', 'input[name="uploadedfile"]')
-
-    cy.get('button[name=submit]').click({ check_csrf: true })
-    cy.get('html').should(($html) => {
-        expect($html).to.contain('Commit Changes')
-    })
-
-    cy.get('button').contains('Commit Changes').click({ check_csrf: true })
-    cy.get('html').should(($html) => {
-        expect($html).to.contain('Changes')
-    })
-})
-
 Cypress.Commands.add('upload_file', (fileName, fileType = ' ', selector = '', button_label = '', nearest_text = '') => {
     let label_selector = `:has(${selector}):visible`
     let upload_selector = 'input[type=file]:visible'
