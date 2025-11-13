@@ -444,35 +444,12 @@ Given('I clear the field labeled {string}', (label) => {
  * @param {string} label - the label associated with the checkbox field
  * @description Selects a checkbox field by its label
  */
-Given("(for the Event Name \"){optionalString}(\", I )(I ){clickType} the{ordinal} {checkBoxRadio} labeled {string}", (event_name, check, ordinal, type, label) => {
+Given("I {clickType} the{ordinal} {checkBoxRadio} labeled {string}", (check, ordinal, type, label) => {
     cy.not_loading()
 
     //This is to accommodate for aliases such as "toggle button" which is actually a checkbox behind the scenes
     check = window.checkBoxAliases.hasOwnProperty(check) ? window.checkBoxAliases[check] : check
     type = window.checkBoxAliases.hasOwnProperty(type) ? window.checkBoxAliases[type] : type
-
-    let outer_element = window.elementChoices['']
-    let label_selector = `:contains(${JSON.stringify(label)}):visible`
-    let element_selector = `input[type=${type}]:visible:not([disabled])`
-
-    //Special case: "Repeating Instruments and events" popup to select instruments by checkbox OR Bulk Record Delete
-    if(event_name.length > 0){
-
-        //Bulk record delete
-        if(Cypress.$(`#choose_select_forms_events_table`).length){
-            event_name = event_name.split('"')
-            event_name = event_name[1]
-            let event_num = event_name.split(' ')
-            event_num = event_num[1]
-
-            label_selector = `div:contains(${JSON.stringify(event_name)}):visible`
-            element_selector = `${label_selector} :contains(${JSON.stringify(label)}):visible input[value^="ef-event_${event_num}_"][value*="${label.replace(/\s+/g, '_')  // Replace spaces with underscores
-            .toLowerCase()}"][type=${type}]:visible:not([disabled])`
-        } else {
-            label_selector = `tr:contains(${JSON.stringify(event_name)}):visible`
-            element_selector = `tr:contains(${JSON.stringify(event_name)}):visible td:contains(${JSON.stringify(label)}):visible input[type=${type}]:visible:not([disabled])`
-        }
-    }
 
     function clickElement(element){
         element = element.scrollIntoView()
