@@ -29,7 +29,7 @@ Cypress.Commands.add('base_db_seed', () => {
                 cy.visit(line[0])
             })
 
-        } else if (decodeURIComponent(location.href).includes('Continue Last Run.feature')) {
+        } else if (Cypress.spec.name === 'Continue Last Run.feature') {
             cy.readFile('test_db/latest_url.info').then((urlData) => {
                 urlData = JSON.parse(urlData)
 
