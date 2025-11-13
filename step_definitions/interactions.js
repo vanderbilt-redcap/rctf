@@ -444,7 +444,7 @@ Given('I clear the field labeled {string}', (label) => {
  * @param {string} label - the label associated with the checkbox field
  * @description Selects a checkbox field by its label
  */
-Given("(for the Event Name \"){optionalString}(\", I )(I ){clickType} the{ordinal} {checkBoxRadio} {labeledExactly} {string}", (event_name, check, ordinal, type, labeled_exactly, label) => {
+Given("(for the Event Name \"){optionalString}(\", I )(I ){clickType} the{ordinal} {checkBoxRadio} labeled {string}", (event_name, check, ordinal, type, label) => {
     cy.not_loading()
 
     //This is to accommodate for aliases such as "toggle button" which is actually a checkbox behind the scenes
@@ -454,12 +454,6 @@ Given("(for the Event Name \"){optionalString}(\", I )(I ){clickType} the{ordina
     let outer_element = window.elementChoices['']
     let label_selector = `:contains(${JSON.stringify(label)}):visible`
     let element_selector = `input[type=${type}]:visible:not([disabled])`
-
-    //Special case: selecting a value within a table row
-    if(labeled_exactly === "in the row labeled"){
-        label_selector = `tr:contains(${JSON.stringify(label)}):visible`
-        element_selector = `tr:contains(${JSON.stringify(label)}):visible td input[type=${type}]:visible:not([disabled])`
-    }
 
     //Special case: "Repeating Instruments and events" popup to select instruments by checkbox OR Bulk Record Delete
     if(event_name.length > 0){
@@ -491,32 +485,9 @@ Given("(for the Event Name \"){optionalString}(\", I )(I ){clickType} the{ordina
         }
     }
 
-    function findAndClickElement(label_selector, outer_element, element_selector, label, labeled_exactly){
-        cy.getLabeledElement(type, label, ordinal).then(element => {
-            clickElement(cy.wrap(element))
-        })
-    }
-
-    if(labeled_exactly === "within the Record Locking Customization table for the Data Collection Instrument named"){
-
-        cy.get(`${window.tableMappings['record locking']}:visible tr:contains(${JSON.stringify(event_name)}):visible` ).then(($tr) => {
-            cy.wrap($tr).find('td').each(($td, index) => {
-                if($td.text().includes(event_name)){
-                    element_selector = `td:nth-child(${index + 1}) input[type=${type}]:visible:not([disabled])`
-                }
-            })
-        }).then(() => {
-            outer_element = `${window.tableMappings['record locking']}:visible`
-            label_selector = `tr:contains(${JSON.stringify(label)}):visible`
-            cy.top_layer(label_selector, outer_element).within(() => {
-                let selector = cy.get_labeled_element(element_selector, label, null, labeled_exactly === "labeled exactly")
-                clickElement(selector)
-            })
-        })
-
-    } else {
-        findAndClickElement(label_selector, outer_element, element_selector, label, labeled_exactly)
-    }
+    cy.getLabeledElement(type, label, ordinal).then(element => {
+        clickElement(cy.wrap(element))
+    })
 })
 
 /**
