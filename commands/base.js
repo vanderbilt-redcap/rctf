@@ -218,6 +218,8 @@ Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
 
     let top_layer
     cy.get(element).should($els => {
+        $els = $els.filter(':visible')
+
         //if more than body found, find element with highest z-index
         if ($els.length > 1) {
             //remove html from $els so only elements with z-index remain
