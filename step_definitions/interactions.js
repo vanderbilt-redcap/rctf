@@ -69,79 +69,18 @@ function performAction(action, element, disabled_text){
  * @param {string} baseElement
  * @description Clicks on a button element with a specific text label.
  */
-Given("I click on( ){articleType}( ){ordinal}( )button labeled {string}{saveButtonRouteMonitoring}{baseElement}", (article_type, ordinal, text, button_type, base_element) => {
+Given("I click on( ){articleType}( ){ordinal}( )button labeled {string}{saveButtonRouteMonitoring}", (article_type, ordinal, text, button_type) => {
     cy.then(() => {
         let ord = 0
         if(ordinal !== undefined) ord = window.ordinalChoices[ordinal]
 
-        // if(base_element === " on the Add/Edit Branching Logic dialog box" || base_element === " in the Add/Edit Branching Logic dialog box"){
-        //     cy.intercept({
-        //         method: 'POST',
-        //         url: '/redcap_v' + Cypress.env('redcap_version') + '/Design/branching_logic_builder.php?pid=*'
-        //     }).as('branching_logic')
-        // }
-
-        if(text === "Enable" && base_element === ' in the "Use surveys in this project?" row in the "Main project settings" section'){
-            cy.intercept({
-                method: 'POST',
-                url: '/redcap_v' + Cypress.env('redcap_version') + '/ProjectSetup/modify_project_setting_ajax.php?pid=*'
-            }).as('enable_survey')
-        }
-
-        if(text === "Disable" && base_element === ' in the "Use surveys in this project?" row in the "Main project settings" section'){
-            cy.intercept({
-                method: 'POST',
-                url: '/redcap_v' + Cypress.env('redcap_version') + '/ProjectSetup/modify_project_setting_ajax.php?pid=*'
-            }).as('disable_survey')
-            window.survey_disable_attempt = true
-        }
-
-        let outer_element = window.elementChoices[base_element]
-
-        let force = base_element === ' in the dialog box' ? { force: true } : {}
-
-        if (outer_element === 'iframe'){
-            const base = cy.frameLoaded().then(() => { cy.iframe() })
-
-            if(outer_element === 'iframe'){
-
-                let sel = `button:contains("${text}"):visible,input[value*="${text}"]:visible`
-
-                base.within(() => {
-                    cy.get(sel).eq(ord).click(force)
-                })
+        cy.getLabeledElement('button', text, ordinal).then($button => {
+            if(text.includes("Open public survey")){ //Handle the "Open public survey" and "Open public survey + Logout" cases
+                cy.open_survey_in_same_tab($button, !(button_type !== undefined && button_type === " and will leave the tab open when I return to the REDCap project"), (text === 'Log out+ Open survey'))
             } else {
-                let sel = `button:contains("${text}"):visible,input[value*="${text}"]:visible`
-
-                base.within(() => {
-                    cy.top_layer(sel, outer_element).within(() => {
-                        cy.get(sel).eq(ord).click(force)
-                    })
-                })
+                cy.wrap($button).click()
             }
-
-        } else {
-            cy.getLabeledElement('button', text, ordinal).then($button => {
-                if(text.includes("Open public survey")){ //Handle the "Open public survey" and "Open public survey + Logout" cases
-                    cy.open_survey_in_same_tab($button, !(button_type !== undefined && button_type === " and will leave the tab open when I return to the REDCap project"), (text === 'Log out+ Open survey'))
-                } else {
-                    cy.wrap($button).click()
-                }
-            })
-        }
-
-        if(text === "Enable" && base_element === ' in the "Use surveys in this project?" row in the "Main project settings" section'){
-            cy.wait('@enable_survey')
-        }
-
-        if(text === "Disable" && base_element === ' in the dialog box' && window.survey_disable_attempt){
-            cy.wait('@disable_survey')
-            window.survey_disable_attempt = false
-        }
-
-        if(base_element === " on the Add/Edit Branching Logic dialog box" || base_element === " in the Add/Edit Branching Logic dialog box"){
-            cy.wait(2000)
-        }
+        })
     })
 })
 
