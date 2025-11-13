@@ -445,14 +445,12 @@ Given('I clear the field labeled {string}', (label) => {
  * @param {string} baseElement
  * @description Selects a checkbox field by its label
  */
-Given("(for the Event Name \"){optionalString}(\", I )(I ){clickType} the{ordinal} {checkBoxRadio} {labeledExactly} {string}{baseElement}{iframeVisibility}", (event_name, check, ordinal, type, labeled_exactly, label, base_element, iframe) => {
+Given("(for the Event Name \"){optionalString}(\", I )(I ){clickType} the{ordinal} {checkBoxRadio} {labeledExactly} {string}{baseElement}", (event_name, check, ordinal, type, labeled_exactly, label, base_element) => {
     cy.not_loading()
 
     //This is to accommodate for aliases such as "toggle button" which is actually a checkbox behind the scenes
     check = window.checkBoxAliases.hasOwnProperty(check) ? window.checkBoxAliases[check] : check
     type = window.checkBoxAliases.hasOwnProperty(type) ? window.checkBoxAliases[type] : type
-
-    const elm = (iframe === " in the iframe") ? cy.frameLoaded().then(() => { cy.iframe() }) : null
 
     let outer_element = window.elementChoices[base_element]
     let label_selector = `:contains(${JSON.stringify(label)}):visible`
@@ -517,8 +515,6 @@ Given("(for the Event Name \"){optionalString}(\", I )(I ){clickType} the{ordina
             })
         })
 
-    } else if(iframe === " in the iframe") {
-        elm.within(() => { findAndClickElement(label_selector, outer_element, element_selector, label, labeled_exactly) })
     } else {
         findAndClickElement(label_selector, outer_element, element_selector, label, labeled_exactly)
     }
