@@ -301,6 +301,14 @@ Cypress.Commands.overwrite(
         if(options === undefined) options = {} //If no options object exists, create it
         //console.log(subject)
 
+        if(subject[0].innerText.includes('Import Data')){
+            /**
+             * REDCap has a bug where if less than a second passes between certain requests
+             * you will receive the "Multiple tabs/windows open!" CSRF token error.
+             */
+            cy.wait(1000)
+        }
+
         if(subject[0].nodeName === "A" ||
             subject[0].nodeName === "BUTTON" ||
             (subject[0].nodeName === "INPUT" && ["button", "submit"].includes(subject[0].type) && ["", null].includes(subject[0].onclick))
