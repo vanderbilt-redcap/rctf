@@ -1231,6 +1231,7 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                         /**
                          * We've reached a parent that is large enough that our scope is now too large for a valid match
                          */
+                        console.log('getLabeledElement() breaking out of the loop due to clientHeight', current)
                         break
                     }
 
