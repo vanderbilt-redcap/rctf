@@ -356,8 +356,8 @@ Cypress.Commands.overwrite(
                             if(!disappearingElement.checkVisibility()){
                                 /**
                                  * Calling checkVisibility() is apparently not good enough since there seems to be
-                                 * a bug in Cypress where calls like cy.get() still return elements that are not longer
-                                 * actually present in the dom.  It's like the reference the the body is stale internally
+                                 * a bug in Cypress where calls like cy.get() still return elements that are no longer
+                                 * actually present in the dom.  It's like the reference to the body is stale internally
                                  * in Cypress somehere.  In any case, this works around this issue on B.6.4.1400.
                                  */
                                 cy.get('body').then(body => {
