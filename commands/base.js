@@ -870,7 +870,7 @@ function filterCoveredElements(matches) {
      * We determine the html tag using the closest() method to ensure
      * the correct html tag is selected if we're in an iframe.
      */
-    let topElement = matches[0].closest('html')
+    let topElement = matches[0]?.closest('html')
     matches.forEach(element => {
         let current = element
         while(current = current.parentElement){
