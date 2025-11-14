@@ -361,7 +361,22 @@ Cypress.Commands.overwrite(
                                  * in Cypress somehere.  In any case, this works around this issue on B.6.4.1400.
                                  */
                                 cy.get('body').then(body => {
-                                    if(body !== disappearingElement && !body[0].contains(disappearingElement)){
+                                    if(
+                                        /**
+                                         * Is the disappearingElement is not the body,
+                                         * then we're not looking for a page reload,
+                                         * and checkVisibility() is all we care about. 
+                                         */
+                                        disappearingElement.tagName !== 'body'
+                                        ||
+                                        /**
+                                         * If the disappearingElement is the previous body.
+                                         * Make sure it's not the same as the current body
+                                         * to verify that the page had reloaded
+                                         * and that cy.get('body') is returning the new body.
+                                         */
+                                        body !== disappearingElement
+                                    ){
                                         cy.log('Disappearing element as disappeared')
                                         cy.wrap(true)
                                     }
