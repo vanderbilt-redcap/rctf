@@ -311,7 +311,7 @@ Cypress.Commands.overwrite(
         const innerText = subject[0].innerText
         if(
             // Avoid a bug in REDCap where "Multiple tabs/windows open!" displays if requests are made too quickly
-            innerText.includes('Import Data')
+            ['Import Data', 'Commit Changes'].includes(innerText)
             ||
             // Wait for the javascript action to be attached to this link
             innerText.includes('FHIR Systems')
