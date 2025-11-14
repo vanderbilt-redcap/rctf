@@ -65,43 +65,21 @@ function performAction(action, element, disabled_text){
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} articleType
  * @param {string} ordinal
- * @param {string} saveButtonRouteMonitoring
- * @param {string} baseElement
  * @description Clicks on a button element with a specific text label.
  */
-Given("I click on( ){articleType}( ){ordinal}( )button labeled {string}{saveButtonRouteMonitoring}", (article_type, ordinal, text, button_type) => {
+Given("I click on( ){articleType}( ){ordinal}( )button labeled {string} and will leave the tab open when I return to the REDCap project", (article_type, ordinal, text) => {
     cy.then(() => {
         let ord = 0
         if(ordinal !== undefined) ord = window.ordinalChoices[ordinal]
 
         cy.getLabeledElement('button', text, ordinal).then($button => {
             if(text.includes("Open public survey")){ //Handle the "Open public survey" and "Open public survey + Logout" cases
-                cy.open_survey_in_same_tab($button, !(button_type !== undefined && button_type === " and will leave the tab open when I return to the REDCap project"), (text === 'Log out+ Open survey'))
+                cy.open_survey_in_same_tab($button, false, (text === 'Log out+ Open survey'))
             } else {
                 cy.wrap($button).click()
             }
         })
     })
-})
-
-/**
- * @module Interactions
- * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} text - the text on the anchor element you want to click
- * @description Clicks on an anchor element with a specific text label.
- */
-Given("I click on the( ){ordinal} link labeled {string}", (ordinal, text) => {
-    cy.getLabeledElement('link', text, ordinal).click()
-})
-
-/**
- * @module Interactions
- * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} text - the text on the anchor element you want to click
- * @description Clicks on an anchor element with a specific text label.
- */
-Given("I click on the( ){ordinal} icon labeled {string}", (ordinal, text) => {
-    cy.getLabeledElement('icon', text, ordinal).click()
 })
 
 /**
@@ -432,38 +410,6 @@ Given('I {enterType} {string} (is within)(into) the data entry form field labele
 Given('I clear the field labeled {string}', (label) => {
     cy.getLabeledElement('input', label).then(element =>{
         cy.wrap(element).clear()
-    })
-})
-
-/**
- * @module Interactions
- * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} clickType
- * @param {string} ordinal
- * @param {string} checkBoxRadio
- * @param {string} label - the label associated with the checkbox field
- * @description Selects a checkbox field by its label
- */
-Given("I {clickType} the{ordinal} {checkBoxRadio} labeled {string}", (check, ordinal, type, label) => {
-    cy.not_loading()
-
-    //This is to accommodate for aliases such as "toggle button" which is actually a checkbox behind the scenes
-    check = window.checkBoxAliases.hasOwnProperty(check) ? window.checkBoxAliases[check] : check
-    type = window.checkBoxAliases.hasOwnProperty(type) ? window.checkBoxAliases[type] : type
-
-    function clickElement(element){
-        element = element.scrollIntoView()
-        if (type === "radio" || check === "click on") {
-            element.click()
-        } else if (check === "check") {
-            element.check()
-        } else if (check === "uncheck") {
-            element.uncheck()
-        }
-    }
-
-    cy.getLabeledElement(type, label, ordinal).then(element => {
-        clickElement(cy.wrap(element))
     })
 })
 
@@ -893,7 +839,7 @@ Given("I click on the {string} {labeledElement} within (a)(the) {tableTypes} tab
  * @param {disabled} disabled_text - optional "is disabeld" text
  * @description Performs an action on a labeled element in the specified table row and/or column
  */
-Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labeled ){optionalQuotedString}( )in the (column labeled ){optionalQuotedString}( and the )row labeled {string}( that){disabled}", (action, articleType, ordinal, labeledElement, text, columnLabel, rowLabel, disabled_text) => {
+Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labeled ){optionalQuotedString}( )(in the )(column labeled ){optionalQuotedString}( and the )(row labeled ){optionalQuotedString}( that){disabled}", (action, articleType, ordinal, labeledElement, text, columnLabel, rowLabel, disabled_text) => {
     const performActionOnTarget = (target) =>{
         console.log('performActionOnTarget target', target)
         if(action === 'should NOT see'){
@@ -1018,11 +964,7 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
         })
     }
     else{
-        /**
-         * Currently this case cannot be reached because rowLabel is required.
-         * Eventually we should make rowLabel optional as well and consolidate this with other generic {action} steps.
-         */
-        throw 'Support for omitting both column & row labels is not yet implemented.  Please ask if you need it!'
+        performActionOnTarget(Cypress.$('html'))
     }
 })
 

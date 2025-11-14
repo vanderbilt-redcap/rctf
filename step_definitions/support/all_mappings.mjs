@@ -94,9 +94,6 @@ window.parameterTypes = {
     ],
     recordIDEvent: ['record ID', 'event'],
     repeatability: ['enabled', 'disabled', 'modifiable', 'unchangeable'],
-    saveButtonRouteMonitoring: [
-        ' and will leave the tab open when I return to the REDCap project',
-    ],
     select: ['selected', 'unselected'],
     tableName: ['', ' of the User Rights table', ' of the Reports table', ' of the Participant List table'],
     timeType: ['seconds', 'second', 'minutes', 'minute'],
