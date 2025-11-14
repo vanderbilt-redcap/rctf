@@ -303,6 +303,8 @@ const getElementThatShouldDisappearAfterClick = ($el) => {
 Cypress.Commands.overwrite(
     'click',
     (originalFn, subject, options) => {
+        const openInSameTab = window.openNextClickInNewTab !== true
+        delete window.openNextClickInNewTab
 
         window.aboutToUnload = true
         if(options === undefined) options = {} //If no options object exists, create it
@@ -329,7 +331,14 @@ Cypress.Commands.overwrite(
             //If our other detachment prevention measures failed, let's check to see if it detached and deal with it
             cy.wrap(subject).then($el => {
                 $el = Cypress.dom.isDetached($el) ? Cypress.$($el): $el
-                return originalFn($el, options)
+
+                if(innerText.includes("Open public survey")){
+                    cy.open_survey_in_same_tab(subject, openInSameTab, false)
+                }
+
+                cy.wrap($el).then(() => {
+                    return originalFn($el, options)
+                })
             })
             .then($el => {
                 $el = $el[0]

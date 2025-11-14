@@ -74,10 +74,10 @@ Given("I click on( ){articleType}( ){ordinal}( )button labeled {string} and will
 
         cy.getLabeledElement('button', text, ordinal).then($button => {
             if(text.includes("Open public survey")){ //Handle the "Open public survey" and "Open public survey + Logout" cases
-                cy.open_survey_in_same_tab($button, false, (text === 'Log out+ Open survey'))
-            } else {
-                cy.wrap($button).click()
+                window.openNextClickInNewTab = true
             }
+
+            cy.wrap($button).click()
         })
     })
 })
