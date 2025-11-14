@@ -359,12 +359,12 @@ Cypress.Commands.overwrite(
                                     getBodyAction = cy.wrap(null)
                                 }
                                 else{
-                                /**
-                                 * Calling checkVisibility() is apparently not good enough since there seems to be
-                                 * a bug in Cypress where calls like cy.get() still return elements that are no longer
-                                 * actually present in the dom.  It's like the reference to the body is stale internally
-                                 * in Cypress somehere.  In any case, this works around this issue on B.6.4.1400.
-                                 */
+                                     /**
+                                      * Calling checkVisibility() is apparently not good enough since there seems to be
+                                      * a bug in Cypress where calls like cy.get() still return elements that are no longer
+                                      * actually present in the dom.  It's like the reference to the body is stale internally
+                                      * in Cypress somehere.  In any case, this works around this issue on B.6.4.1400.
+                                      */
                                     getBodyAction = cy.get('body')
                                 }
 
