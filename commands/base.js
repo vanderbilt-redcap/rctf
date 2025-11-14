@@ -301,11 +301,14 @@ Cypress.Commands.overwrite(
         if(options === undefined) options = {} //If no options object exists, create it
         //console.log(subject)
 
-        if(subject[0].innerText.includes('Import Data')){
-            /**
-             * REDCap has a bug where if less than a second passes between certain requests
-             * you will receive the "Multiple tabs/windows open!" CSRF token error.
-             */
+        const innerText = subject[0].innerText
+        if(
+            // Avoid a bug in REDCap where "Multiple tabs/windows open!" displays if requests are made too quickly
+            innerText.includes('Import Data')
+            ||
+            // Wait for the javascript action to be attached to this link
+            innerText.includes('FHIR Systems')
+        ){
             cy.wait(1000)
         }
 
@@ -378,7 +381,7 @@ Cypress.Commands.overwrite(
                         ||
                         win.jQuery.active === 0
                         ||
-                        subject[0].innerText.includes('Request delete project') // Work around exception in REDCap
+                        innerText.includes('Request delete project') // Work around exception in REDCap
                     
                     if(!returnValue){
                         /**
@@ -397,9 +400,9 @@ Cypress.Commands.overwrite(
                     win.location.href.includes('ProjectSetup/index')
                     &&
                     (
-                        subject[0].innerText.includes('Enable')
+                        innerText.includes('Enable')
                         ||
-                        subject[0].innerText.includes('Disable')
+                        innerText.includes('Disable')
                     )
                 ){
                     /**
