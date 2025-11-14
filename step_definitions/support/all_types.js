@@ -25,5 +25,6 @@ defineParameterType({
 
 defineParameterType({
     name: 'optionalQuotedString',
-    regexp: [/(?:"((?:[^"\\]|\\.)*)")?/, /(?:'((?:[^'\\]|\\.)*)')?/]
+    regexp: /(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")?/,
+    transformer: (single, double) => single ?? double ?? null
 })
