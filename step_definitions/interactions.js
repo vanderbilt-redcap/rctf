@@ -855,43 +855,43 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
                 }
             }
 
-            cy.wrap(target).within(() => {
-                const next = (action, result) =>{
-                    performAction(action, result, disabled_text)
-                }
+            const next = (action, result) =>{
+                performAction(action, result, disabled_text)
+            }
 
-                if(text){
-                    cy.getLabeledElement(labeledElement, text, ordinal).then(result =>{
-                        next(action, result)
-                    })
+            target = cy.wrap(target)
+
+            if(text){
+                target.getLabeledElement(labeledElement, text, ordinal).then(result =>{
+                    next(action, result)
+                })
+            }
+            else{
+                let selector
+                if(labeledElement === 'icon'){
+                    selector = 'i, img'
+                    }
+                else if(labeledElement === 'checkbox'){
+                    selector = 'input[type="checkbox"]'
+                }
+                else if(labeledElement === 'radio'){
+                    selector = 'input[type="radio"]'
                 }
                 else{
-                    let selector
-                    if(labeledElement === 'icon'){
-                        selector = 'i, img'
-                        }
-                    else if(labeledElement === 'checkbox'){
-                        selector = 'input[type="checkbox"]'
-                    }
-                    else if(labeledElement === 'radio'){
-                        selector = 'input[type="radio"]'
-                    }
-                    else{
-                        throw 'Unexpected labeledElement and text combo'
-                    }
-
-                    cy.get(selector).then(results => {
-                        results = results.filter(resultFilter)
-
-                        if(results.length != 1){
-                            console.log('performActionOnTarget results', results)
-                            throw 'Expected to find a single element, but found ' + results.length + ' instead.  See console log for details.'
-                        }
-                    
-                        next(action, results[0])
-                    })
+                    throw 'Unexpected labeledElement and text combo'
                 }
-            })
+
+                target.find(selector).then(results => {
+                    results = results.filter(resultFilter)
+
+                    if(results.length != 1){
+                        console.log('performActionOnTarget results', results)
+                        throw 'Expected to find a single element, but found ' + results.length + ' instead.  See console log for details.'
+                    }
+                
+                    next(action, results[0])
+                })
+            }
         }
         else if(action === 'should see'){
             cy.wrap(target).assertTextVisibility(text, true)

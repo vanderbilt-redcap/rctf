@@ -1064,7 +1064,7 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
  * We may want to introduce bahmutov/cypress-if at some point as well,
  * as the root of some of our existing duplicate logic is the lack of built-in "if" support.
  */
-Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectOption) {
+Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (subject, type, text, ordinal, selectOption) {
     console.log('getLabeledElement()', arguments)
     
     return cy.retryUntilTimeout((lastRun) => {
@@ -1091,9 +1091,14 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
             next = cy.get(selector)
         }
         else{
-            next = cy.get_top_layer().then(topLayer => {
-                return topLayer.find(selector)
-            })
+            if(subject === undefined || subject.is('html')){
+                next = cy.get_top_layer().then(topLayer => {
+                    return topLayer.find(selector)
+                })
+            }
+            else{
+                next = cy.wrap(subject.find(selector))
+            }
         }
 
         return next.filterMatches(text).then(matches => {
