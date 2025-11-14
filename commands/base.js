@@ -285,6 +285,13 @@ const getElementThatShouldDisappearAfterClick = ($el) => {
             &&
             $el.closest('form')
         )
+        ||
+        (
+            // B.6.4.1400 and others
+            $el.innerText === 'Close'
+            &&
+            $el.closest('.ui-dialog')?.innerText?.includes('page will now reload')
+        )
     ){
         // The whole page should be reloaded after any of these actions
         return Cypress.$('body')[0]
