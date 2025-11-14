@@ -346,17 +346,48 @@ Cypress.Commands.overwrite(
                                 })
                             }
                         }).then(() => {
-                            return cy.wrap(
-                                downloadDetected
-                                ||
-                                !disappearingElement.checkVisibility()
-                                ||
-                                Cypress.$('#stayOnPageReminderDialog:visible').length > 0
-                                ||
-                                Cypress.$('[aria-describedby="esign_popup"]').length > 0 // C.2.19.0500
-                                ||
-                                Cypress.$('[aria-describedby="certify_create"]').length > 0 // A.6.4.0100
-                            )
+                            if(!disappearingElement.checkVisibility()){
+                                /**
+                                 * Calling checkVisibility() is apparently not good enough since there seems to be
+                                 * a bug in Cypress where calls like cy.get() still return elements that are not longer
+                                 * actually present in the dom.  It's like the reference the the body is stale internally
+                                 * in Cypress somehere.  In any case, this works around this issue on B.6.4.1400.
+                                 */
+                                cy.get('body').then(body => {
+                                    if(body !== disappearingElement && !body[0].contains(disappearingElement)){
+                                        cy.log('Disappearing element as disappeared')
+                                        cy.wrap(true)
+                                    }
+                                    else{
+                                        cy.wrap(false)
+                                    }
+                                })
+                            }
+                            else{
+                                let skipReason
+                                if(downloadDetected){
+                                    skipReason = 'a download was detected'
+                                }
+                                else if(Cypress.$('#stayOnPageReminderDialog:visible').length > 0){
+                                    skipReason = 'the #stayOnPageReminderDialog is visible'
+                                }
+                                else if(Cypress.$('[aria-describedby="esign_popup"]').length > 0){
+                                    // C.2.19.0500
+                                    skipReason = 'the esign_popup is visible'
+                                }
+                                else if(Cypress.$('[aria-describedby="certify_create"]').length > 0){
+                                    // A.6.4.0100
+                                    skipReason = 'the certify_create dialog is visible'
+                                }
+
+                                if(skipReason){
+                                    cy.log('Skipping dissappearing element detection because ' + skipReason)
+                                    cy.wrap(true)
+                                }
+                                else{
+                                    cy.wrap(false)
+                                }
+                            }
                         })
                         /**
                          * Arbitrary wait after page load to hopefully avoid flaky tests
