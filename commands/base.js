@@ -1266,7 +1266,11 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                         childSelector = 'input'
                     }
                     else {
-                        // Leave childSelector blank.  Catch all for 'link', 'tab', 'instrument', etc.
+                        /**
+                         * Leave childSelector blank.
+                         * Used to be a catch all for 'link', 'tab', 'instrument', etc.
+                         * This might only be the case for 'link' now.
+                         */
                     }
 
                     if(childSelector !== null && type !== 'dropdown'){
