@@ -640,7 +640,7 @@ Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subj
             }
         }
 
-        if(subject){
+        if(subject && !subject.is('html')){
             return action(subject)
         }
         else{
@@ -857,7 +857,11 @@ function filterCoveredElements(matches) {
         }
     }
 
-    let topElement = Cypress.$('html')[0]
+    /**
+     * We determine the html tag using the closest() method to ensure
+     * the correct html tag is selected if we're in an iframe.
+     */
+    let topElement = matches[0].closest('html')
     matches.forEach(element => {
         let current = element
         while(current = current.parentElement){
