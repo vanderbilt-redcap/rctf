@@ -1143,6 +1143,8 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
  */
 Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (subject, type, text, ordinal, selectOption, expectFailure) {
     console.log('getLabeledElement()', arguments)
+
+    const errorMessage = `The ${type} labeled "${text}" ` + (expectFailure ? 'was unexepectedly found' : 'could not be found')
     
     return cy.retryUntilTimeout((lastRun) => {
         cy.document().then(document => {
@@ -1342,7 +1344,7 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                 return result
             }
         })
-    }, `The ${type} labeled "${text}" could not be found`)
+    }, errorMessage)
     .then((match) => {
         console.log('getLabeledElement() return value', match)
 
