@@ -842,10 +842,10 @@ Given("I click on the {string} {labeledElement} within (a)(the) {tableTypes} tab
 Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labeled ){optionalQuotedString}( )(in the )(column labeled ){optionalQuotedString}( and the )(row labeled ){optionalQuotedString}( that){disabled}", (action, articleType, ordinal, labeledElement, text, columnLabel, rowLabel, disabled_text) => {
     const performActionOnTarget = (target) =>{
         console.log('performActionOnTarget target', target)
-        if(action === 'should NOT see'){
-            cy.wrap(target).assertTextVisibility(text, false)
-        }
-        else if(labeledElement){
+        
+        const shouldNotSee = action === 'should NOT see'
+
+        if(labeledElement){
             let resultFilter = () => { return true }
             if(target.tagName === 'INPUT'){
                 const actualTarget = target
@@ -862,15 +862,23 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
             target = cy.wrap(target)
 
             if(text){
-                target.getLabeledElement(labeledElement, text, ordinal).then(result =>{
-                    next(action, result)
+                target.getLabeledElement(labeledElement, text, ordinal, undefined, shouldNotSee).then(result =>{
+                    if(shouldNotSee){
+                        if(result !== true){
+                            console.log('Unexpected element found', result)
+                            throw 'An element was found that was not expected to exist.  See console for details.'
+                        }
+                    }
+                    else{
+                        next(action, result)
+                    }
                 })
             }
             else{
                 let selector
                 if(labeledElement === 'icon'){
                     selector = 'i, img'
-                    }
+                }
                 else if(labeledElement === 'checkbox'){
                     selector = 'input[type="checkbox"]'
                 }
@@ -881,17 +889,28 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
                     throw 'Unexpected labeledElement and text combo'
                 }
 
-                target.find(selector).then(results => {
-                    results = results.filter(resultFilter)
+                target.then(target => {
+                    results = target.find(selector).filter(resultFilter)
 
-                    if(results.length != 1){
-                        console.log('performActionOnTarget results', results)
-                        throw 'Expected to find a single element, but found ' + results.length + ' instead.  See console log for details.'
+                    if(shouldNotSee){
+                        if(results.length !== 0){
+                            console.log('performActionOnTarget unexpected results', results)
+                            throw 'Found an unexpected element. See console log for details.'
+                        }
                     }
-                
-                    next(action, results[0])
+                    else{
+                        if(results.length != 1){
+                            console.log('performActionOnTarget results', results)
+                            throw 'Expected to find a single element, but found ' + results.length + ' instead.  See console log for details.'
+                        }
+                    
+                        next(action, results[0])
+                    }
                 })
             }
+        }
+        else if(shouldNotSee){
+            cy.wrap(target).assertTextVisibility(text, false)
         }
         else if(action === 'should see'){
             cy.wrap(target).assertTextVisibility(text, true)
@@ -964,7 +983,9 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
         })
     }
     else{
-        performActionOnTarget(Cypress.$('html'))
+        cy.get_top_layer().then(topLayer => {
+            performActionOnTarget(topLayer)
+        })
     }
 })
 

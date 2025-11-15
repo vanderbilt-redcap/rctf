@@ -1141,7 +1141,7 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
  * We may want to introduce bahmutov/cypress-if at some point as well,
  * as the root of some of our existing duplicate logic is the lack of built-in "if" support.
  */
-Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (subject, type, text, ordinal, selectOption) {
+Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (subject, type, text, ordinal, selectOption, expectFailure) {
     console.log('getLabeledElement()', arguments)
     
     return cy.retryUntilTimeout((lastRun) => {
@@ -1332,6 +1332,15 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
             }
 
             return null
+        }).then(result => {
+            if(expectFailure){
+                // Return true when the expected element is NOT found in order to stop retrying.
+                // The calling method should consider true to mean the labeled element was not found.
+                return result === null
+            }
+            else{
+                return result
+            }
         })
     }, `The ${type} labeled "${text}" could not be found`)
     .then((match) => {
