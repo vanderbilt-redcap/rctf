@@ -932,8 +932,19 @@ Cypress.Commands.add("filterMatches", {prevSubject: true}, function (matches, te
                 matches = matches.filter(match => match !== current)
             }
         }
-        else if(current.tagName === 'SCRIPT'){
+        else if(
             // Exclude script tag matches, since they were likely language strings that are not actually displayed
+            current.tagName === 'SCRIPT'
+            ||
+            /**
+             * There seems to be some kind of bug in the ":contains()" selector preventing the hidden child element
+             * containing "Save" from matching directly, and instead returning only it's parents from 
+             * #dataEntryTopOptionsButtons upward.  Because of this we can't be exactly certain which child was matched
+             * or we would just check ".is(':visible')" on that child.  Instead we just assume this parent will never
+             * be a direct match (e.g. B.2.6.0200)
+             */
+            current.id === 'dataEntryTopOptionsButtons'
+        ){
             matches = matches.filter(match => match !== current)
         }
         
