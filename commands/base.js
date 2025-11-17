@@ -1294,6 +1294,23 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                     if (childSelectors.length > 0) {
                         const children = findMatchingChildren(text, selectOption, match, current, childSelectors.join(','), childrenToIgnore)
                         console.log('getLabeledElement() children', children)
+
+                        if(expectFailure && children.length === 0){
+                            const otherChildSelector = 'input, button, textarea, select, i, img'
+                            const otherFields = findMatchingChildren(text, selectOption, match, current, otherChildSelector, childrenToIgnore)
+
+                            if(otherFields.length > 0){
+                                /**
+                                 * The expected field type was not found, but another type was.
+                                 * The matched text is likely associated that other field type.
+                                 * Consider this a successful failure to match, and do not
+                                 * keep searching parent elment, as that will likely cause a false match
+                                 * (e.g. C.4.18.0700).
+                                 */
+                                return null
+                            }
+                        }
+
                         if (children.length === 1) {
                             /**
                              * Example Steps:
