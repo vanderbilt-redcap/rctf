@@ -625,7 +625,7 @@ Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subj
                 }
 
                 /**
-                 * We use innerText.indexOf() rather than the ':contains()' selector
+                 * We use innerText rather than the ':contains()' selector
                  * to avoid matching text within hidden tags and <script> tags,
                  * since they are not actually visible.
                  * 
