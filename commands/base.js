@@ -1157,12 +1157,12 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
         })
 
         let selector = [
-            `input[placeholder=${JSON.stringify(text)}]`,
-            `:contains(${JSON.stringify(text)})`,
-            `[title*=${JSON.stringify(text)}]`,
-            `[data-bs-original-title*=${JSON.stringify(text)}]`,
-            `input[type=button][value*=${JSON.stringify(text)}]`,
-            `input[type=submit][value*=${JSON.stringify(text)}]`,
+            `input[placeholder=${JSON.stringify(text)}]:visible`,
+            `:contains(${JSON.stringify(text)}):visible`,
+            `[title*=${JSON.stringify(text)}]:visible`,
+            `[data-bs-original-title*=${JSON.stringify(text)}]:visible`,
+            `input[type=button][value*=${JSON.stringify(text)}]:visible`,
+            `input[type=submit][value*=${JSON.stringify(text)}]:visible`,
         ].join(', ')
 
         let next
