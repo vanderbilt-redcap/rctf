@@ -653,8 +653,12 @@ Given("I {enterType} {string} into the field with the placeholder text of {strin
      * but that caused hard to predict intermittent failures in some case.
      * Always clearing creates more consistent behavior, and is generally what the
      * user interprets the step to do anyway.
+     * 
+     * Some REDCap pages perform javascript background actions once a field loses focus
+     * We explicitly call blur and wait to more closesly match actual user behavior
+     * and prevent odd issues in Cypress (e.g. A.2.3.0200)
      */
-    cy.get(selector).clear().type(text)
+    cy.get(selector).clear().type(text).blur().wait(100)
 })
 
 /**
