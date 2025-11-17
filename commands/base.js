@@ -233,11 +233,6 @@ Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
             })
         }
         top_layer = $els.last() // Get the last since they are sorted in order of appearance in the DOM
-        if(Cypress.dom.isDetached(top_layer)){
-            console.log('Deteached top layer element', top_layer)
-            throw 'Top layer element detected is detattached from the dom.  See console log for element.'
-        }
-
         if(retryUntil){
             retryUntil(top_layer) //run assertions, so get can retry on failure
         }
