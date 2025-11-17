@@ -911,7 +911,11 @@ function filterCoveredElements(matches) {
 }
 
 Cypress.Commands.add("filterMatches", {prevSubject: true}, function (matches, text) {
-    matches = matches.toArray()
+    // We must check whether this is an array first to support empty array result sets (e.g. C.5.22.100)
+    if(!Array.isArray(matches)){
+        matches = matches.toArray()
+    }
+
     console.log('filterMatches before', matches)
 
     const matchesCopy = [...matches]
@@ -1186,7 +1190,8 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                 })
             }
             else{
-                next = cy.wrap(subject.find(selector))
+                // The toArray() syntax is needed to support the case where nothing is matched (e.g. C.5.22.100)
+                next = cy.wrap(subject.find(selector).toArray())
             }
         }
 
