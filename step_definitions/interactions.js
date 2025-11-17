@@ -322,10 +322,16 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
 
                             //Logic editor does not use an actual textarea; we need to invoke the text instead!
                             if(label === "Logic Editor"){
-                              cy.wrap($parent).parent().find(element).eq(ord).
-                                click({force: true}).
-                                invoke('attr', 'contenteditable', 'true').
-                                type(`{selectall} {backspace} {backspace} ${text}`, {force: true})
+                                cy.wrap($parent).parent().find(element).eq(ord).
+                                    click({force: true}).
+                                    invoke('attr', 'contenteditable', 'true').
+                                    type(`{selectall} {backspace} {backspace} ${text}`, {force: true})
+
+                                /**
+                                 * This popup might still incorrectly remain displayed depending on timing.
+                                 * Manually hide it to ensure consistent behavior.
+                                 */
+                                Cypress.$('#LSC_id_pdfsnapshotlogic').hide()
                             } else {
                                 cy.wrap($parent).parent().find(element).eq(ord).clear().type(text)
                             }
