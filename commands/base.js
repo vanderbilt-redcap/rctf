@@ -1247,19 +1247,19 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                         break
                     }
 
-                    let childSelector = null
+                    let childSelectors = []
                     if (type === 'icon') {
-                        childSelector = 'i, img'
+                        childSelectors = ['i', 'img']
                     }
                     else if (['checkbox', 'radio'].includes(type)) {
-                        childSelector = 'input[type=' + type + ']'
+                        childSelectors = ['input[type=' + type + ']']
                     }
                     else if (type === 'dropdown') {
                         if(selectOption !== undefined){
-                            childSelector = `option:containsCustom(${JSON.stringify(selectOption)})`
+                            childSelectors = [`option:containsCustom(${JSON.stringify(selectOption)})`]
                         }
                         else{
-                            childSelector = 'select'
+                            childSelectors = ['select']
                         }
                     }
                     else if (type === 'button'){
@@ -1268,14 +1268,14 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                             return current
                         }
 
-                        childSelector = 'input[type=button], input[type=submit], button'
+                        childSelectors = ['input[type=button]', 'input[type=submit], button']
                     }
                     else if (type === 'textarea'){
                         //.tox-editor-container is used for TinyMCE in C.3.24.1500
-                        childSelector = '.tox-editor-container, textarea'
+                        childSelectors = ['.tox-editor-container', 'textarea']
                     }
                     else if (['input', 'field'].includes(type)){
-                        childSelector = 'input'
+                        childSelectors = ['input']
                     }
                     else {
                         /**
@@ -1285,13 +1285,14 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                          */
                     }
 
-                    if(childSelector !== null && type !== 'dropdown'){
-                        // Required for the 'input field labeled "Search"' step in C.3.24.2100
-                        childSelector += ':visible'
+                    if(type !== 'dropdown'){
+                        for(i in childSelectors){
+                            childSelectors[i] += ':visible'
+                        }
                     }
 
-                    if (childSelector) {
-                        const children = findMatchingChildren(text, selectOption, match, current, childSelector, childrenToIgnore)
+                    if (childSelectors.length > 0) {
+                        const children = findMatchingChildren(text, selectOption, match, current, childSelectors.join(','), childrenToIgnore)
                         console.log('getLabeledElement() children', children)
                         if (children.length === 1) {
                             /**
