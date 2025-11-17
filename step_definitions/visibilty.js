@@ -68,26 +68,6 @@ Given("I should see the {dropdownType} field labeled {string} with the options b
 /**
  * @module Visibility
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} label - the label associated with the checkbox field
- * @param {string} check
- * @description Selects a checkbox field by its label
- */
-Given("I (should see)(see) a {checkBoxRadio} {labeledExactly} {string} that is {check}", (type, labeled_exactly, label, check) => {
-    let label_selector = `:has(:contains(${JSON.stringify(label)}):visible):has(input[type=checkbox]:visible)`
-    let element_selector = `input[type=checkbox]:visible`
-
-    //This is to accommodate for aliases such as "toggle button" which is actually a checkbox behind the scenes
-    check = window.checkBoxAliases.hasOwnProperty(check) ? window.checkBoxAliases[check] : check
-
-    cy.top_layer(label_selector).within(() => {
-        let selector = cy.get_labeled_element(element_selector, label, null, labeled_exactly === "labeled exactly")
-        selector.scrollIntoView().should(check === "checked" ? "be.checked" : "not.be.checked")
-    })
-})
-
-/**
- * @module Visibility
- * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} label - the text that should be displayed in an alert box
  * @param {string} select
  * @description Visually verifies that the alert box contains text

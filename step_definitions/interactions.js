@@ -1,4 +1,4 @@
-function performAction(action, element, disabled_text){
+function performAction(action, element, elementStatus){
     element = cy.wrap(element)
     if(action === 'click on'){
         element.then(element => {
@@ -19,8 +19,14 @@ function performAction(action, element, disabled_text){
     else if(action === 'should see'){
         element.should('be.visible')
 
-        if (disabled_text === "is disabled") {
+        if (elementStatus === "that is disabled") {
             element.should('be.disabled')
+        }
+        else if (elementStatus === "that is checked") {
+            element.should("be.checked")
+        }
+        else if (elementStatus === "that is unchecked") {
+            element.should("not.be.checked")
         }
     }
     else{
@@ -840,10 +846,10 @@ Given("I click on the {string} {labeledElement} within (a)(the) {tableTypes} tab
  * @param {optionalQuotedString} text - the label for the element
  * @param {optionalQuotedString} columnLabel
  * @param {string} rowLabel - the label of the table row
- * @param {disabled} disabled_text - optional "is disabeld" text
+ * @param {elementStatus} elementStatus
  * @description Performs an action on a labeled element in the specified table row and/or column
  */
-Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labeled ){optionalQuotedString}( )(in the )(column labeled ){optionalQuotedString}( and the )(row labeled ){optionalQuotedString}( that){disabled}", (action, articleType, ordinal, labeledElement, text, columnLabel, rowLabel, disabled_text) => {
+Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labeled ){optionalQuotedString}( )(in the )(column labeled ){optionalQuotedString}( and the )(row labeled ){optionalQuotedString}{elementStatus}", (action, articleType, ordinal, labeledElement, text, columnLabel, rowLabel, elementStatus) => {
     const performActionOnTarget = (target) =>{
         console.log('performActionOnTarget target', target)
         
@@ -860,7 +866,7 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
             }
 
             const next = (action, result) =>{
-                performAction(action, result, disabled_text)
+                performAction(action, result, elementStatus)
             }
 
             target = cy.wrap(target)
