@@ -849,7 +849,7 @@ Given("I click on the {string} {labeledElement} within (a)(the) {tableTypes} tab
  * @param {elementStatus} elementStatus
  * @description Performs an action on a labeled element in the specified table row and/or column
  */
-Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labeled ){optionalQuotedString}( )(in the )(column labeled ){optionalQuotedString}( and the )(row labeled ){optionalQuotedString}{elementStatus}", (action, articleType, ordinal, labeledElement, text, columnLabel, rowLabel, elementStatus) => {
+Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labeled ){optionalQuotedString}( )(in the )(column labeled ){optionalQuotedString}( and the )(row labeled ){optionalQuotedString}( ){elementStatus}", (action, articleType, ordinal, labeledElement, text, columnLabel, rowLabel, elementStatus) => {
     const performActionOnTarget = (target) =>{
         console.log('performActionOnTarget target', target)
         
