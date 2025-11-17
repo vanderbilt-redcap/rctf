@@ -1274,7 +1274,7 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                         //.tox-editor-container is used for TinyMCE in C.3.24.1500
                         childSelector = '.tox-editor-container, textarea'
                     }
-                    else if (type === 'input'){
+                    else if (['input', 'field'].includes(type)){
                         childSelector = 'input'
                     }
                     else {
