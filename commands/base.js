@@ -921,7 +921,7 @@ Cypress.Commands.add("filterMatches", {prevSubject: true}, function (matches, te
     const matchesCopy = [...matches]
     matchesCopy.forEach(current => {
         if(current.tagName === 'SELECT' && text){
-            const option = Cypress.$(current).find(`:contains(${JSON.stringify(text)})`)[0]
+            const option = Cypress.$(current).find(`option:contains(${JSON.stringify(text)})`)[0]
             if(!option.selected){
                 // Exclude matches for options that are not currently selected, as they are not visible and should not be considered labels
                 matches = matches.filter(match => match !== current)
