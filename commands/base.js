@@ -217,7 +217,7 @@ Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
     }
 
     let top_layer
-    cy.get(element).should($els => {
+    cy.get(element, {log: false}).should($els => {
         $els = $els.filter(':visible')
 
         //if more than body found, find element with highest z-index
@@ -233,12 +233,16 @@ Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
             })
         }
         top_layer = $els.last() // Get the last since they are sorted in order of appearance in the DOM
-        expect(Cypress.dom.isDetached(top_layer)).to.be.false
+        if(Cypress.dom.isDetached(top_layer)){
+            console.log('Deteached top layer element', top_layer)
+            throw 'Top layer element detected is detattached from the dom.  See console log for element.'
+        }
+
         if(retryUntil){
             retryUntil(top_layer) //run assertions, so get can retry on failure
         }
     }).then(() => {
-        let next = cy.wrap(top_layer) //yield top_layer to any further chained commands
+        let next = cy.wrap(top_layer, {log: false}) //yield top_layer to any further chained commands
 
         if(top_layer[0].tagName === 'IFRAME'){
             next = next.iframe().then(iframeBody => {
@@ -251,7 +255,7 @@ Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
 
         return next.then(result => {
             console.log('get_top_layer() returning', result)
-            cy.wrap(result)
+            cy.wrap(result, {log: false})
         })
     }) 
 })
@@ -759,6 +763,7 @@ Cypress.Commands.add("retryUntilTimeout", function (action, messageOnError, star
 
     if (start === undefined) {
         start = Date.now()
+        cy.log('retryUntilTimeout')
     }
 
     if(lastRun === undefined){
@@ -775,7 +780,7 @@ Cypress.Commands.add("retryUntilTimeout", function (action, messageOnError, star
         else {
             const elapsed = Date.now() - start
             const waitTime = elapsed < 1000 ? 250 : 1000
-            cy.wait(waitTime).then(() => {
+            cy.wait(waitTime, {log: false}).then(() => {
                 const lastRun = elapsed > Cypress.config('defaultCommandTimeout')
                 cy.retryUntilTimeout(action, messageOnError, start, lastRun)
             })
@@ -1156,12 +1161,13 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
  * as the root of some of our existing duplicate logic is the lack of built-in "if" support.
  */
 Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (subject, type, text, ordinal, selectOption, expectFailure) {
+    cy.log('getLabeledElement')
     console.log('getLabeledElement()', arguments)
 
     const errorMessage = `The ${type} labeled "${text}" ` + (expectFailure ? 'was unexepectedly found' : 'could not be found')
     
     return cy.retryUntilTimeout((lastRun) => {
-        cy.document().then(document => {
+        cy.document({log: false}).then(document => {
             const attributeName = 'data-bs-original-title'
             document.querySelectorAll(`[${attributeName}*="<"]`).forEach(element => {
                 // Remove html tags from bootstrap titles to allow matching things like "<b>Edit</b> Branching Logic"
