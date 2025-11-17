@@ -5,7 +5,7 @@ function transformKeysToRegExp(variable){
     return Object.keys(variable).filter(key => key !== '')
 }
 
-const labeledElementTypes = ['button', 'link', 'field', 'section break', 'checkbox', 'toggle button', 'icon', 'dropdown', 'radio', 'textarea']
+const labeledElementTypes = ['button', 'link', 'field', 'section break', 'checkbox', 'icon', 'dropdown', 'radio', 'textarea']
 window.parameterTypes = {
     tableTypes: transformKeysToRegExp(window.tableMappings),
     baseElement: transformKeysToRegExp(window.elementChoices),
