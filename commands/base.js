@@ -311,20 +311,30 @@ Cypress.Commands.overwrite(
         //console.log(subject)
 
         const innerText = subject[0].innerText
-        if(
-            // Avoid a bug in REDCap where "Multiple tabs/windows open!" displays if requests are made too quickly
-            ['Import Data', 'Commit Changes'].includes(innerText)
-            ||
-            // Wait for the javascript action to be attached to this link
-            innerText.includes('FHIR Systems')
-        ){
-            cy.wait(1000)
-        }
 
         if(subject[0].nodeName === "A" ||
             subject[0].nodeName === "BUTTON" ||
             (subject[0].nodeName === "INPUT" && ["button", "submit"].includes(subject[0].type) && ["", null].includes(subject[0].onclick))
         ){
+            /**
+             * Cypress sometimes click buttons too quickly before REDCap's javascript is finished initializing their actions.
+             * Wait just a little bit before clicking to more closely simulate actual user behavior.
+             * This fixes an issue on B.2.6.0200.
+             */
+            let preClickWait = 100
+
+            if(
+                // Avoid a bug in REDCap where "Multiple tabs/windows open!" displays if requests are made too quickly
+                ['Import Data', 'Commit Changes'].includes(innerText)
+                ||
+                // Wait for the javascript action to be attached to this link
+                innerText.includes('FHIR Systems')
+            ){
+                preClickWait = 1000
+            }
+           
+            cy.wait(preClickWait)
+
             const disappearingElement = getElementThatShouldDisappearAfterClick(subject[0])
             const timeBeforeClick = Date.now()
 
