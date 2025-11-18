@@ -1267,7 +1267,10 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                 do {
                     console.log('getLabeledElement() current', current)
 
-                    if(current.clientHeight > 500){
+                    if(
+                        current.clientHeight > 500
+                        && current.id !== 'copy_checkboxes' // B.6.11.1000
+                    ){
                         /**
                          * We've reached a parent that is large enough that our scope is now too large for a valid match
                          */
