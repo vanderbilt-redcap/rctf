@@ -232,6 +232,10 @@ Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
                 //return zp - zc
             })
         }
+
+        expect($els.length).to.equal(1)
+        expect(Cypress.dom.isDetached(top_layer)).to.be.false
+
         top_layer = $els.last() // Get the last since they are sorted in order of appearance in the DOM
         if(retryUntil){
             retryUntil(top_layer) //run assertions, so get can retry on failure
