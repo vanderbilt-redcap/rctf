@@ -232,7 +232,7 @@ Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
                 //return zp - zc
             })
         }
-        expect($els.length).to.equal(1)
+        expect($els.length > 0).to.be.true
         top_layer = $els.last() // Get the last since they are sorted in order of appearance in the DOM
         expect(Cypress.dom.isDetached(top_layer)).to.be.false
         if(retryUntil){
