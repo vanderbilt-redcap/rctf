@@ -1195,7 +1195,8 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
 
         let selector = [
             `input[placeholder=${JSON.stringify(text)}]:visible`,
-            `:contains(${JSON.stringify(text)}):visible`,
+            // We don't specify ':visible' here like the others so that unselected select options are matched (e.g. C.3.30.0700.)
+            `:contains(${JSON.stringify(text)})`,
             `[title*=${JSON.stringify(text)}]:visible`,
             `[data-bs-original-title*=${JSON.stringify(text)}]:visible`,
             `input[type=button][value*=${JSON.stringify(text)}]:visible`,
