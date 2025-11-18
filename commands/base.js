@@ -1081,9 +1081,13 @@ function getPreferredSibling(text, originalMatch, one, two){
     const distanceOne = Math.abs(matchIndex - indexOne)
     const distanceTwo = Math.abs(matchIndex - indexTwo)
     if(distanceOne === distanceTwo){
-        if(text === 'to'){
+        if(
             // Support the special case for 'dropdown field labeled "to"' language
             // Alternatively, we could replaces such steps with 'dropdown field labeled "[No Assignment]"' to resolve this.
+            text === 'to'
+            ||
+            text === 'Choose your randomization field' // C.3.30.0600
+        ){
             return two
         }
 
