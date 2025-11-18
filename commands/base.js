@@ -1014,10 +1014,15 @@ function getPreferredSibling(text, originalMatch, one, two){
          */
 
         const nodeMatches = Array.from(originalMatch.childNodes).filter(child => {
-            return child.textContent.includes(text)
+            return child.tagName !== 'SCRIPT' // C.3.30.0500
+                && child.textContent.includes(text)
         })
 
-        if(nodeMatches.length !== 1){
+        if(nodeMatches.length === 0){
+            // No matching text was found (e.g. C.3.30.0500)
+            return undefined
+        }
+        else if(nodeMatches.length > 1){
             throw 'Found an unexpexcted number of node matches'
         }
      
