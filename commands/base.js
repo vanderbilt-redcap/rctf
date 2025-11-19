@@ -1318,8 +1318,8 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                     }
 
                     if(type !== 'dropdown'){
-                        for(i in childSelectors){
-                            childSelectors[i] += ':visible'
+                        for(childSelectorIndex in childSelectors){
+                            childSelectors[childSelectorIndex] += ':visible'
                         }
                     }
 
