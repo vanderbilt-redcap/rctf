@@ -225,7 +225,8 @@ function rctf_initialize() {
 
             cy.task('saveCurrentURL', ({
                 url: url,
-                redcap_url_pre_survey: window.redcap_url_pre_survey
+                redcap_url_pre_survey: window.redcap_url_pre_survey,
+                original_spec_path: window.original_spec_path,
             }))
         })
 

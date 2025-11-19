@@ -159,7 +159,7 @@ Given("I click on the {string} button for the {string} report in the My Reports 
  * @param {string} format the text format of the data export you are looking to receive
  * @description Interactions - Checks the hyperlinks and download formats for the data export
  */
-Given("I click on the download icon(s) to receive the file(s) for the {string} format in the dialog box", (format) => {
+Given("I click on the download icon(s) to receive the file(s) for the {string} format", (format) => {
 
     // file types
     const downloads = {

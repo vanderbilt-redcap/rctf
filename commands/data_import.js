@@ -8,7 +8,15 @@ Cypress.Commands.add('create_cdisc_project', (project_name, project_type, cdisc_
     cy.get('input#app_title').type(project_name)
     cy.get('select#purpose').select(project_type)
     cy.get('input#project_template_radio2').click()
-    cy.upload_file("cdisc_files/" + cdisc_file, 'xml', 'input[name="odm"]')
+
+    if(isExternalModuleFeature()){
+        cdisc_file = getFilePathForCurrentFeature(cdisc_file)
+    }
+    else{
+        cdisc_file = "cdisc_files/" + cdisc_file
+    }
+
+    cy.upload_file(cdisc_file, 'xml', 'input[name="odm"]')
     cy.get('button').contains(button_label).click().then(() => {
         let pid = null;
         cy.url().should((url) => {
@@ -116,20 +124,6 @@ Cypress.Commands.add('import_data_file', (fixture_file,pid) => {
 Cypress.Commands.add('read_directory', (dir) => {
     cy.task('readDirectory', (dir)).then((files) => {
         return files
-    })
-})
-
-Cypress.Commands.add('upload_data_dictionary', (fixture_file, date_format = "DMY") => {
-    cy.upload_file('/dictionaries/' + fixture_file, 'csv', 'input[name="uploadedfile"]')
-
-    cy.get('button[name=submit]').click({ check_csrf: true })
-    cy.get('html').should(($html) => {
-        expect($html).to.contain('Commit Changes')
-    })
-
-    cy.get('button').contains('Commit Changes').click({ check_csrf: true })
-    cy.get('html').should(($html) => {
-        expect($html).to.contain('Changes')
     })
 })
 

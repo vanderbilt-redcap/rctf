@@ -14,6 +14,7 @@ Cypress.Commands.add('base_db_seed', () => {
     let mysql = Cypress.env('mysql')
 
     cy.task('snapshotExists').then((snapshot_exists) => {
+        window.original_spec_path = Cypress.spec.absolute
 
         //If a snapshot exists, let us import it
         if(snapshot_exists){
@@ -29,7 +30,7 @@ Cypress.Commands.add('base_db_seed', () => {
                 cy.visit(line[0])
             })
 
-        } else if (decodeURIComponent(location.href).includes('Continue Last Run.feature')) {
+        } else if (Cypress.spec.name === 'Continue Last Run.feature') {
             cy.readFile('test_db/latest_url.info').then((urlData) => {
                 urlData = JSON.parse(urlData)
 
@@ -38,6 +39,7 @@ Cypress.Commands.add('base_db_seed', () => {
                  * Leave the session & DB as-is.
                  */
                 window.redcap_url_pre_survey = urlData.redcap_url_pre_survey
+                window.original_spec_path = urlData.original_spec_path
                 cy.visit(urlData.url)
             })
 

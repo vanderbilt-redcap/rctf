@@ -8,6 +8,7 @@
  * @description Imports well-formed REDCap data import file (of specific type) to a specific project given a Project ID.
  */
 Given("I upload a {string} format file located at {string}, by clicking the button near {string} to browse for the file(, and clicking the button labeled \"){optionalString}(\" to upload the file)", (format, file_location, upload_text, button_label) => {
+    file_location = getFilePathForCurrentFeature(file_location)
     cy.upload_file(file_location, format, '', button_label, upload_text)
 })
 

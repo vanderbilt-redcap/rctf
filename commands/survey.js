@@ -66,8 +66,5 @@ Cypress.Commands.add('open_survey_in_same_tab', (element, same_tab = true, logou
         //This will log us out instead
         cy.clearCookies()
 
-    } else {
-        cy.wrap(element).click()
     }
-
 })
