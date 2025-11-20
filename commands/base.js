@@ -708,7 +708,13 @@ Cypress.Commands.add('assertContains', {prevSubject: true}, (path, dataTable) =>
         cy.task('readPdf', { pdf_file: path }).assertPDFContainsDataTable(dataTable)
     }
     else{
-        throw 'This step needs to be expanded to support this file type: ' + path
+        cy.task('readTextFile', {textFilePath: path}).then(fileContent => {
+            dataTable['rawTable'].forEach((row, row_index) => {
+                row.forEach((dataTableCell) => {
+                    expect(fileContent).to.include(dataTableCell)
+                })
+            })
+        })
     }
 })
 
