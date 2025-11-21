@@ -231,7 +231,10 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
              */
             elm.clear()
             if(text !== ''){
-                elm.type(text)
+                /**
+                 * Blur after typing to trigger changes events (e.g. C.3.31.2500)
+                 */
+                elm.type(text).blur()
             }
         } else if (enter_type === "verify"){
             if(window.dateFormats.hasOwnProperty(text)){
