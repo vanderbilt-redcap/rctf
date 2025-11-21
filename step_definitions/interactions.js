@@ -930,6 +930,11 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
         else if(action === 'should see'){
             cy.wrap(target).assertTextVisibility(text, true)
         }
+        else if(action === 'click on'){
+            // Click on the text itself (e.g. C.3.31.0800)
+            const escapedText = text.replaceAll('"', '\\"')
+            const result = cy.get(`:contains("${escapedText}"):visible`).filterMatches().click()
+        }
         else{
             throw 'Action not found: ' + action
         }
