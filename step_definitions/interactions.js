@@ -105,15 +105,6 @@ Given("I click on the button labeled {string} for the row labeled {string}", (te
 
 /**
  * @module Interactions
- * @author Mark McEver <mark.mcever@vumc.org>
- * @description Presses the tab key to move focus away from the current input field
- */
-Given('I press the tab key to unfocus the current input field', () => {
-    cy.press(Cypress.Keyboard.Keys.TAB)
-})
-
-/**
- * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} enterType
  * @param {string} label - the label of the field
@@ -237,7 +228,10 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
              */
             elm.clear()
             if(text !== ''){
-                elm.type(text)
+                /**
+                 * Blur after typing to trigger changes events (e.g. C.3.31.2500)
+                 */
+                elm.type(text).blur()
             }
         } else if (enter_type === "verify"){
             if(window.dateFormats.hasOwnProperty(text)){
