@@ -228,10 +228,15 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
              */
             elm.clear()
             if(text !== ''){
-                /**
-                 * Blur after typing to trigger changes events (e.g. C.3.31.2500)
-                 */
-                elm.type(text).blur()
+                elm.type(text).then(elm => {
+                    /**
+                     * Blur after typing to trigger change events (e.g. C.3.31.2500).
+                     * We used to just chain a cypress '.blur()' call after '.type()'
+                     * but it failed with an odd error in the iframe on B.6.4.1200.
+                     * Calling the jQuery blur() method instead seems to work everywhere. 
+                     */
+                    elm.blur()
+                })
             }
         } else if (enter_type === "verify"){
             if(window.dateFormats.hasOwnProperty(text)){
