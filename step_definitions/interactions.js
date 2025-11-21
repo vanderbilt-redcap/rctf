@@ -99,15 +99,6 @@ Given("I click on the button labeled {string} for the row labeled {string}", (te
 
 /**
  * @module Interactions
- * @author Mark McEver <mark.mcever@vumc.org>
- * @description Presses the tab key to move focus away from the current input field
- */
-Given('I press the tab key to unfocus the current input field', () => {
-    cy.press(Cypress.Keyboard.Keys.TAB)
-})
-
-/**
- * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} enterType
  * @param {string} label - the label of the field
