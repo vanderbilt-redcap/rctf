@@ -930,14 +930,22 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
             }
         }
         else if(shouldNotSee){
-            cy.wrap(target).assertTextVisibility(text, false)
+            if (textType === 'strikethrough text'){
+                // C.3.31.1400
+                getElementContainingText(text).then($el => {
+                    const styles = window.getComputedStyle($el[0]);
+                    expect(styles.textDecorationLine).to.not.equal('line-through');
+                })
+            }
+            else{
+                cy.wrap(target).assertTextVisibility(text, false)
+            }
         }
         else if(action === 'should see'){
             if (textType === 'strikethrough text'){
                 // C.3.31.1400
                 getElementContainingText(text).then($el => {
                     const styles = window.getComputedStyle($el[0]);
-                    console.log('a', $el)
                     expect(styles.textDecorationLine).to.equal('line-through');
                 })
             }
