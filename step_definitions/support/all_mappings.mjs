@@ -5,7 +5,7 @@ function transformKeysToRegExp(variable){
     return Object.keys(variable).filter(key => key !== '')
 }
 
-const labeledElementTypes = ['button', 'link', 'field', 'section break', 'checkbox', 'toggle button', 'icon', 'dropdown', 'radio']
+const labeledElementTypes = ['button', 'link', 'field', 'checkbox', 'icon', 'dropdown', 'radio', 'textarea']
 window.parameterTypes = {
     tableTypes: transformKeysToRegExp(window.tableMappings),
     baseElement: transformKeysToRegExp(window.elementChoices),
@@ -36,7 +36,6 @@ window.parameterTypes = {
     confirmation: ['accept', 'cancel'],
     dateTimeType: ['timestamp', 'date', 'datetime'],
     dataViewingRights: ['No Access', 'Read Only', 'View & Edit', 'Edit survey responses'],
-    disabled: ['is disabled'],
     dropdownType: ['dropdown', 'multiselect', 'checkboxes', 'radio'],
     editEvent: ['Edit', 'Delete'],
     editField: ['Edit', 'Edit Matrix', 'Branching Logic', 'Copy', 'Move', 'Delete Field'],
@@ -44,6 +43,7 @@ window.parameterTypes = {
         ' with Edit survey responses checked',
         ' with Edit survey responses unchecked',
     ],
+    elementStatus: ['that is disabled', 'that is checked', 'that is unchecked'],
     enableDisable: ['enable', 'disable'],
     elmType: ['input', 'list item', 'checkbox', 'span'],
     enterType: ['verify', 'enter', 'clear field and enter', 'click on'],
@@ -94,11 +94,9 @@ window.parameterTypes = {
     ],
     recordIDEvent: ['record ID', 'event'],
     repeatability: ['enabled', 'disabled', 'modifiable', 'unchangeable'],
-    saveButtonRouteMonitoring: [
-        ' and will leave the tab open when I return to the REDCap project',
-    ],
     select: ['selected', 'unselected'],
     tableName: ['', ' of the User Rights table', ' of the Reports table', ' of the Participant List table'],
+    textType: ['strikethrough text'],
     timeType: ['seconds', 'second', 'minutes', 'minute'],
     toDoRequestTypes: ['Move to prod', 'Approve draft changes', 'Copy project', 'Delete project'],
     toDoTableIcons: [

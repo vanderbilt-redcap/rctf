@@ -203,9 +203,23 @@ Cypress.Commands.add('button_or_input', (text_label) => {
 })
 
 //yields the visible div with the highest z-index, or the <html> if none are found
-Cypress.Commands.add('get_top_layer', (element = 'html,div[role=dialog]:visible,[id^=popup_],iframe.todo-iframe,iframe#SURVEY_SIMULATED_NEW_TAB', retryUntil) => {
+Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
+    if(element === null){
+        /**
+         * We used to also check for dialogs & popups here, but that was too brittle
+         * as top layer changed during page loads and dialog shows/hides.
+         * Instead, we should build top layer checking with retry logic into
+         * other generalized matching methods.  See getLabeledElement() for a good pattern.
+         */
+        element = 'html'
+        element += ',iframe.todo-iframe' // A.6.4.0200, B.6.4.1200
+        element += ',iframe#SURVEY_SIMULATED_NEW_TAB' // C.3.24.0105, C.3.24.1500, C.3.24.1700
+    }
+
     let top_layer
-    cy.get(element).should($els => {
+    cy.get(element, {log: false}).should($els => {
+        $els = $els.filter(':visible')
+
         //if more than body found, find element with highest z-index
         if ($els.length > 1) {
             //remove html from $els so only elements with z-index remain
@@ -218,13 +232,14 @@ Cypress.Commands.add('get_top_layer', (element = 'html,div[role=dialog]:visible,
                 //return zp - zc
             })
         }
+        expect($els.length > 0).to.be.true
         top_layer = $els.last() // Get the last since they are sorted in order of appearance in the DOM
         expect(Cypress.dom.isDetached(top_layer)).to.be.false
         if(retryUntil){
             retryUntil(top_layer) //run assertions, so get can retry on failure
         }
     }).then(() => {
-        let next = cy.wrap(top_layer) //yield top_layer to any further chained commands
+        let next = cy.wrap(top_layer, {log: false}) //yield top_layer to any further chained commands
 
         if(top_layer[0].tagName === 'IFRAME'){
             next = next.iframe().then(iframeBody => {
@@ -235,7 +250,10 @@ Cypress.Commands.add('get_top_layer', (element = 'html,div[role=dialog]:visible,
             })
         }
 
-        return next
+        return next.then(result => {
+            console.log('get_top_layer() returning', result)
+            cy.wrap(result, {log: false})
+        })
     }) 
 })
 
@@ -268,6 +286,13 @@ const getElementThatShouldDisappearAfterClick = ($el) => {
             &&
             $el.closest('form')
         )
+        ||
+        (
+            // B.6.4.1400 and others
+            $el.innerText === 'Close'
+            &&
+            $el.closest('.ui-dialog')?.innerText?.includes('page will now reload')
+        )
     ){
         // The whole page should be reloaded after any of these actions
         return Cypress.$('body')[0]
@@ -279,22 +304,52 @@ const getElementThatShouldDisappearAfterClick = ($el) => {
 Cypress.Commands.overwrite(
     'click',
     (originalFn, subject, options) => {
+        const openInSameTab = window.openNextClickInNewTab !== true
+        delete window.openNextClickInNewTab
 
         window.aboutToUnload = true
         if(options === undefined) options = {} //If no options object exists, create it
         //console.log(subject)
 
+        const innerText = subject[0].innerText
+
         if(subject[0].nodeName === "A" ||
             subject[0].nodeName === "BUTTON" ||
             (subject[0].nodeName === "INPUT" && ["button", "submit"].includes(subject[0].type) && ["", null].includes(subject[0].onclick))
         ){
+            /**
+             * Cypress sometimes click buttons too quickly before REDCap's javascript is finished initializing their actions.
+             * Wait just a little bit before clicking to more closely simulate actual user behavior.
+             * This fixes an issue on B.2.6.0200.
+             */
+            let preClickWait = 100
+
+            if(
+                // Avoid a bug in REDCap where "Multiple tabs/windows open!" displays if requests are made too quickly
+                ['Import Data', 'Commit Changes'].includes(innerText)
+                ||
+                // Wait for the javascript action to be attached to this link
+                innerText.includes('FHIR Systems')
+            ){
+                preClickWait = 1000
+            }
+           
+            cy.wait(preClickWait)
+
             const disappearingElement = getElementThatShouldDisappearAfterClick(subject[0])
             const timeBeforeClick = Date.now()
 
             //If our other detachment prevention measures failed, let's check to see if it detached and deal with it
             cy.wrap(subject).then($el => {
                 $el = Cypress.dom.isDetached($el) ? Cypress.$($el): $el
-                return originalFn($el, options)
+
+                if(innerText.includes("Open public survey")){
+                    cy.open_survey_in_same_tab(subject, openInSameTab, false)
+                }
+
+                cy.wrap($el).then(() => {
+                    return originalFn($el, options)
+                })
             })
             .then($el => {
                 $el = $el[0]
@@ -318,17 +373,74 @@ Cypress.Commands.overwrite(
                                 })
                             }
                         }).then(() => {
-                            return cy.wrap(
-                                downloadDetected
-                                ||
-                                !disappearingElement.checkVisibility()
-                                ||
-                                Cypress.$('#stayOnPageReminderDialog:visible').length > 0
-                                ||
-                                Cypress.$('[aria-describedby="esign_popup"]').length > 0 // C.2.19.0500
-                                ||
-                                Cypress.$('[aria-describedby="certify_create"]').length > 0 // A.6.4.0100
-                            )
+                            if(!disappearingElement.checkVisibility()){
+                                let getBodyAction
+                                if(window.withinTarget){
+                                    getBodyAction = cy.wrap(null)
+                                }
+                                else{
+                                     /**
+                                      * Calling checkVisibility() is apparently not good enough since there seems to be
+                                      * a bug in Cypress where calls like cy.get() still return elements that are no longer
+                                      * actually present in the dom.  It's like the reference to the body is stale internally
+                                      * in Cypress somehere.  In any case, this works around this issue on B.6.4.1400.
+                                      */
+                                    getBodyAction = cy.get('body')
+                                }
+
+                                getBodyAction.then(body => {
+                                    if(
+                                        // Was window.withinTarget was set above?
+                                        body === null 
+                                        ||
+                                        /**
+                                         * Is the disappearingElement is not the body,
+                                         * then we're not looking for a page reload,
+                                         * and checkVisibility() is all we care about. 
+                                         */
+                                        disappearingElement.tagName !== 'body'
+                                        ||
+                                        /**
+                                         * If the disappearingElement is the previous body.
+                                         * Make sure it's not the same as the current body
+                                         * to verify that the page had reloaded
+                                         * and that cy.get('body') is returning the new body.
+                                         */
+                                        body !== disappearingElement
+                                    ){
+                                        cy.log('Disappearing element as disappeared')
+                                        cy.wrap(true)
+                                    }
+                                    else{
+                                        cy.wrap(false)
+                                    }
+                                })
+                            }
+                            else{
+                                let skipReason
+                                if(downloadDetected){
+                                    skipReason = 'a download was detected'
+                                }
+                                else if(Cypress.$('#stayOnPageReminderDialog:visible').length > 0){
+                                    skipReason = 'the #stayOnPageReminderDialog is visible'
+                                }
+                                else if(Cypress.$('[aria-describedby="esign_popup"]').length > 0){
+                                    // C.2.19.0500
+                                    skipReason = 'the esign_popup is visible'
+                                }
+                                else if(Cypress.$('[aria-describedby="certify_create"]').length > 0){
+                                    // A.6.4.0100
+                                    skipReason = 'the certify_create dialog is visible'
+                                }
+
+                                if(skipReason){
+                                    cy.log('Skipping dissappearing element detection because ' + skipReason)
+                                    cy.wrap(true)
+                                }
+                                else{
+                                    cy.wrap(false)
+                                }
+                            }
                         })
                         /**
                          * Arbitrary wait after page load to hopefully avoid flaky tests
@@ -353,7 +465,7 @@ Cypress.Commands.overwrite(
                         ||
                         win.jQuery.active === 0
                         ||
-                        subject[0].innerText.includes('Request delete project') // Work around exception in REDCap
+                        innerText.includes('Request delete project') // Work around exception in REDCap
                     
                     if(!returnValue){
                         /**
@@ -372,9 +484,9 @@ Cypress.Commands.overwrite(
                     win.location.href.includes('ProjectSetup/index')
                     &&
                     (
-                        subject[0].innerText.includes('Enable')
+                        innerText.includes('Enable')
                         ||
-                        subject[0].innerText.includes('Disable')
+                        innerText.includes('Disable')
                     )
                 ){
                     /**
@@ -402,6 +514,7 @@ Cypress.Commands.overwrite(
 Cypress.Commands.overwrite('within', (...args) => {
     const originalWithin = args.shift()
     const subject = args[0]
+    const callbackFn = args.pop()
 
     if(subject[0].tagName === 'HTML'){
         /**
@@ -411,12 +524,20 @@ Cypress.Commands.overwrite('within', (...args) => {
          * In this case we will never find our desired element because we are searching
          * within the previous page's HTML that is not desired and no longer displayed.
          */
-        const callbackFn = args.at(-1)
         callbackFn(subject)
         return subject
     }
     else{
         console.log('cy.within() called with subject: ', subject[0])
+        window.withinTarget = subject[0]
+
+        args.push((...callbackArgs) => {
+            callbackFn(...callbackArgs)
+            cy.then(() => {
+                delete window.withinTarget
+            })
+        })
+
         return originalWithin(...args)
     }
 })
@@ -505,7 +626,7 @@ Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subj
                 }
 
                 /**
-                 * We use innerText.indexOf() rather than the ':contains()' selector
+                 * We use innerText rather than the ':contains()' selector
                  * to avoid matching text within hidden tags and <script> tags,
                  * since they are not actually visible.
                  * 
@@ -539,7 +660,7 @@ Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subj
             }
         }
 
-        if(subject){
+        if(subject && !subject.is('html')){
             return action(subject)
         }
         else{
@@ -587,7 +708,13 @@ Cypress.Commands.add('assertContains', {prevSubject: true}, (path, dataTable) =>
         cy.task('readPdf', { pdf_file: path }).assertPDFContainsDataTable(dataTable)
     }
     else{
-        throw 'This step needs to be expanded to support this file type: ' + path
+        cy.task('readTextFile', {textFilePath: path}).then(fileContent => {
+            dataTable['rawTable'].forEach((row, row_index) => {
+                row.forEach((dataTableCell) => {
+                    expect(fileContent).to.include(dataTableCell)
+                })
+            })
+        })
     }
 })
 
@@ -639,6 +766,7 @@ Cypress.Commands.add("retryUntilTimeout", function (action, messageOnError, star
 
     if (start === undefined) {
         start = Date.now()
+        cy.log('retryUntilTimeout')
     }
 
     if(lastRun === undefined){
@@ -655,7 +783,7 @@ Cypress.Commands.add("retryUntilTimeout", function (action, messageOnError, star
         else {
             const elapsed = Date.now() - start
             const waitTime = elapsed < 1000 ? 250 : 1000
-            cy.wait(waitTime).then(() => {
+            cy.wait(waitTime, {log: false}).then(() => {
                 const lastRun = elapsed > Cypress.config('defaultCommandTimeout')
                 cy.retryUntilTimeout(action, messageOnError, start, lastRun)
             })
@@ -756,7 +884,11 @@ function filterCoveredElements(matches) {
         }
     }
 
-    let topElement = Cypress.$('html')[0]
+    /**
+     * We determine the html tag using the closest() method to ensure
+     * the correct html tag is selected if we're in an iframe.
+     */
+    let topElement = matches[0]?.closest('html')
     matches.forEach(element => {
         let current = element
         while(current = current.parentElement){
@@ -787,20 +919,35 @@ function filterCoveredElements(matches) {
 }
 
 Cypress.Commands.add("filterMatches", {prevSubject: true}, function (matches, text) {
-    matches = matches.toArray()
+    // We must check whether this is an array first to support empty array result sets (e.g. C.5.22.100)
+    if(!Array.isArray(matches)){
+        matches = matches.toArray()
+    }
+
     console.log('filterMatches before', matches)
 
     const matchesCopy = [...matches]
     matchesCopy.forEach(current => {
         if(current.tagName === 'SELECT' && text){
-            const option = Cypress.$(current).find(`:contains(${JSON.stringify(text)})`)[0]
+            const option = Cypress.$(current).find(`option:contains(${JSON.stringify(text)})`)[0]
             if(!option.selected){
                 // Exclude matches for options that are not currently selected, as they are not visible and should not be considered labels
                 matches = matches.filter(match => match !== current)
             }
         }
-        else if(current.tagName === 'SCRIPT'){
+        else if(
             // Exclude script tag matches, since they were likely language strings that are not actually displayed
+            current.tagName === 'SCRIPT'
+            ||
+            /**
+             * There seems to be some kind of bug in the ":contains()" selector preventing the hidden child element
+             * containing "Save" from matching directly, and instead returning only it's parents from 
+             * #dataEntryTopOptionsButtons upward.  Because of this we can't be exactly certain which child was matched
+             * or we would just check ".is(':visible')" on that child.  Instead we just assume this parent will never
+             * be a direct match (e.g. B.2.6.0200)
+             */
+            current.id === 'dataEntryTopOptionsButtons'
+        ){
             matches = matches.filter(match => match !== current)
         }
         
@@ -873,10 +1020,15 @@ function getPreferredSibling(text, originalMatch, one, two){
          */
 
         const nodeMatches = Array.from(originalMatch.childNodes).filter(child => {
-            return child.textContent.includes(text)
+            return child.tagName !== 'SCRIPT' // C.3.30.0500
+                && child.textContent.includes(text)
         })
 
-        if(nodeMatches.length !== 1){
+        if(nodeMatches.length === 0){
+            // No matching text was found (e.g. C.3.30.0500)
+            return undefined
+        }
+        else if(nodeMatches.length > 1){
             throw 'Found an unexpexcted number of node matches'
         }
      
@@ -940,9 +1092,13 @@ function getPreferredSibling(text, originalMatch, one, two){
     const distanceOne = Math.abs(matchIndex - indexOne)
     const distanceTwo = Math.abs(matchIndex - indexTwo)
     if(distanceOne === distanceTwo){
-        if(text === 'to'){
+        if(
             // Support the special case for 'dropdown field labeled "to"' language
             // Alternatively, we could replaces such steps with 'dropdown field labeled "[No Assignment]"' to resolve this.
+            text === 'to'
+            ||
+            text === 'Choose your randomization field' // C.3.30.0600
+        ){
             return two
         }
 
@@ -1027,9 +1183,14 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
  * We may want to introduce bahmutov/cypress-if at some point as well,
  * as the root of some of our existing duplicate logic is the lack of built-in "if" support.
  */
-Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectOption) {
+Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (subject, type, text, ordinal, selectOption, expectFailure) {
+    cy.log('getLabeledElement')
+    console.log('getLabeledElement()', arguments)
+
+    const errorMessage = `The ${type} labeled "${text}" ` + (expectFailure ? 'was unexepectedly found' : 'could not be found')
+    
     return cy.retryUntilTimeout((lastRun) => {
-        cy.document().then(document => {
+        cy.document({log: false}).then(document => {
             const attributeName = 'data-bs-original-title'
             document.querySelectorAll(`[${attributeName}*="<"]`).forEach(element => {
                 // Remove html tags from bootstrap titles to allow matching things like "<b>Edit</b> Branching Logic"
@@ -1039,15 +1200,32 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
         })
 
         let selector = [
-            `input[placeholder=${JSON.stringify(text)}]`,
+            `input[placeholder=${JSON.stringify(text)}]:visible`,
+            // We don't specify ':visible' here like the others so that unselected select options are matched (e.g. C.3.30.0700.)
             `:contains(${JSON.stringify(text)})`,
-            `[title*=${JSON.stringify(text)}]`,
-            `[data-bs-original-title*=${JSON.stringify(text)}]`,
-            `input[type=button][value*=${JSON.stringify(text)}]`,
-            `input[type=submit][value*=${JSON.stringify(text)}]`,
+            `[title*=${JSON.stringify(text)}]:visible`,
+            `[data-bs-original-title*=${JSON.stringify(text)}]:visible`,
+            `input[type=button][value*=${JSON.stringify(text)}]:visible`,
+            `input[type=submit][value*=${JSON.stringify(text)}]:visible`,
         ].join(', ')
 
-        return cy.get(selector).filterMatches(text).then(matches => {
+        let next
+        if(window.withinTarget){
+            next = cy.get(selector)
+        }
+        else{
+            if(subject === undefined || subject.is('html')){
+                next = cy.get_top_layer().then(topLayer => {
+                    return topLayer.find(selector)
+                })
+            }
+            else{
+                // The toArray() syntax is needed to support the case where nothing is matched (e.g. C.5.22.100)
+                next = cy.wrap(subject.find(selector).toArray())
+            }
+        }
+
+        return next.filterMatches(text).then(matches => {
             if(!Array.isArray(matches)){
                 /**
                  * It seems like this line should be run all the time,
@@ -1096,26 +1274,30 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
                 do {
                     console.log('getLabeledElement() current', current)
 
-                    if(current.clientHeight > 500){
+                    if(
+                        current.clientHeight > 500
+                        && current.id !== 'copy_checkboxes' // B.6.11.1000
+                    ){
                         /**
                          * We've reached a parent that is large enough that our scope is now too large for a valid match
                          */
+                        console.log('getLabeledElement() breaking out of the loop due to clientHeight', current)
                         break
                     }
 
-                    let childSelector = null
+                    let childSelectors = []
                     if (type === 'icon') {
-                        childSelector = 'i, img'
+                        childSelectors = ['i', 'img']
                     }
                     else if (['checkbox', 'radio'].includes(type)) {
-                        childSelector = 'input[type=' + type + ']'
+                        childSelectors = ['input[type=' + type + ']']
                     }
                     else if (type === 'dropdown') {
                         if(selectOption !== undefined){
-                            childSelector = `option:containsCustom(${JSON.stringify(selectOption)})`
+                            childSelectors = [`option:containsCustom(${JSON.stringify(selectOption)})`]
                         }
                         else{
-                            childSelector = 'select'
+                            childSelectors = ['select']
                         }
                     }
                     else if (type === 'button'){
@@ -1124,27 +1306,49 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
                             return current
                         }
 
-                        childSelector = 'input[type=button], input[type=submit], button'
+                        childSelectors = ['input[type=button]', 'input[type=submit], button']
                     }
                     else if (type === 'textarea'){
                         //.tox-editor-container is used for TinyMCE in C.3.24.1500
-                        childSelector = '.tox-editor-container, textarea'
+                        childSelectors = ['.tox-editor-container', 'textarea']
                     }
-                    else if (type === 'input'){
-                        childSelector = 'input'
+                    else if (['input', 'field'].includes(type)){
+                        childSelectors = ['input']
                     }
                     else {
-                        // Leave childSelector blank.  Catch all for 'link', 'tab', 'instrument', etc.
+                        /**
+                         * Leave childSelector blank.
+                         * Used to be a catch all for 'link', 'tab', 'instrument', etc.
+                         * This might only be the case for 'link' now.
+                         */
                     }
 
-                    if(childSelector !== null && type !== 'dropdown'){
-                        // Required for the 'input field labeled "Search"' step in C.3.24.2100
-                        childSelector += ':visible'
+                    if(type !== 'dropdown'){
+                        for(childSelectorIndex in childSelectors){
+                            childSelectors[childSelectorIndex] += ':visible'
+                        }
                     }
 
-                    if (childSelector) {
-                        const children = findMatchingChildren(text, selectOption, match, current, childSelector, childrenToIgnore)
+                    if (childSelectors.length > 0) {
+                        const children = findMatchingChildren(text, selectOption, match, current, childSelectors.join(','), childrenToIgnore)
                         console.log('getLabeledElement() children', children)
+
+                        if(expectFailure && children.length === 0){
+                            const otherChildSelector = 'input, button, textarea, select, i, img'
+                            const otherFields = findMatchingChildren(text, selectOption, match, current, otherChildSelector, childrenToIgnore)
+
+                            if(otherFields.length > 0){
+                                /**
+                                 * The expected field type was not found, but another type was.
+                                 * The matched text is likely associated that other field type.
+                                 * Consider this a successful failure to match, and do not
+                                 * keep searching parent elment, as that will likely cause a false match
+                                 * (e.g. C.4.18.0700).
+                                 */
+                                return null
+                            }
+                        }
+
                         if (children.length === 1) {
                             /**
                              * Example Steps:
@@ -1196,11 +1400,40 @@ Cypress.Commands.add("getLabeledElement", function (type, text, ordinal, selectO
             }
 
             return null
+        }).then(result => {
+            if(expectFailure){
+                // Return true when the expected element is NOT found in order to stop retrying.
+                // The calling method should consider true to mean the labeled element was not found.
+                return result === null
+            }
+            else{
+                return result
+            }
         })
-    }, `The ${type} labeled "${text}" could not be found`)
+    }, errorMessage)
     .then((match) => {
         console.log('getLabeledElement() return value', match)
 
         return match
     })
 })
+
+window.isExternalModuleFeature = () => {
+    return window.original_spec_path.split('/redcap_source/modules/').length > 1
+}
+
+window.getFilePathForCurrentFeature = (path) => {
+    if(isExternalModuleFeature()){
+        // Make the path relative to parent dir of the feature file.
+        const parts = window.original_spec_path.split('/')
+        parts.pop()
+        const absolutePath = parts.join('/') + '/' + path
+
+        const redcapSourceIndex = absolutePath.indexOf('/redcap_source/modules/')
+
+        // Cypress requires paths relative to the redcap_cypress/cypress/fixtures dir.
+        path = '../../..' + absolutePath.substring(redcapSourceIndex)
+    }
+
+    return path
+}

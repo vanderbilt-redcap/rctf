@@ -5,17 +5,6 @@
  * @param {string} baseElement
  * @description Visually verifies that text does NOT exist within the HTML object.
  */
-Given("I should NOT see {string}{baseElement}", (text, base_element = '') => {
-    cy.get(window.elementChoices[base_element]).assertTextVisibility(text, false)
-})
-
-/**
- * @module Visibility
- * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} text the text visually seen on screen
- * @param {string} baseElement
- * @description Visually verifies that text does NOT exist within the HTML object.
- */
 Given("I should NOT see {string} on the( ){ordinal} dropdown field labeled {string}", (option, ordinal, label) => {
     cy.getLabeledElement('dropdown', label, ordinal).should('not.contain', option)
 })
@@ -73,26 +62,6 @@ Given("I should see the {dropdownType} field labeled {string} with the options b
             let element = cy.get_labeled_element(element_selector, label)
             element.should('contain', dataTable.rawTable[i][0])
         }
-    })
-})
-
-/**
- * @module Visibility
- * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} label - the label associated with the checkbox field
- * @param {string} check
- * @description Selects a checkbox field by its label
- */
-Given("I (should see)(see) a {checkBoxRadio} {labeledExactly} {string} that is {check}", (type, labeled_exactly, label, check) => {
-    let label_selector = `:has(:contains(${JSON.stringify(label)}):visible):has(input[type=checkbox]:visible)`
-    let element_selector = `input[type=checkbox]:visible`
-
-    //This is to accommodate for aliases such as "toggle button" which is actually a checkbox behind the scenes
-    check = window.checkBoxAliases.hasOwnProperty(check) ? window.checkBoxAliases[check] : check
-
-    cy.top_layer(label_selector).within(() => {
-        let selector = cy.get_labeled_element(element_selector, label, null, labeled_exactly === "labeled exactly")
-        selector.scrollIntoView().should(check === "checked" ? "be.checked" : "not.be.checked")
     })
 })
 
@@ -246,51 +215,6 @@ Given("I should see an alert box with the following text: {string}", (text) => {
     })
 })
 
-
-/**
- * @module Visibility
- * @author Corey DeBacker <debacker@wisc.edu>
- * @param {string} labeledElement
- * @param {string} label - the label of the link that should be seen on screen (matches partially)
- * @param {string} baseElement
- * @description Verifies that a visible element of the specified type containing `text` exists
- */
-Given("I (should )see( ){articleType}( )( ){labeledElement}( labeled)( ){string}( )( that){disabled}", (article_type, el, text, disabled_text) => {
-    let base
-    let subsel = ''
-
-    if(el !== ''){ subsel = {'link': 'a', 'button': 'button', 'field': 'tr', 'section break': 'td.header', 'checkbox': 'input[type=checkbox]', 'dropdown': 'select', 'icon': 'i'}[el] }
-
-    let disabled_status = disabled_text !== undefined && disabled_text === "is disabled" ? ':disabled': ':not([disabled])'
-
-    // double quotes need to be re-escaped before inserting into :contains() selector
-    let sel = `${subsel}:contains(${JSON.stringify(text)}):visible` + (el === 'button' ? `,input[value=${JSON.stringify(text)}]:visible${disabled_status}` : '')
-
-    base = cy.get_top_layer()
-
-    base.then((next_section) => {
-
-        cy.get_top_layer().then(topLayer => {
-            const result = topLayer.find(sel)
-            if(result.length > 0){
-                cy.wrap(result)
-            }
-        }).then(($element) => {
-            if(el === 'button' && !$element.is('button')) {
-                cy.wrap($element).invoke('attr', 'value').should('include', text)
-            } else {
-                // Wrap null so that assertTextVisibility() calls get_top_layer() repeatedly if necessary
-                cy.wrap(null).assertTextVisibility(text, true)
-            }
-
-            if (disabled_text === "is disabled") {
-                // We used to use should('be.disabled') here, but it didn't work on C.3.30.0900
-                cy.wrap($element).should('have.attr', 'disabled')
-            }
-        })
-    })
-})
-
 /**
  * @module Visibility
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
@@ -307,40 +231,6 @@ Given("I (should )see the date( and time) {string} in the field labeled {string}
         .then((actualValue) => {
             expect(actualValue).to.eq(field_datetime)
         })
-})
-
-/**
- * @module Visibility
- * @author Corey DeBacker <debacker@wisc.edu>
- * @param {string} labeledElement
- * @param {string} text - the label of the link that should not be seen on screen (matches partially)
- * @param {string} baseElement
- * @description Verifies that there are no visible elements of the specified type with the label `text`
- */
-Given("I should NOT see( ){articleType}( ){labeledElement} {labeledExactly} {string}{baseElement}", (article_type, el, labeled_exactly, text, base_element) => {
-    //This is to accommodate for aliases such as "toggle button" which is actually a checkbox behind the scenes
-    el = window.checkBoxAliases.hasOwnProperty(el) ? window.checkBoxAliases[el] : el
-
-    // double quotes need to be re-escaped before inserting into :contains() selector
-    text = text.replaceAll('\"', '\\\"')
-    let subsel = {'link':'a', 'button':'button', 'field': 'tr','checkbox':'input'}[el]
-    let sel = `${subsel}:contains("${text}"):visible` + (el === 'button' ? `,input[value="${text}"]:visible` : '')
-    cy.wait(2000)
-    cy.get_top_layer(window.elementChoices[base_element], ($e) => {
-        if(labeled_exactly === "labeled exactly" && $e.find(sel).length){
-
-            $e.find(sel).each((index, $sel) => {
-                if ($sel.tagName.toLowerCase() === 'input') {
-                    expect($sel.value).not.to.equal(text);
-                } else {
-                    expect($sel.textContent).not.to.equal(text)
-                }
-            })
-
-        } else {
-            expect($e.find(sel)).to.have.lengthOf(0)
-        }
-    })
 })
 
 /**

@@ -1,4 +1,4 @@
-function performAction(action, element, disabled_text){
+function performAction(action, element, elementStatus){
     element = cy.wrap(element)
     if(action === 'click on'){
         element.then(element => {
@@ -19,13 +19,24 @@ function performAction(action, element, disabled_text){
     else if(action === 'should see'){
         element.should('be.visible')
 
-        if (disabled_text === "is disabled") {
+        if (elementStatus === "that is disabled") {
             element.should('be.disabled')
+        }
+        else if (elementStatus === "that is checked") {
+            element.should("be.checked")
+        }
+        else if (elementStatus === "that is unchecked") {
+            element.should("not.be.checked")
         }
     }
     else{
         throw 'Action not found: ' + action
     }
+}
+
+function getElementContainingText(text){
+    const escapedText = text.replaceAll('"', '\\"')
+    return cy.get(`:contains("${escapedText}"):visible`).filterMatches()
 }
 
 /**
@@ -64,139 +75,22 @@ function performAction(action, element, disabled_text){
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} articleType
- * @param {string} onlineDesignerButtons
  * @param {string} ordinal
- * @param {string} labeledExactly
- * @param {string} saveButtonRouteMonitoring
- * @param {string} baseElement
- * @param {string} iframeVisibility
- * @param {string} toDownloadFile
  * @description Clicks on a button element with a specific text label.
  */
-Given("I click on( ){articleType}( ){ordinal}( )button {labeledExactly} {string}{saveButtonRouteMonitoring}{baseElement}", (article_type, ordinal, exactly, text, button_type, base_element) => {
+Given("I click on( ){articleType}( ){ordinal}( )button labeled {string} and will leave the tab open when I return to the REDCap project", (article_type, ordinal, text) => {
     cy.then(() => {
         let ord = 0
         if(ordinal !== undefined) ord = window.ordinalChoices[ordinal]
 
-        // if(base_element === " on the Add/Edit Branching Logic dialog box" || base_element === " in the Add/Edit Branching Logic dialog box"){
-        //     cy.intercept({
-        //         method: 'POST',
-        //         url: '/redcap_v' + Cypress.env('redcap_version') + '/Design/branching_logic_builder.php?pid=*'
-        //     }).as('branching_logic')
-        // }
-
-        if(text === "Enable" && base_element === ' in the "Use surveys in this project?" row in the "Main project settings" section'){
-            cy.intercept({
-                method: 'POST',
-                url: '/redcap_v' + Cypress.env('redcap_version') + '/ProjectSetup/modify_project_setting_ajax.php?pid=*'
-            }).as('enable_survey')
-        }
-
-        if(text === "Disable" && base_element === ' in the "Use surveys in this project?" row in the "Main project settings" section'){
-            cy.intercept({
-                method: 'POST',
-                url: '/redcap_v' + Cypress.env('redcap_version') + '/ProjectSetup/modify_project_setting_ajax.php?pid=*'
-            }).as('disable_survey')
-            window.survey_disable_attempt = true
-        }
-
-        let outer_element = window.elementChoices[base_element]
-
-        let force = base_element === ' in the dialog box' ? { force: true } : {}
-
-        if (outer_element === 'iframe'){
-            const base = cy.frameLoaded().then(() => { cy.iframe() })
-
-            if(outer_element === 'iframe'){
-                if(exactly === 'labeled exactly'){
-                    let sel = 'button:visible,input[value*=""]:visible'
-
-                    base.within(() => {
-                        cy.get(sel).contains(new RegExp("^" + text + "$", "g")).eq(ord).click(force)
-                    })
-                } else {
-                    let sel = `button:contains("${text}"):visible,input[value*="${text}"]:visible`
-
-                    base.within(() => {
-                        cy.get(sel).eq(ord).click(force)
-                    })
-                }
-            } else {
-
-                if(exactly === 'labeled exactly'){
-                    let sel = 'button:visible,input[value*=""]:visible'
-
-                    base.within(() => {
-                        cy.top_layer(sel, outer_element).within(() => {
-                            cy.get(sel).contains(new RegExp("^" + text + "$", "g")).eq(ord).click(force)
-                        })
-                    })
-                } else {
-                    let sel = `button:contains("${text}"):visible,input[value*="${text}"]:visible`
-
-                    base.within(() => {
-                        cy.top_layer(sel, outer_element).within(() => {
-                            cy.get(sel).eq(ord).click(force)
-                        })
-                    })
-                }
-
+        cy.getLabeledElement('button', text, ordinal).then($button => {
+            if(text.includes("Open public survey")){ //Handle the "Open public survey" and "Open public survey + Logout" cases
+                window.openNextClickInNewTab = true
             }
 
-        } else {
-
-                let sel = `button:contains("${text}"):visible,input[value*=""]:visible`
-
-                cy.top_layer(sel, outer_element).within(() => {
-                    cy.get(':button:visible,input[value*=""]:visible').contains(new RegExp("^" + text + "$", "g")).eq(ord).click(force)
-                })
-
-            } else {
-                cy.get_top_layer().within(() => {
-                    cy.getLabeledElement('button', text, ordinal).then($button => {
-                        if(text.includes("Open public survey")){ //Handle the "Open public survey" and "Open public survey + Logout" cases
-                            cy.open_survey_in_same_tab($button, !(button_type !== undefined && button_type === " and will leave the tab open when I return to the REDCap project"), (text === 'Log out+ Open survey'))
-                        } else {
-                            cy.wrap($button).click()
-                        }
-                    })
-                })
-            }
-        }
-
-        if(text === "Enable" && base_element === ' in the "Use surveys in this project?" row in the "Main project settings" section'){
-            cy.wait('@enable_survey')
-        }
-
-        if(text === "Disable" && base_element === ' in the dialog box' && window.survey_disable_attempt){
-            cy.wait('@disable_survey')
-            window.survey_disable_attempt = false
-        }
-
-        if(base_element === " on the Add/Edit Branching Logic dialog box" || base_element === " in the Add/Edit Branching Logic dialog box"){
-            cy.wait(2000)
-        }
+            cy.wrap($button).click()
+        })
     })
-})
-
-/**
- * @module Interactions
- * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} text - the text on the anchor element you want to click
- * @description Clicks on an anchor element with a specific text label.
- */
-Given("I click on the( ){ordinal} link labeled {string}", (ordinal, text) => {
-    cy.getLabeledElement('link', text, ordinal).click()
-})
-
-/**
- * @module Interactions
- * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} text - the text on the anchor element you want to click
- * @description Clicks on an anchor element with a specific text label.
- */
-Given("I click on the( ){ordinal} icon labeled {string}", (ordinal, text) => {
-    cy.getLabeledElement('icon', text, ordinal).click()
 })
 
 /**
@@ -212,15 +106,6 @@ Given("I click on the button labeled {string} for the row labeled {string}", (te
         // Find the button element
         cy.get('button[title="' + text +'"]').click()
     })
-})
-
-/**
- * @module Interactions
- * @author Mark McEver <mark.mcever@vumc.org>
- * @description Presses the tab key to move focus away from the current input field
- */
-Given('I press the tab key to unfocus the current input field', () => {
-    cy.press(Cypress.Keyboard.Keys.TAB)
 })
 
 /**
@@ -348,7 +233,15 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
              */
             elm.clear()
             if(text !== ''){
-                elm.type(text)
+                elm.type(text).then(elm => {
+                    /**
+                     * Blur after typing to trigger change events (e.g. C.3.31.2500).
+                     * We used to just chain a cypress '.blur()' call after '.type()'
+                     * but it failed with an odd error in the iframe on B.6.4.1200.
+                     * Calling the jQuery blur() method instead seems to work everywhere. 
+                     */
+                    elm.blur()
+                })
             }
         } else if (enter_type === "verify"){
             if(window.dateFormats.hasOwnProperty(text)){
@@ -410,7 +303,11 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
                         elm = cy.wrap($parent).find(element).eq(ord)
 
                         if(enter_type === "enter"){
-                            elm.type(text)
+                            /**
+                             * Force is true because of what seems like a cypress bug preventing
+                             * C.3.31.0900 from scrolling a textarea into view before typing.
+                             */
+                            elm.type(text, {force: true})
                         } else if (enter_type === "clear field and enter") {
                             elm.clear().type(text)
                         } else if(enter_type === "click on"){
@@ -433,10 +330,16 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
 
                             //Logic editor does not use an actual textarea; we need to invoke the text instead!
                             if(label === "Logic Editor"){
-                              cy.wrap($parent).parent().find(element).eq(ord).
-                                click({force: true}).
-                                invoke('attr', 'contenteditable', 'true').
-                                type(`{selectall} {backspace} {backspace} ${text}`, {force: true})
+                                cy.wrap($parent).parent().find(element).eq(ord).
+                                    click({force: true}).
+                                    invoke('attr', 'contenteditable', 'true').
+                                    type(`{selectall} {backspace} {backspace} ${text}`, {force: true})
+
+                                /**
+                                 * This popup might still incorrectly remain displayed depending on timing.
+                                 * Manually hide it to ensure consistent behavior.
+                                 */
+                                Cypress.$('#LSC_id_pdfsnapshotlogic').hide()
                             } else {
                                 cy.wrap($parent).parent().find(element).eq(ord).clear().type(text)
                             }
@@ -528,97 +431,6 @@ Given('I clear the field labeled {string}', (label) => {
     cy.getLabeledElement('input', label).then(element =>{
         cy.wrap(element).clear()
     })
-})
-
-/**
- * @module Interactions
- * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} clickType
- * @param {string} ordinal
- * @param {string} checkBoxRadio
- * @param {string} label - the label associated with the checkbox field
- * @param {string} baseElement
- * @description Selects a checkbox field by its label
- */
-Given("(for the Event Name \"){optionalString}(\", I )(I ){clickType} the{ordinal} {checkBoxRadio} {labeledExactly} {string}{baseElement}{iframeVisibility}", (event_name, check, ordinal, type, labeled_exactly, label, base_element, iframe) => {
-    cy.not_loading()
-
-    //This is to accommodate for aliases such as "toggle button" which is actually a checkbox behind the scenes
-    check = window.checkBoxAliases.hasOwnProperty(check) ? window.checkBoxAliases[check] : check
-    type = window.checkBoxAliases.hasOwnProperty(type) ? window.checkBoxAliases[type] : type
-
-    const elm = (iframe === " in the iframe") ? cy.frameLoaded().then(() => { cy.iframe() }) : null
-
-    let outer_element = window.elementChoices[base_element]
-    let label_selector = `:contains(${JSON.stringify(label)}):visible`
-    let element_selector = `input[type=${type}]:visible:not([disabled])`
-
-    //Special case: selecting a value within a table row
-    if(labeled_exactly === "in the row labeled"){
-        label_selector = `tr:contains(${JSON.stringify(label)}):visible`
-        element_selector = `tr:contains(${JSON.stringify(label)}):visible td input[type=${type}]:visible:not([disabled])`
-    }
-
-    //Special case: "Repeating Instruments and events" popup to select instruments by checkbox OR Bulk Record Delete
-    if(event_name.length > 0){
-
-        //Bulk record delete
-        if(Cypress.$(`#choose_select_forms_events_table`).length){
-            event_name = event_name.split('"')
-            event_name = event_name[1]
-            let event_num = event_name.split(' ')
-            event_num = event_num[1]
-
-            label_selector = `div:contains(${JSON.stringify(event_name)}):visible`
-            element_selector = `${label_selector} :contains(${JSON.stringify(label)}):visible input[value^="ef-event_${event_num}_"][value*="${label.replace(/\s+/g, '_')  // Replace spaces with underscores
-            .toLowerCase()}"][type=${type}]:visible:not([disabled])`
-        } else {
-            label_selector = `tr:contains(${JSON.stringify(event_name)}):visible`
-            element_selector = `tr:contains(${JSON.stringify(event_name)}):visible td:contains(${JSON.stringify(label)}):visible input[type=${type}]:visible:not([disabled])`
-        }
-    }
-
-    function clickElement(element){
-        element = element.scrollIntoView()
-        if (type === "radio" || check === "click on") {
-            element.click()
-        } else if (check === "check") {
-            element.check()
-        } else if (check === "uncheck") {
-            element.uncheck()
-        }
-    }
-
-    function findAndClickElement(label_selector, outer_element, element_selector, label, labeled_exactly){
-        cy.top_layer(label_selector, outer_element).within(() => {
-            cy.getLabeledElement(type, label, ordinal).then(element => {
-                clickElement(cy.wrap(element))
-            })
-        })
-    }
-
-    if(labeled_exactly === "within the Record Locking Customization table for the Data Collection Instrument named"){
-
-        cy.get(`${window.tableMappings['record locking']}:visible tr:contains(${JSON.stringify(event_name)}):visible` ).then(($tr) => {
-            cy.wrap($tr).find('td').each(($td, index) => {
-                if($td.text().includes(event_name)){
-                    element_selector = `td:nth-child(${index + 1}) input[type=${type}]:visible:not([disabled])`
-                }
-            })
-        }).then(() => {
-            outer_element = `${window.tableMappings['record locking']}:visible`
-            label_selector = `tr:contains(${JSON.stringify(label)}):visible`
-            cy.top_layer(label_selector, outer_element).within(() => {
-                let selector = cy.get_labeled_element(element_selector, label, null, labeled_exactly === "labeled exactly")
-                clickElement(selector)
-            })
-        })
-
-    } else if(iframe === " in the iframe") {
-        elm.within(() => { findAndClickElement(label_selector, outer_element, element_selector, label, labeled_exactly) })
-    } else {
-        findAndClickElement(label_selector, outer_element, element_selector, label, labeled_exactly)
-    }
 })
 
 /**
@@ -861,8 +673,12 @@ Given("I {enterType} {string} into the field with the placeholder text of {strin
      * but that caused hard to predict intermittent failures in some case.
      * Always clearing creates more consistent behavior, and is generally what the
      * user interprets the step to do anyway.
+     * 
+     * Some REDCap pages perform javascript background actions once a field loses focus
+     * We explicitly call blur and wait to more closesly match actual user behavior
+     * and prevent odd issues in Cypress (e.g. A.2.3.0200)
      */
-    cy.get(selector).clear().type(text)
+    cy.get(selector).clear().type(text).blur().wait(100)
 })
 
 /**
@@ -1044,16 +860,18 @@ Given("I click on the {string} {labeledElement} within (a)(the) {tableTypes} tab
  * @param {optionalQuotedString} text - the label for the element
  * @param {optionalQuotedString} columnLabel
  * @param {string} rowLabel - the label of the table row
- * @param {disabled} disabled_text - optional "is disabeld" text
+ * @param {elementStatus} elementStatus
  * @description Performs an action on a labeled element in the specified table row and/or column
  */
-Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labeled ){optionalQuotedString}( )in the (column labeled ){optionalQuotedString}( and the )row labeled {string}( that){disabled}", (action, articleType, ordinal, labeledElement, text, columnLabel, rowLabel, disabled_text) => {
+Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labeled ){textType}( ){optionalQuotedString}( )(in the )(column labeled ){optionalQuotedString}( and the )(row labeled ){optionalQuotedString}( ){elementStatus}", (action, articleType, ordinal, labeledElement, textType, text, columnLabel, rowLabel, elementStatus) => {
+    console.log('I {action}...', action, articleType, ordinal, labeledElement, textType, text, columnLabel, rowLabel, elementStatus)
+    
     const performActionOnTarget = (target) =>{
         console.log('performActionOnTarget target', target)
-        if(action === 'should NOT see'){
-            cy.wrap(target).assertTextVisibility(text, false)
-        }
-        else if(labeledElement){
+        
+        const shouldNotSee = action === 'should NOT see'
+
+        if(labeledElement){
             let resultFilter = () => { return true }
             if(target.tagName === 'INPUT'){
                 const actualTarget = target
@@ -1063,46 +881,87 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
                 }
             }
 
-            cy.wrap(target).within(() => {
-                const next = (action, result) =>{
-                    performAction(action, result, disabled_text)
-                }
+            const next = (action, result) =>{
+                performAction(action, result, elementStatus)
+            }
 
-                if(text){
-                    cy.getLabeledElement(labeledElement, text, ordinal).then(result =>{
-                        next(action, result)
-                    })
-                }
-                else{
-                    let selector
-                    if(labeledElement === 'icon'){
-                        selector = 'i, img'
+            target = cy.wrap(target)
+
+            if(text){
+                target.getLabeledElement(labeledElement, text, ordinal, undefined, shouldNotSee).then(result =>{
+                    if(shouldNotSee){
+                        if(result !== true){
+                            console.log('Unexpected element found', result)
+                            throw 'An element was found that was not expected to exist.  See console for details.'
                         }
-                    else if(labeledElement === 'checkbox'){
-                        selector = 'input[type="checkbox"]'
-                    }
-                    else if(labeledElement === 'radio'){
-                        selector = 'input[type="radio"]'
                     }
                     else{
-                        throw 'Unexpected labeledElement and text combo'
+                        next(action, result)
                     }
+                })
+            }
+            else{
+                let selector
+                if(labeledElement === 'icon'){
+                    selector = 'i, img'
+                }
+                else if(labeledElement === 'checkbox'){
+                    selector = 'input[type="checkbox"]'
+                }
+                else if(labeledElement === 'radio'){
+                    selector = 'input[type="radio"]'
+                }
+                else{
+                    throw 'Unexpected labeledElement and text combo'
+                }
 
-                    cy.get(selector).then(results => {
-                        results = results.filter(resultFilter)
+                target.then(target => {
+                    results = target.find(selector).filter(resultFilter)
 
+                    if(shouldNotSee){
+                        if(results.length !== 0){
+                            console.log('performActionOnTarget unexpected results', results)
+                            throw 'Found an unexpected element. See console log for details.'
+                        }
+                    }
+                    else{
                         if(results.length != 1){
                             console.log('performActionOnTarget results', results)
                             throw 'Expected to find a single element, but found ' + results.length + ' instead.  See console log for details.'
                         }
                     
                         next(action, results[0])
-                    })
-                }
-            })
+                    }
+                })
+            }
+        }
+        else if(shouldNotSee){
+            if (textType === 'strikethrough text'){
+                // C.3.31.1400
+                getElementContainingText(text).then($el => {
+                    const styles = window.getComputedStyle($el[0]);
+                    expect(styles.textDecorationLine).to.not.equal('line-through');
+                })
+            }
+            else{
+                cy.wrap(target).assertTextVisibility(text, false)
+            }
         }
         else if(action === 'should see'){
-            cy.wrap(target).assertTextVisibility(text, true)
+            if (textType === 'strikethrough text'){
+                // C.3.31.1400
+                getElementContainingText(text).then($el => {
+                    const styles = window.getComputedStyle($el[0]);
+                    expect(styles.textDecorationLine).to.equal('line-through');
+                })
+            }
+            else{
+                cy.wrap(target).assertTextVisibility(text, true)
+            }
+        }
+        else if(action === 'click on'){
+            // Click on the text itself (e.g. C.3.31.0800)
+            getElementContainingText(text).click()
         }
         else{
             throw 'Action not found: ' + action
@@ -1172,11 +1031,9 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
         })
     }
     else{
-        /**
-         * Currently this case cannot be reached because rowLabel is required.
-         * Eventually we should make rowLabel optional as well and consolidate this with other generic {action} steps.
-         */
-        throw 'Support for omitting both column & row labels is not yet implemented.  Please ask if you need it!'
+        cy.get_top_layer().then(topLayer => {
+            performActionOnTarget(topLayer)
+        })
     }
 })
 

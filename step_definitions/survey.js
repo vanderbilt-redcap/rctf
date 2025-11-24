@@ -21,6 +21,9 @@ Given("I click on the survey option label containing {string} label{optionalStri
     cy.get(`ul:visible li:visible`).contains(survey_option_label).then(($li) => {
         const logout = (survey_option_label === 'Log out+ Open survey')
         cy.open_survey_in_same_tab($li, (optionalStr !== " and will leave the tab open when I return to the REDCap project"), logout)
+        if(!logout){
+            cy.wrap($li).click()
+        }
     })
 })
 

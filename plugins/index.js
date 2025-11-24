@@ -92,6 +92,13 @@ module.exports = (cypressOn, config) => {
     })
 
     on('task', {
+        readTextFile({textFilePath}){
+            return new Promise((resolve) => {
+                const filePath = path.resolve(textFilePath)
+                const dataBuffer = fs.readFileSync(filePath)
+                resolve(dataBuffer.toString())
+            })
+        },
 
         readPdf({pdf_file}){
             return new Promise((resolve) => {
