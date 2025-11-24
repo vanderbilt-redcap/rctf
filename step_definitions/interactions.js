@@ -34,6 +34,11 @@ function performAction(action, element, elementStatus){
     }
 }
 
+function getElementContainingText(text){
+    const escapedText = text.replaceAll('"', '\\"')
+    return cy.get(`:contains("${escapedText}"):visible`).filterMatches()
+}
+
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
@@ -854,7 +859,7 @@ Given("I click on the {string} {labeledElement} within (a)(the) {tableTypes} tab
  * @param {elementStatus} elementStatus
  * @description Performs an action on a labeled element in the specified table row and/or column
  */
-Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labeled ){optionalQuotedString}( )(in the )(column labeled ){optionalQuotedString}( and the )(row labeled ){optionalQuotedString}( ){elementStatus}", (action, articleType, ordinal, labeledElement, text, columnLabel, rowLabel, elementStatus) => {
+Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labeled ){textType}( ){optionalQuotedString}( )(in the )(column labeled ){optionalQuotedString}( and the )(row labeled ){optionalQuotedString}( ){elementStatus}", (action, articleType, ordinal, labeledElement, textType, text, columnLabel, rowLabel, elementStatus) => {
     const performActionOnTarget = (target) =>{
         console.log('performActionOnTarget target', target)
         
@@ -928,12 +933,21 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
             cy.wrap(target).assertTextVisibility(text, false)
         }
         else if(action === 'should see'){
-            cy.wrap(target).assertTextVisibility(text, true)
+            if (textType === 'strikethrough text'){
+                // C.3.31.1400
+                getElementContainingText(text).then($el => {
+                    const styles = window.getComputedStyle($el[0]);
+                    console.log('a', $el)
+                    expect(styles.textDecorationLine).to.equal('line-through');
+                })
+            }
+            else{
+                cy.wrap(target).assertTextVisibility(text, true)
+            }
         }
         else if(action === 'click on'){
             // Click on the text itself (e.g. C.3.31.0800)
-            const escapedText = text.replaceAll('"', '\\"')
-            const result = cy.get(`:contains("${escapedText}"):visible`).filterMatches().click()
+            getElementContainingText(text).click()
         }
         else{
             throw 'Action not found: ' + action
