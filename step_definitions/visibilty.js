@@ -619,3 +619,18 @@ Given("I should NOT see the lock image on the Record Home Page for the Data Coll
         expect(record_id).to.not.have.descendants('img[src*=lock]')
     })
 })
+
+/**
+ * @module Visibility
+ * @author Mintoo Xavier <min2xavier@gmail.com>
+ * @example I should see {int} row(s) in the {tableName}
+ * @param {int} num - number of row(s)
+ * @param {string} tableName - available options: 'econsent'
+ * @description verifies the table contains the specified number of row(s)
+ */
+Given('I should see {int} row(s) in the {tableName}', (num, tableName) => {
+    element = window.tableMappings[tableName] + ' tbody tr'
+    cy.get(element).its('length').then ((rowCount) => {
+        expect(rowCount).to.be.equal(num)
+    })
+})
