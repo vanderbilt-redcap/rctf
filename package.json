@@ -5,7 +5,7 @@
   "dependencies": {
     "@4tw/cypress-drag-drop": "^2",
     "@badeball/cypress-cucumber-preprocessor": "^22",
-    "@bahmutov/cypress-esbuild-preprocessor": "^2",
+    "@bahmutov/cypress-esbuild-preprocessor": "github:@bahmutov/cypress-esbuild-preprocessor#2b021977d5fbb25589290145ab365aaf0f04f088",
     "@foreachbe/cypress-tinymce": "^1",
     "async-csv": "^2",
     "compare-versions": "3",
