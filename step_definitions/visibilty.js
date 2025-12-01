@@ -623,14 +623,10 @@ Given("I should NOT see the lock image on the Record Home Page for the Data Coll
 /**
  * @module Visibility
  * @author Mintoo Xavier <min2xavier@gmail.com>
- * @example I should see {int} row(s) in the {tableName}
+ * @example I should see {int} row(s) in a table
  * @param {int} num - number of row(s)
- * @param {string} tableName - available options: 'econsent'
- * @description verifies the table contains the specified number of row(s)
+ * @description verifies a table contains the specified number of row(s)
  */
-Given('I should see {int} row(s) in the {tableName}', (num, tableName) => {
-    element = window.tableMappings[tableName] + ' tbody tr'
-    cy.get(element).its('length').then ((rowCount) => {
-        expect(rowCount).to.be.equal(num)
-    })
+Given('I should see {int} row(s) in a table', (num) => {
+ cy.get('table[id*="-table"]').find('tbody tr:visible').should('have.length', num)
 })

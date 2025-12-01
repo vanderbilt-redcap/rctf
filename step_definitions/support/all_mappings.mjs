@@ -95,7 +95,7 @@ window.parameterTypes = {
     recordIDEvent: ['record ID', 'event'],
     repeatability: ['enabled', 'disabled', 'modifiable', 'unchangeable'],
     select: ['selected', 'unselected'],
-    tableName: ['', ' of the User Rights table', ' of the Reports table', ' of the Participant List table', 'econsent table'],
+    tableName: ['', ' of the User Rights table', ' of the Reports table', ' of the Participant List table'],
     textType: ['strikethrough text'],
     timeType: ['seconds', 'second', 'minutes', 'minute'],
     toDoRequestTypes: ['Move to prod', 'Approve draft changes', 'Copy project', 'Delete project'],
