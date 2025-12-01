@@ -877,7 +877,17 @@ function filterCoveredElements(matches) {
     const getZIndex = (element) => {
         const zIndex = getComputedStyle(element).zIndex
         if(isNaN(zIndex)){
-            return 0
+            // zIndex is likely "auto"
+            if(element.classList.contains('html-modal')){
+                /**
+                 * Some REDCap modals do not have a zIndex, even though they likely should (e.g. C.3.31.2500).
+                 * Return "1" for them so that our matching logic considers them above other things. 
+                 */
+                return 1
+            }
+            else{
+                return 0
+            }
         }
         else{
             return zIndex

@@ -36,7 +36,7 @@ function performAction(action, element, elementStatus){
 
 function getElementContainingText(text){
     const escapedText = text.replaceAll('"', '\\"')
-    return cy.get(`:contains("${escapedText}"):visible`).filterMatches()
+    return cy.get(`:contains("${escapedText}"):visible`).filterMatches(text)
 }
 
 /**
