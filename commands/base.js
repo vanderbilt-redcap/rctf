@@ -1194,7 +1194,7 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
  * as the root of some of our existing duplicate logic is the lack of built-in "if" support.
  */
 Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (subject, type, text, ordinal, selectOption, expectFailure) {
-    cy.log('getLabeledElement')
+    cy.log('getLabeledElement', JSON.stringify(arguments))
     console.log('getLabeledElement()', arguments)
 
     const errorMessage = `The ${type} labeled "${text}" ` + (expectFailure ? 'was unexepectedly found' : 'could not be found')

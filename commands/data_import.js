@@ -135,6 +135,23 @@ Cypress.Commands.add('upload_file', (fileName, fileType = ' ', selector = '', bu
 
     if(nearest_text.length > 0) label_selector = `:contains("${nearest_text}"):has(${upload_selector}):visible`
 
+    if(fileName.startsWith('downloads/')){
+        fileName = "../" + fileName
+    }
+
+    const filePath = 'cypress/fixtures/' + fileName
+    
+    // Special case for C.3.31.2800
+    if(nearest_text === 'Import' && Cypress.$('#cdp-mapping-container').length > 0){
+        cy.getLabeledElement('button', nearest_text).then(button => {
+            upload_element = cy.wrap(button.closest('.buttons-wrapper').find('input[type=file]'))
+            console.log('upload_element', upload_element)
+            upload_element.selectFile(filePath, {force: true})
+        })
+
+        return
+    }
+
     cy.top_layer(label_selector).within(() => {
         if(nearest_text.length > 0) {
             upload_element = cy.get_labeled_element(upload_selector, nearest_text).first()
@@ -142,11 +159,7 @@ Cypress.Commands.add('upload_file', (fileName, fileType = ' ', selector = '', bu
             upload_element = cy.get(selector)
         }
 
-        if(fileName.startsWith('downloads/')){
-            fileName = "../" + fileName
-        }
-
-        upload_element.selectFile('cypress/fixtures/' + fileName)
+        upload_element.selectFile(filePath)
         
         if(button_label !== '') {
             upload_element.closestIncludingChildren(submit_button_selector).click()
