@@ -288,3 +288,68 @@ Given("I populate \"webdav_connection.php\" with the appropriate WebDAV credenti
         $webdav_ssl		 = '0'; // '0' is default. If REDCap web server is exposed to the web, you MUST use SSL (set to '1').
     `).exec('docker cp ' + tmpPath + ' redcap_docker-app-1:/var/www/html/webtools2/webdav/webdav_connection.php')
 })
+
+/**
+ * @module Download
+ * @author Mintoo Xavier <min2xavier@gmail.com>
+ * @example I should NOT see the following values in the downloaded PDF
+ * @description Verifies the values are not present within a PDF
+ */
+Given("I should NOT see the following values in the downloaded PDF", (dataTable) => {
+    cy.task('fetchLatestDownload', ({fileExtension: 'pdf'})).then((pdf_file) => {
+      
+        function findDateFormat(str) {
+            for (const format in window.dateFormats) {
+                const regex = window.dateFormats[format]
+                const match = str.includes(format)
+                if (match) {
+                    expect(window.dateFormats).to.haveOwnProperty(format)
+                    return str.replace(format, '')
+                }
+            }
+            return null
+        }
+
+        function waitForFile(filename, timeout = 30000) {
+            const startTime = Date.now()
+
+            const checkFile = (resolve, reject) => {
+                cy.fileExists(pdf_file).then((file) => {
+                    if (file === undefined) {
+                        cy.wait(500).then(() => checkFile(resolve, reject))
+                    } else if(file){
+                        resolve(file)
+                    } else if (Date.now() - startTime > timeout) {
+                        reject(new Error('File not found within timeout period'))
+                    } else {
+                        cy.wait(500).then(() => checkFile(resolve, reject))
+                    }
+                })
+            }
+
+            return new Cypress.Promise((resolve, reject) => {
+                checkFile(resolve, reject)
+            })
+        }
+
+        waitForFile(pdf_file).then((fileExists) => {
+            if(fileExists){
+                cy.task('readPdf', { pdf_file: pdf_file }).then((pdf) => {
+                    dataTable['rawTable'].forEach((row, row_index) => {
+                        row.forEach((dataTableCell) => {
+                            const result = findDateFormat(dataTableCell)
+                            if (result === null) {
+                                expect(pdf.text).to.not.include(dataTableCell)
+                            } else {
+                                result.split(' ').forEach((item) => {
+                                    expect(pdf.text).to.not.include(item)
+                                })
+                            }
+                        })
+                    })
+                })
+            }
+        })
+    })
+})
+
