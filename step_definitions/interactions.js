@@ -115,12 +115,34 @@ Given("I click on the button labeled {string} for the row labeled {string}", (te
  * @param {string} label - the label of the field
  * @param {string} baseElement
  */
-Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}', enterTextIntoField)
+Given("I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}", enterTextIntoField)
 
 /**
  * @module Interactions
- * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} enterType
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @param {string} label - the label of the field
+ * @param {string} baseElement
+ */
+Given("I enter the current user's Super API Token into the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}", (...args) => {
+    cy.get('#username-reference').then(element => {
+        const username = element.text()
+        const query = `SELECT api_token FROM redcap_user_information WHERE username = '${username}'`
+    
+        cy.mysql_query(query).then(token => {
+            if(token.trim() === ''){
+                throw 'The current user does not have a Super API Token!'
+            }
+
+            args.unshift(token)
+            args.unshift('enter')
+            enterTextIntoField(...args)
+        })
+    })
+})
+
+/**
+ * @module Interactions
+ * @author Mark McEver <mark.mcever@vumc.org>
  * @param {string} label - the label of the field
  * @param {string} baseElement
  */
