@@ -204,6 +204,8 @@ Cypress.Commands.add('button_or_input', (text_label) => {
 
 //yields the visible div with the highest z-index, or the <html> if none are found
 Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
+    cy.log('get_top_layer')
+
     if(element === null){
         /**
          * We used to also check for dialogs & popups here, but that was too brittle
