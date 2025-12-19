@@ -1008,8 +1008,11 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
         const escapedRowLabel = rowLabel.replaceAll('"', '\\"')
 
         let rowElement
-        if(Cypress.$('#datamart-app').length > 0){
-            rowElement = '.node-container' // C.3.31.3300
+        if(
+            Cypress.$('#datamart-app').length > 0 // C.3.31.3300 on the Clinical Data Mart page
+            || Cypress.$('#datamart').length > 0  // C.3.31.3300 on the New Project page
+        ){
+            rowElement = '.node-container'
         }
         else{
             rowElement = `tr`
