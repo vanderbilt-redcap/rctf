@@ -34,11 +34,6 @@ function performAction(action, element, elementStatus){
     }
 }
 
-function getElementContainingText(text){
-    const escapedText = text.replaceAll('"', '\\"')
-    return cy.get(`:contains("${escapedText}"):visible`).filterMatches(text)
-}
-
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
@@ -115,12 +110,34 @@ Given("I click on the button labeled {string} for the row labeled {string}", (te
  * @param {string} label - the label of the field
  * @param {string} baseElement
  */
-Given('I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}', enterTextIntoField)
+Given("I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}", enterTextIntoField)
 
 /**
  * @module Interactions
- * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @param {string} enterType
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @param {string} label - the label of the field
+ * @param {string} baseElement
+ */
+Given("I enter the current user's Super API Token into the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}", (...args) => {
+    cy.get('#username-reference').then(element => {
+        const username = element.text()
+        const query = `SELECT api_token FROM redcap_user_information WHERE username = '${username}'`
+    
+        cy.mysql_query(query).then(token => {
+            if(token.trim() === ''){
+                throw 'The current user does not have a Super API Token!'
+            }
+
+            args.unshift(token)
+            args.unshift('enter')
+            enterTextIntoField(...args)
+        })
+    })
+})
+
+/**
+ * @module Interactions
+ * @author Mark McEver <mark.mcever@vumc.org>
  * @param {string} label - the label of the field
  * @param {string} baseElement
  */
@@ -868,6 +885,11 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
     
     const performActionOnTarget = (target) =>{
         console.log('performActionOnTarget target', target)
+
+        const getElementContainingText = () => {
+            const escapedText = text.replaceAll('"', '\\"')
+            return cy.wrap(target).find(`:contains("${escapedText}"):visible`).filterMatches(text)
+        }
         
         const shouldNotSee = action === 'should NOT see'
 
@@ -938,7 +960,7 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
         else if(shouldNotSee){
             if (textType === 'strikethrough text'){
                 // C.3.31.1400
-                getElementContainingText(text).then($el => {
+                getElementContainingText().then($el => {
                     const styles = window.getComputedStyle($el[0]);
                     expect(styles.textDecorationLine).to.not.equal('line-through');
                 })
@@ -950,7 +972,7 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
         else if(action === 'should see'){
             if (textType === 'strikethrough text'){
                 // C.3.31.1400
-                getElementContainingText(text).then($el => {
+                getElementContainingText().then($el => {
                     const styles = window.getComputedStyle($el[0]);
                     expect(styles.textDecorationLine).to.equal('line-through');
                 })
@@ -961,7 +983,7 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
         }
         else if(action === 'click on'){
             // Click on the text itself (e.g. C.3.31.0800)
-            getElementContainingText(text).click()
+            getElementContainingText().click()
         }
         else{
             throw 'Action not found: ' + action
@@ -984,12 +1006,21 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
     }
     else if(rowLabel){
         const escapedRowLabel = rowLabel.replaceAll('"', '\\"')
-        const rowContainsSelector = `tr :contains("${escapedRowLabel}")`
+
+        let rowElement
+        if(Cypress.$('#datamart-app').length > 0){
+            rowElement = '.node-container' // C.3.31.3300
+        }
+        else{
+            rowElement = `tr`
+        }
+
+        const rowContainsSelector = `${rowElement} :contains("${escapedRowLabel}")`
         cy.get(rowContainsSelector).filterMatches(rowLabel).then(results => {
             const rows = []
             let lastRow
             results.each((i, element) => {
-                const row = element.closest('tr')
+                const row = element.closest(rowElement)
 
                 // If multiple elements on a single row match, make sure we only consider that row once (e.g. C.3.30.1800)
                 if(row !== lastRow){
@@ -1008,13 +1039,13 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
             }
             
             let row = rows[0]
-            if(row.closest('table').classList.contains('form-label-table')){
+            if(row.closest('table')?.classList.contains('form-label-table')){
                 // Use the next parent row rather than the nested table's row
                 row = row.parentElement.closest('tr')
             }
 
             let next
-            if(row.closest('table').closest('div').id.startsWith('setupChklist-')){
+            if(row.closest('table')?.closest('div').id.startsWith('setupChklist-')){
                 /**
                  * We're on the Project Setup page.
                  * What look like table rows here are just divs that require special handling. 

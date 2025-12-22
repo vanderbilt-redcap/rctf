@@ -204,6 +204,8 @@ Cypress.Commands.add('button_or_input', (text_label) => {
 
 //yields the visible div with the highest z-index, or the <html> if none are found
 Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
+    cy.log('get_top_layer')
+
     if(element === null){
         /**
          * We used to also check for dialogs & popups here, but that was too brittle
@@ -916,6 +918,9 @@ function filterCoveredElements(matches) {
                 &&
                 // Do not consider tooltips to be top elements, since their zIndex is greater than dialogs (e.g. C.3.24.2200)
                 !current.classList.contains('tooltip') // Required for C.3.24.2200.
+                &&
+                // Do not consider the navbar to be a top element, since it can prevent other fields on the page from being matched (e.g. C.3.31.3300)
+                !current.classList.contains('navbar')
             ) {
                 topElement = current
             }

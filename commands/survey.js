@@ -24,7 +24,7 @@ Cypress.Commands.add('open_survey_in_same_tab', (element, same_tab = true, logou
         if(same_tab){
             cy.stub(win, 'surveyOpen').callsFake((url, target) => {
                 window.survey_url = url
-                return win.open(url, '_self')
+                cy.visit(url)
             })
         } else {
             //This allows us to simulate behavior of a survey being opened in a new tab
