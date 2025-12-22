@@ -1220,6 +1220,7 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
             `:contains(${JSON.stringify(text)})`,
             `[title*=${JSON.stringify(text)}]:visible`,
             `[data-bs-original-title*=${JSON.stringify(text)}]:visible`,
+            `[data-tooltip*=${JSON.stringify(text)}]:visible`,
             `input[type=button][value*=${JSON.stringify(text)}]:visible`,
             `input[type=submit][value*=${JSON.stringify(text)}]:visible`,
         ].join(', ')
