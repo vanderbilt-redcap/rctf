@@ -133,6 +133,8 @@ Cypress.Commands.add('mysql_db', (type, replace = '', include_db_name = true, fr
 })
 
 Cypress.Commands.add('mysql_query', (query) => {
+    query = query.replaceAll('\n', ' ')
+
     const mysql = Cypress.env("mysql")
 
     const cmd = `${mysql['path']} -h${mysql['host']} --port=${mysql['port']} ${mysql['db_name']} -u${mysql['db_user']} -p${mysql['db_pass']} -e "${query}" -N -s`
