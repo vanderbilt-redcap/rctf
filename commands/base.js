@@ -698,6 +698,33 @@ Cypress.Commands.add("assertPDFContainsDataTable", {prevSubject: true}, function
     })
 })
 
+Cypress.Commands.add("assertPDFNotContainsDataTable", {prevSubject: true}, function (pdf, dataTable) {
+    function findDateFormat(str) {
+        for (const format in window.dateFormats) {
+            const regex = window.dateFormats[format]
+            const match = str.includes(format)
+            if (match) {
+                expect(window.dateFormats).to.haveOwnProperty(format)
+                return str.replace(format, '')
+            }
+        }
+        return null
+    }
+
+    dataTable['rawTable'].forEach((row, row_index) => {
+        row.forEach((dataTableCell) => {
+            const result = findDateFormat(dataTableCell)
+            if (result === null) {
+                expect(pdf.text).to.include(dataTableCell)
+            } else {
+                result.split(' ').forEach((item) => {
+                    expect(pdf.text).to.not.include(item)
+                })
+            }
+        })
+    })
+})
+
 Cypress.Commands.add('assertContains', {prevSubject: true}, (path, dataTable) => {
     if(!path){
         throw 'A recent file could not be found!'
@@ -712,6 +739,26 @@ Cypress.Commands.add('assertContains', {prevSubject: true}, (path, dataTable) =>
             dataTable['rawTable'].forEach((row, row_index) => {
                 row.forEach((dataTableCell) => {
                     expect(fileContent).to.include(dataTableCell)
+                })
+            })
+        })
+    }
+})
+
+Cypress.Commands.add('assertNotContains', {prevSubject: true}, (path, dataTable) => {
+    if(!path){
+        throw 'A recent file could not be found!'
+    }
+
+    const extension = path.split('.').pop()
+    if(extension === 'pdf'){
+        cy.task('readPdf', { pdf_file: path }).assertPDFNotContainsDataTable(dataTable)
+    }
+    else{
+        cy.task('readTextFile', {textFilePath: path}).then(fileContent => {
+            dataTable['rawTable'].forEach((row, row_index) => {
+                row.forEach((dataTableCell) => {
+                    expect(fileContent).to.not.include(dataTableCell)
                 })
             })
         })
