@@ -623,10 +623,13 @@ Given("I should NOT see the lock image on the Record Home Page for the Data Coll
 /**
  * @module Visibility
  * @author Mintoo Xavier <min2xavier@gmail.com>
- * @example I should see {int} row(s) in a table
+ * @example I should see {int} row(s) in (the ){tableTypes}
  * @param {int} num - number of row(s)
+ * @param {string} tableTypes
  * @description verifies a table contains the specified number of row(s)
  */
-Given('I should see {int} row(s) in a table', (num) => {
- cy.get('table[id*="-table"]').find('tbody tr:visible').should('have.length', num)
+Given('I should see {int} row(s) in (the ){tableTypes}', (num, table_type = 'a') => {
+    cy.not_loading()
+    let selector = window.tableMappings[table_type]
+    cy.get(`${selector}:visible`).find('tbody tr:visible').should('have.length', num)
 })
