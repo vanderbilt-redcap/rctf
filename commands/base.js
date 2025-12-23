@@ -715,7 +715,7 @@ Cypress.Commands.add("assertPDFNotContainsDataTable", {prevSubject: true}, funct
         row.forEach((dataTableCell) => {
             const result = findDateFormat(dataTableCell)
             if (result === null) {
-                expect(pdf.text).to.include(dataTableCell)
+                expect(pdf.text).to.not.include(dataTableCell)
             } else {
                 result.split(' ').forEach((item) => {
                     expect(pdf.text).to.not.include(item)
