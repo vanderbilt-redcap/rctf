@@ -681,7 +681,7 @@ Given("I wait for (another ){int} {timeType}", (time, unit) => {
  * @param {int} - the number of hours for which to simulate waiting
  * @description Does not actually wait for hours, but instead simulates the specified number of hours passing by modifying the database as if all past events has occurred the specified number of hours ago.
  */
-Given("I wait for {int} hours", (hours) => {
+Given("I wait for {int} hour(s)", (hours) => {
     const mysql = Cypress.env("mysql")
     
     // Update all tables with datetime/timestamp columns
