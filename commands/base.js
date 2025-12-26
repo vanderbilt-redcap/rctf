@@ -671,19 +671,19 @@ Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subj
     })
 })
 
-Cypress.Commands.add("assertPDFContainsDataTable", {prevSubject: true}, function (pdf, dataTable) {
-    function findDateFormat(str) {
-        for (const format in window.dateFormats) {
-            const regex = window.dateFormats[format]
-            const match = str.includes(format)
-            if (match) {
-                expect(window.dateFormats).to.haveOwnProperty(format)
-                return str.replace(format, '')
-            }
+function findDateFormat(str) {
+    for (const format in window.dateFormats) {
+        const regex = window.dateFormats[format]
+        const match = str.includes(format)
+        if (match) {
+            expect(window.dateFormats).to.haveOwnProperty(format)
+            return str.replace(format, '')
         }
-        return null
     }
-    
+    return null
+}
+
+Cypress.Commands.add("assertPDFContainsDataTable", {prevSubject: true}, function (pdf, dataTable) {
     dataTable['rawTable'].forEach((row, row_index) => {
         row.forEach((dataTableCell) => {
             const result = findDateFormat(dataTableCell)
@@ -699,18 +699,6 @@ Cypress.Commands.add("assertPDFContainsDataTable", {prevSubject: true}, function
 })
 
 Cypress.Commands.add("assertPDFNotContainsDataTable", {prevSubject: true}, function (pdf, dataTable) {
-    function findDateFormat(str) {
-        for (const format in window.dateFormats) {
-            const regex = window.dateFormats[format]
-            const match = str.includes(format)
-            if (match) {
-                expect(window.dateFormats).to.haveOwnProperty(format)
-                return str.replace(format, '')
-            }
-        }
-        return null
-    }
-
     dataTable['rawTable'].forEach((row, row_index) => {
         row.forEach((dataTableCell) => {
             const result = findDateFormat(dataTableCell)
