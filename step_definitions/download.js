@@ -165,13 +165,18 @@ function loadPDF(record, survey, next){
 
 /**
  * @module Download
- * @author Mark McEver <mark.mcever@vumc.org>
- * @param {string} record - the ID of the record the PDF is associated with
- * @param {string} survey - the Survey / Event of the record the PDF is associated with
+ * @author Mintoo Xavier <min2xavier@gmail.com>
  * @description Verifies the values within a PDF in the PDF Archive
  */
-Given("I should see the following values in the last file downloaded", (dataTable) => {
-    cy.task('fetchLatestDownload', { fileExtension: false }).assertContains(dataTable)
+Given("I {shouldOrShouldNot} see the following values in the last file downloaded", (shouldOrShouldNot, dataTable) => {
+    const next = cy.task('fetchLatestDownload', { fileExtension: false })
+
+    if(shouldOrShouldNot === 'should'){
+        next.assertContains(dataTable)
+    }
+    else{
+        next.assertNotContains(dataTable)
+    }
 })
 
 /**
@@ -287,14 +292,4 @@ Given("I populate \"webdav_connection.php\" with the appropriate WebDAV credenti
         $webdav_path	 = '/'; // Set path where REDCap files will be stored. Must end with a slash or back slash, depending on your OS.
         $webdav_ssl		 = '0'; // '0' is default. If REDCap web server is exposed to the web, you MUST use SSL (set to '1').
     `).exec('docker cp ' + tmpPath + ' redcap_docker-app-1:/var/www/html/webtools2/webdav/webdav_connection.php')
-})
-
-/**
- * @module Download
- * @author Mintoo Xavier <min2xavier@gmail.com>
- * @example I should NOT see the following values in the last file downloaded
- * @description Verifies the values are not present within a downloaded file
- */
-Given("I should NOT see the following values in the last file downloaded", (dataTable) => {
-    cy.task('fetchLatestDownload', { fileExtension: false }).assertNotContains(dataTable)
 })
