@@ -619,3 +619,17 @@ Given("I should NOT see the lock image on the Record Home Page for the Data Coll
         expect(record_id).to.not.have.descendants('img[src*=lock]')
     })
 })
+
+/**
+ * @module Visibility
+ * @author Mintoo Xavier <min2xavier@gmail.com>
+ * @example I should see {int} row(s) in (the ){tableTypes}
+ * @param {int} num - number of row(s)
+ * @param {string} tableTypes
+ * @description verifies a table contains the specified number of row(s)
+ */
+Given('I should see {int} row(s) in (the ){tableTypes}', (num, table_type = 'a') => {
+    cy.not_loading()
+    let selector = window.tableMappings[table_type]
+    cy.get(`${selector}:visible`).find('tbody tr:visible').should('have.length', num)
+})
