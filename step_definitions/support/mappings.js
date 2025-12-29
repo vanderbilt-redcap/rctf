@@ -65,7 +65,8 @@ window.tableMappings = {
     'user rights' : ['div#user_rights_roles_table table', 'table#table-user_rights_roles_table'], 
     'record locking' : 'table#part11_forms',
     'e-signature and locking management' : 'table#esignLockList',
-    'record home page': 'table#event_grid_table'
+    'record home page': 'table#event_grid_table',
+    'econsent': 'table#econsent-table'
 }
 
 window.dateFormats = {
