@@ -122,7 +122,7 @@ Cypress.Commands.add('mysql_db', (type, replace = '', include_db_name = true, fr
 
         //Execute the MySQL Command
         cy.exec(mysql_cli['cmd'], { timeout: 100000}).then((data_import) => {
-            expect(data_import['code']).to.eq(0)
+            expect(data_import['exitCode']).to.eq(0)
 
             //Clean up after ourselves
             cy.task('deleteFile', { path: mysql_cli['tmp'] }).then((deleted_tmp_file) => {
@@ -140,7 +140,7 @@ Cypress.Commands.add('mysql_query', (query) => {
     const cmd = `${mysql['path']} -h${mysql['host']} --port=${mysql['port']} ${mysql['db_name']} -u${mysql['db_user']} -p${mysql['db_pass']} -e "${query}" -N -s`
 
     cy.exec(cmd, { timeout: 100000}).then((response) => {
-        expect(response['code']).to.eq(0)
+        expect(response['exitCode']).to.eq(0)
         return response['stdout']
     })
 })
@@ -151,7 +151,7 @@ Cypress.Commands.add('mysql_snapshot_export', () => {
     const cmd = `${mysql['path']}dump -h${mysql['host']} --port=${mysql['port']} ${mysql['db_name']} -u${mysql['db_user']} -p${mysql['db_pass']} > test_db/latest_snapshot.sql`
 
     cy.exec(cmd, { timeout: 100000}).then((response) => {
-        expect(response['code']).to.eq(0)
+        expect(response['exitCode']).to.eq(0)
         return response['stdout']
     })
 })
@@ -162,7 +162,7 @@ Cypress.Commands.add('mysql_snapshot_import', () => {
     const cmd = `${mysql['path']} -h${mysql['host']} --port=${mysql['port']} ${mysql['db_name']} -u${mysql['db_user']} -p${mysql['db_pass']} < test_db/latest_snapshot.sql`
 
     cy.exec(cmd, { timeout: 100000}).then((response) => {
-        expect(response['code']).to.eq(0)
+        expect(response['exitCode']).to.eq(0)
         return response['stdout']
     })
 })
