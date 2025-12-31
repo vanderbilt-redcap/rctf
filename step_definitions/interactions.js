@@ -324,9 +324,9 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
                              * Force is true because of what seems like a cypress bug preventing
                              * C.3.31.0900 from scrolling a textarea into view before typing.
                              */
-                            elm.type(text, {force: true}).blur()
+                            elm.type(text, {force: true})
                         } else if (enter_type === "clear field and enter") {
-                            elm.clear().type(text).blur()
+                            elm.clear().type(text)
                         } else if(enter_type === "click on"){
                             elm.click()
                         }
