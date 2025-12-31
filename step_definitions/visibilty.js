@@ -644,3 +644,28 @@ Given('I should see a table with {int} row(s)', (num) => {
         return tables
     }).first().find('tbody tr:has(td:not(.header))').should('have.length', num)
 })
+
+/**
+ * @module Visibility
+ * @author Mintoo Xavier <min2xavier@gmail.com>
+ * @description verifies a table does not contain a header called "Dashboard"
+ */
+Given('I should NOT see the header {string} in a table', (headerName) => {
+    cy.get('table:has(th, td.head)').then(tables => {
+        const dataTables = tables.filter('.dataTable')
+        const logTables = tables.filter('[logeventtable]')
+
+        if(dataTables.length > 0){
+            // Assume we want to interact with the datatable(s) and ignore the others
+            tables = dataTables
+        }
+        else if(logTables.length > 0){
+            // Assume we want to interact with the log table(s) and ignore the others
+            tables = logTables
+        }
+
+        return tables
+    }).first().find('th, td.head').each(($header) => {
+        expect($header.text().trim()).to.not.equal(headerName)
+    })
+})
