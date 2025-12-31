@@ -619,3 +619,28 @@ Given("I should NOT see the lock image on the Record Home Page for the Data Coll
         expect(record_id).to.not.have.descendants('img[src*=lock]')
     })
 })
+
+
+/**
+ * @module Visibility
+ * @author Mintoo Xavier <min2xavier@gmail.com>
+ * @param {int} num - number of row(s)
+ * @description verifies a table contains the specified number of row(s)
+ */
+Given('I should see a table with {int} row(s)', (num) => {
+    cy.get('table:has(td)').then(tables => {
+        const dataTables = tables.filter('.dataTable')
+        const logTables = tables.filter('[logeventtable]')
+
+        if(dataTables.length > 0){
+            // Assume we want to interact with the datatable(s) and ignore the others
+            tables = dataTables
+        }
+        else if(logTables.length > 0){
+            // Assume we want to interact with the log table(s) and ignore the others
+            tables = logTables
+        }
+        
+        return tables
+    }).first().find('tbody tr:has(td:not(.header))').should('have.length', num)
+})
