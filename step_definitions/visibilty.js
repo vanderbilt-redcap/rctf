@@ -648,10 +648,11 @@ Given('I should see a table with {int} row(s)', (num) => {
 /**
  * @module Visibility
  * @author Mintoo Xavier <min2xavier@gmail.com>
- * @description verifies a table does not contain a header called "Dashboard"
+ * @param {string} headerName - the header of the table
+ * @description verifies a table does not contain the specified header
  */
-Given('I should NOT see the header {string} in a table', (headerName) => {
-    cy.get('table:has(th, td.head)').then(tables => {
+Given('I should NOT see a table with header {string}', (headerName) => {
+    cy.get('table:has(th, td.header)').then(tables => {
         const dataTables = tables.filter('.dataTable')
         const logTables = tables.filter('[logeventtable]')
 
@@ -665,7 +666,7 @@ Given('I should NOT see the header {string} in a table', (headerName) => {
         }
 
         return tables
-    }).first().find('th, td.head').each(($header) => {
+    }).first().find('th, td.header').each(($header) => {
         expect($header.text().trim()).to.not.equal(headerName)
     })
 })
