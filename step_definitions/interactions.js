@@ -656,6 +656,7 @@ Given('I select {string} (in)(on) the{ordinal} {dropdownType} (field labeled)(of
 /**
  * @module Interactions
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
+ * @param {int} - the number of seconds/minutes to wait
  * @param {string} timeType
  * @description Waits for specified number of second(s)/minute(s) before allowing anything else to happen
  */
@@ -671,6 +672,72 @@ Given("I wait for (another ){int} {timeType}", (time, unit) => {
 
     cy.wait(millis).then(() => {
         window.shouldShowAlerts = false
+    })
+})
+
+/**
+ * @module Interactions
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @param {int} - the number of hours for which to simulate waiting
+ * @description Does not actually wait for hours, but instead simulates the specified number of hours passing by modifying the database as if all past events has occurred the specified number of hours ago.
+ */
+Given("I wait for {int} hour(s)", (hours) => {
+    const mysql = Cypress.env("mysql")
+    
+    // Update all tables with datetime/timestamp columns
+    cy.mysql_query(`
+        SELECT table_name, column_name, data_type
+        FROM information_schema.columns
+        WHERE table_schema = '${mysql['db_name']}'
+        AND data_type IN (
+            'datetime',
+            'timestamp'
+        )
+    `).then(output => {
+        let query = ''
+        output.split('\n').forEach((line) => {
+            const [table, column] = line.split('\t')
+            query += `
+                UPDATE ${table}
+                SET ${column} = DATE_SUB(${column}, INTERVAL ${hours} HOUR)
+                WHERE ${column} IS NOT NULL;
+            `
+
+            if(query.length > 5000){
+                cy.mysql_query(query)
+                query = ''
+            }
+        })
+
+        cy.mysql_query(query)
+    })
+
+    // Update the 'ts' column in all the event log tables
+    cy.mysql_query(`
+        SELECT table_name, column_name, data_type
+        FROM information_schema.columns
+        WHERE table_schema = '${mysql['db_name']}'
+        AND table_name like 'redcap_log_event%'
+        AND column_name = 'ts'
+    `).then(output => {
+        const logTableDateFormat = '%Y%m%d%H%i%S'
+        let query = ''
+        output.split('\n').forEach((line) => {
+            const [table, column] = line.split('\t')
+
+            query += `
+                UPDATE ${table}
+                SET ${column} = DATE_FORMAT(
+                    DATE_SUB(
+                        STR_TO_DATE(${column}, '${logTableDateFormat}'),
+                        INTERVAL ${hours} HOUR
+                    ),
+                    '${logTableDateFormat}'
+                );
+            `
+        })
+
+        cy.mysql_query(query)
     })
 })
 
@@ -1008,8 +1075,11 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
         const escapedRowLabel = rowLabel.replaceAll('"', '\\"')
 
         let rowElement
-        if(Cypress.$('#datamart-app').length > 0){
-            rowElement = '.node-container' // C.3.31.3300
+        if(
+            Cypress.$('#datamart-app').length > 0 // C.3.31.3300 on the Clinical Data Mart page
+            || Cypress.$('#datamart').length > 0  // C.3.31.3300 on the New Project page
+        ){
+            rowElement = '.node-container'
         }
         else{
             rowElement = `tr`

@@ -876,7 +876,7 @@ function getShortestMatchingNodeLength(textToFind, element) {
         text = element.getAttribute('data-bs-original-title') // Required for C.3.24.2200.
     }
 
-    if(!text.includes(textToFind)){
+    if(!(text?.includes(textToFind))){
         // This is not a match.  Return a large int to make sure it is excluded.
         return Number.MAX_SAFE_INTEGER
     }
@@ -1255,6 +1255,7 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
             `:contains(${JSON.stringify(text)})`,
             `[title*=${JSON.stringify(text)}]:visible`,
             `[data-bs-original-title*=${JSON.stringify(text)}]:visible`,
+            `[data-tooltip*=${JSON.stringify(text)}]:visible`,
             `input[type=button][value*=${JSON.stringify(text)}]:visible`,
             `input[type=submit][value*=${JSON.stringify(text)}]:visible`,
         ].join(', ')

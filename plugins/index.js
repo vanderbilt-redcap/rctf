@@ -111,19 +111,19 @@ module.exports = (cypressOn, config) => {
         },
 
         saveCurrentURL(urlData) {
-            let path = shell.pwd() + '/test_db/latest_url.info'
+            let path = process.env.PWD + '/test_db/latest_url.info'
             return fs.writeFileSync(path, JSON.stringify(urlData, null, 2)) > 0
         },
 
         currentSnapshotInfo({url, user, pass}){
-            let snapshot_url_path = shell.pwd() + '/test_db/latest_snapshot.info'
+            let snapshot_url_path = process.env.PWD + '/test_db/latest_snapshot.info'
             shell.ShellString(`${url}\n${user}\n${pass}`).to(snapshot_url_path);
             return fs.existsSync(snapshot_url_path)
         },
 
         snapshotExists(){
             //SNAPSHOT PATH
-            var snapshot_file = shell.pwd() + '/test_db/latest_snapshot.sql';
+            var snapshot_file = process.env.PWD + '/test_db/latest_snapshot.sql';
 
             // SEE IF SNAPSHOT EXISTS
             return fs.existsSync(snapshot_file)
@@ -152,7 +152,7 @@ module.exports = (cypressOn, config) => {
             }
 
             // DEFINE OTHER LOCATIONS
-            var test_seeds_location = shell.pwd() + '/node_modules/rctf/test_db';
+            var test_seeds_location = process.env.PWD + '/node_modules/rctf/test_db';
             var seeds_location = test_seeds_location + '/seeds';
 
             var db_prefix_sql = test_seeds_location + '/structure_prefix.sql';
@@ -209,8 +209,8 @@ module.exports = (cypressOn, config) => {
                 `${mysql_name} -h${host} --port=${port} ${db_name} -u${db_user} -p${db_pass}` :
                 `${mysql_name} -h${host} --port=${port} -u${db_user} -p${db_pass}`
 
-            var rctf_sql = `${shell.pwd()}/node_modules/rctf/test_db/${type}.sql`
-            var sql = framework ? rctf_sql : `${shell.pwd()}/test_db/${type}.sql`
+            var rctf_sql = `${process.env.PWD}/node_modules/rctf/test_db/${type}.sql`
+            var sql = framework ? rctf_sql : `${process.env.PWD}/test_db/${type}.sql`
             var tmp = `${rctf_sql}.tmp`;
 
             //REPLACE ALL INSTANCES OF THE REDCAP_DB_NAME MAGIC CONSTANT
@@ -253,12 +253,12 @@ module.exports = (cypressOn, config) => {
         },
 
         createInitialDbSeedLock(){
-            const file = shell.ShellString("").to(shell.pwd() + '/node_modules/rctf/test_db/initial_db_seed.lock')
+            const file = shell.ShellString("").to(process.env.PWD + '/node_modules/rctf/test_db/initial_db_seed.lock')
             return fs.existsSync(file)
         },
 
         removeInitialDbSeedLock(){
-            const path = shell.pwd() + '/node_modules/rctf/test_db/initial_db_seed.lock'
+            const path = process.env.PWD + '/node_modules/rctf/test_db/initial_db_seed.lock'
 
             if (fs.existsSync(path)) {
                 shell.rm(path)
@@ -272,7 +272,7 @@ module.exports = (cypressOn, config) => {
         },
 
         dbSeedLockExists(){
-            const file = shell.pwd() + '/node_modules/rctf/test_db/initial_db_seed.lock'
+            const file = process.env.PWD + '/node_modules/rctf/test_db/initial_db_seed.lock'
             return fs.existsSync(file)
         },
 
@@ -285,7 +285,7 @@ module.exports = (cypressOn, config) => {
             threshold.setTime(threshold.getTime() - 5000); // Only look for very recent downloads to make sure we don't falsely match a file from a previous download
 
             const fetchOnce = () => {
-                const downloadsDir = shell.pwd() + '/cypress/downloads/'
+                const downloadsDir = process.env.PWD + '/cypress/downloads/'
 
                 // Read the files in the downloads directory
                 let files = fs.readdirSync(downloadsDir)
