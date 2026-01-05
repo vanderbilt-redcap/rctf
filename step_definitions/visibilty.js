@@ -667,6 +667,6 @@ Given('I should NOT see a table with header {string}', (headerName) => {
 
         return tables
     }).first().find('th, td.header').each(($header) => {
-        expect($header.text().trim()).to.not.equal(headerName)
+        expect($header.text().trim()).to.not.include(headerName)
     })
 })
