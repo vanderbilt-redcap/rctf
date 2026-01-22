@@ -313,6 +313,15 @@ Cypress.Commands.overwrite(
         if(options === undefined) options = {} //If no options object exists, create it
         //console.log(subject)
 
+        /**
+         * In multiple places we've seen Cypress's "scrollBehavior" lock
+         * the scroll position in a place where the element is not visible
+         * and prevent it from being clicked (e.g. C.3.31.0800.).
+         * Setting it to false and calling scrollIntoView() instead works in more cases.
+         */
+        options.scrollBehavior = false
+        subject[0].scrollIntoView()
+
         const innerText = subject[0].innerText
 
         if(subject[0].nodeName === "A" ||
