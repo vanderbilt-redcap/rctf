@@ -204,6 +204,8 @@ Cypress.Commands.add('button_or_input', (text_label) => {
 
 //yields the visible div with the highest z-index, or the <html> if none are found
 Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
+    cy.log('get_top_layer')
+
     if(element === null){
         /**
          * We used to also check for dialogs & popups here, but that was too brittle
@@ -671,19 +673,19 @@ Cypress.Commands.add("assertTextVisibility", {prevSubject: true}, function (subj
     })
 })
 
-Cypress.Commands.add("assertPDFContainsDataTable", {prevSubject: true}, function (pdf, dataTable) {
-    function findDateFormat(str) {
-        for (const format in window.dateFormats) {
-            const regex = window.dateFormats[format]
-            const match = str.includes(format)
-            if (match) {
-                expect(window.dateFormats).to.haveOwnProperty(format)
-                return str.replace(format, '')
-            }
+function findDateFormat(str) {
+    for (const format in window.dateFormats) {
+        const regex = window.dateFormats[format]
+        const match = str.includes(format)
+        if (match) {
+            expect(window.dateFormats).to.haveOwnProperty(format)
+            return str.replace(format, '')
         }
-        return null
     }
-    
+    return null
+}
+
+Cypress.Commands.add("assertPDFContainsDataTable", {prevSubject: true}, function (pdf, dataTable) {
     dataTable['rawTable'].forEach((row, row_index) => {
         row.forEach((dataTableCell) => {
             const result = findDateFormat(dataTableCell)
@@ -692,6 +694,21 @@ Cypress.Commands.add("assertPDFContainsDataTable", {prevSubject: true}, function
             } else {
                 result.split(' ').forEach((item) => {
                     expect(pdf.text).to.include(item)
+                })
+            }
+        })
+    })
+})
+
+Cypress.Commands.add("assertPDFNotContainsDataTable", {prevSubject: true}, function (pdf, dataTable) {
+    dataTable['rawTable'].forEach((row, row_index) => {
+        row.forEach((dataTableCell) => {
+            const result = findDateFormat(dataTableCell)
+            if (result === null) {
+                expect(pdf.text).to.not.include(dataTableCell)
+            } else {
+                result.split(' ').forEach((item) => {
+                    expect(pdf.text).to.not.include(item)
                 })
             }
         })
@@ -712,6 +729,26 @@ Cypress.Commands.add('assertContains', {prevSubject: true}, (path, dataTable) =>
             dataTable['rawTable'].forEach((row, row_index) => {
                 row.forEach((dataTableCell) => {
                     expect(fileContent).to.include(dataTableCell)
+                })
+            })
+        })
+    }
+})
+
+Cypress.Commands.add('assertNotContains', {prevSubject: true}, (path, dataTable) => {
+    if(!path){
+        throw 'A recent file could not be found!'
+    }
+
+    const extension = path.split('.').pop()
+    if(extension === 'pdf'){
+        cy.task('readPdf', { pdf_file: path }).assertPDFNotContainsDataTable(dataTable)
+    }
+    else{
+        cy.task('readTextFile', {textFilePath: path}).then(fileContent => {
+            dataTable['rawTable'].forEach((row, row_index) => {
+                row.forEach((dataTableCell) => {
+                    expect(fileContent).to.not.include(dataTableCell)
                 })
             })
         })
@@ -839,7 +876,7 @@ function getShortestMatchingNodeLength(textToFind, element) {
         text = element.getAttribute('data-bs-original-title') // Required for C.3.24.2200.
     }
 
-    if(!text.includes(textToFind)){
+    if(!(text?.includes(textToFind))){
         // This is not a match.  Return a large int to make sure it is excluded.
         return Number.MAX_SAFE_INTEGER
     }
@@ -877,7 +914,17 @@ function filterCoveredElements(matches) {
     const getZIndex = (element) => {
         const zIndex = getComputedStyle(element).zIndex
         if(isNaN(zIndex)){
-            return 0
+            // zIndex is likely "auto"
+            if(element.classList.contains('html-modal')){
+                /**
+                 * Some REDCap modals do not have a zIndex, even though they likely should (e.g. C.3.31.2500).
+                 * Return "1" for them so that our matching logic considers them above other things. 
+                 */
+                return 1
+            }
+            else{
+                return 0
+            }
         }
         else{
             return zIndex
@@ -906,6 +953,9 @@ function filterCoveredElements(matches) {
                 &&
                 // Do not consider tooltips to be top elements, since their zIndex is greater than dialogs (e.g. C.3.24.2200)
                 !current.classList.contains('tooltip') // Required for C.3.24.2200.
+                &&
+                // Do not consider the navbar to be a top element, since it can prevent other fields on the page from being matched (e.g. C.3.31.3300)
+                !current.classList.contains('navbar')
             ) {
                 topElement = current
             }
@@ -1184,7 +1234,7 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
  * as the root of some of our existing duplicate logic is the lack of built-in "if" support.
  */
 Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (subject, type, text, ordinal, selectOption, expectFailure) {
-    cy.log('getLabeledElement')
+    cy.log('getLabeledElement', JSON.stringify(arguments))
     console.log('getLabeledElement()', arguments)
 
     const errorMessage = `The ${type} labeled "${text}" ` + (expectFailure ? 'was unexepectedly found' : 'could not be found')
@@ -1205,6 +1255,7 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
             `:contains(${JSON.stringify(text)})`,
             `[title*=${JSON.stringify(text)}]:visible`,
             `[data-bs-original-title*=${JSON.stringify(text)}]:visible`,
+            `[data-tooltip*=${JSON.stringify(text)}]:visible`,
             `input[type=button][value*=${JSON.stringify(text)}]:visible`,
             `input[type=submit][value*=${JSON.stringify(text)}]:visible`,
         ].join(', ')
