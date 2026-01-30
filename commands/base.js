@@ -320,7 +320,7 @@ Cypress.Commands.overwrite(
          * Setting it to false and calling scrollIntoView() instead works in more cases.
          */
         options.scrollBehavior = false
-        subject[0].scrollIntoView()
+        subject[0].scrollIntoView({ block: 'center' })
 
         const innerText = subject[0].innerText
 
