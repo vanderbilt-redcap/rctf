@@ -313,6 +313,15 @@ Cypress.Commands.overwrite(
         if(options === undefined) options = {} //If no options object exists, create it
         //console.log(subject)
 
+        /**
+         * In multiple places we've seen Cypress's "scrollBehavior" lock
+         * the scroll position in a place where the element is not visible
+         * and prevent it from being clicked (e.g. C.3.31.0800.).
+         * Setting it to false and calling scrollIntoView() instead works in more cases.
+         */
+        options.scrollBehavior = false
+        subject[0].scrollIntoView({ block: 'center' })
+
         const innerText = subject[0].innerText
 
         if(subject[0].nodeName === "A" ||
@@ -1188,6 +1197,7 @@ function removeUnpreferredSiblings(text, originalMatch, children){
 }
 
 function findMatchingChildren(text, selectOption, originalMatch, searchParent, childSelector, childrenToIgnore) {
+    console.log('findMatchingChildren', arguments)
     selectOption = normalizeString(selectOption)
 
     let children = Array.from(Cypress.$(searchParent).find(childSelector)).filter(child => {
@@ -1195,7 +1205,7 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
             childSelector.replace(':visible', '') === 'input'
             &&
             // Remember, child.type will be 'text' even when type is not set in the DOM.
-            !['text', 'password', 'email', 'number', 'search', 'tel', 'url'].includes(child.type)
+            !['text', 'password', 'email', 'number', 'search', 'tel', 'url', 'file'].includes(child.type)
         ){
             /**
              * We're looking for a text type (like checkbox), but found a non-text type.  Ignore this element.

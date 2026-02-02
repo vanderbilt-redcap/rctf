@@ -139,11 +139,11 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
     column_label = escapeCssSelector(column_label)
     row_label = escapeCssSelector(row_label)
 
-    let selector = `th:contains('${column_label}'):visible, td:contains('${column_label}'):visible`
-    let td_selector = `tr:has(${row_cell_type}:visible):visible`
+    let selector = `th:contains('${column_label}'), td:contains('${column_label}')`
+    let td_selector = `tr:has(${row_cell_type})`
 
     if(row_number === 0) {
-        td_selector = `tr:has(${row_cell_type}:contains('${row_label}'):visible):visible`
+        td_selector = `tr:has(${row_cell_type}:contains('${row_label}'))`
     }
 
     let table
