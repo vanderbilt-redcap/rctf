@@ -503,6 +503,31 @@ Given("I set the input file field named {string} to the file at path {string}{ba
 
 /**
  * @module Interactions
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @param {string} label - the label of the file upload field
+ * @description Selects the last downloaded file on the specified file upload field
+ */
+Given("I select the last file downloaded for the file upload field labeled {string}", (label) => {
+    cy.task('fetchLatestDownload', { fileExtension: false }).then(filename => {
+        filename = '../downloads/' + filename.split('/').pop()
+        cy.getLabeledElement('input', label).selectFile("cypress/fixtures/" + filename)
+    })
+})
+
+/**
+ * @module Interactions
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @param {string} filename - the path to the file
+ * @param {string} label - the label of the file upload field
+ * @description Selects the specified file on the specified file upload field
+ */
+Given("I select {string} for the file upload field labeled {string}", (filename, label) => {
+    cy.getLabeledElement('input', label).selectFile("cypress/fixtures/" + filename)
+})
+
+
+/**
+ * @module Interactions
  * @author Tintin Nguyen <tin-tin.nguyen@nih.gov>
  * @param {string} text - the text to enter into the field
  * @param {string} selector - the selector of the element to enter the text into

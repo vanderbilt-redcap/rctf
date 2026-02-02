@@ -144,7 +144,7 @@ Cypress.Commands.add('upload_file', (fileName, fileType = ' ', selector = '', bu
     // Special case for C.3.31.2800
     if(nearest_text === 'Import' && Cypress.$('#cdp-mapping-container').length > 0){
         cy.getLabeledElement('button', nearest_text).then(button => {
-            upload_element = cy.wrap(button.closest('.buttons-wrapper').find('input[type=file]'))
+            upload_element = cy.wrap(button.closest('details').find('input[type=file]'))
             console.log('upload_element', upload_element)
             upload_element.selectFile(filePath, {force: true})
         })
