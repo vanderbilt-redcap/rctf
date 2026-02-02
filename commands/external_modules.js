@@ -7,8 +7,6 @@ Cypress.Commands.add('enable_modules', (csrf_token) => {
             if (value === true) {
                 const folder = key;
                 const [prefix, version] = folder.split('_v');
-                
-                cy.visit('/')
 
                 cy.request({
                     method: 'POST',
