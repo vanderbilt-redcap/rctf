@@ -553,6 +553,16 @@ Cypress.Commands.overwrite('within', (...args) => {
     }
 })
 
+Cypress.Commands.overwrite('type', (originalFn, subject, text, options = {}) => {
+    return originalFn(subject, text, {
+        /**
+         * Override the default of 10 since we've seen that cut off chars intermittently on random tests.
+         */
+        delay: 30,
+        ...options,
+    })
+})
+
 Cypress.Commands.add('php_time_zone', () => {
     // Check if php path is set in Cypress.env.json
     if (Cypress.env('php') && Cypress.env('php')['path']) {
