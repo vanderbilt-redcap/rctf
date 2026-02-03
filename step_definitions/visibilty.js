@@ -29,17 +29,7 @@ Given("I should see {string} in the title", (title) => {
  * @description Selects a specific item from a dropdown
  */
 Given('I (should )see the {dropdownType} field labeled {string} with the option {string} selected{baseElement}', (type, label, option, base_element) => {
-    let label_selector = `:contains(${JSON.stringify(label)}):visible`
-    let element_selector = `select:has(option:contains(${JSON.stringify(option)})):visible`
-
-    //Either the base element as specified or the default
-    let outer_element = base_element.length > 0 ?
-        cy.top_layer(label_selector, window.elementChoices[base_element]) :
-        cy.top_layer(label_selector)
-
-    outer_element.within(() => {
-        cy.get_labeled_element(element_selector, label).find(':selected').should('have.text', option)
-    })
+    cy.getLabeledElement('dropdown', label).find(':selected').should('have.text', option)
 })
 
 /**
