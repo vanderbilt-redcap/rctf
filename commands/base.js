@@ -359,7 +359,7 @@ Cypress.Commands.overwrite(
                 }
 
                 cy.wrap($el).then(() => {
-                    return originalFn($el, options)
+                    originalFn($el, options)
                 })
             })
             .then($el => {
