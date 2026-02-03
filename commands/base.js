@@ -977,6 +977,18 @@ function filterCoveredElements(matches) {
     )
 }
 
+function isUserVisible(el) {
+    const style = getComputedStyle(el)
+    if (
+        style.display === 'none' ||
+        style.visibility === 'hidden' ||
+        style.opacity === '0'
+    ) return false
+
+    const rect = el.getBoundingClientRect()
+    return rect.width > 0 && rect.height > 0
+}
+
 Cypress.Commands.add("filterMatches", {prevSubject: true}, function (matches, text) {
     // We must check whether this is an array first to support empty array result sets (e.g. C.5.22.100)
     if(!Array.isArray(matches)){
@@ -1006,6 +1018,11 @@ Cypress.Commands.add("filterMatches", {prevSubject: true}, function (matches, te
              * be a direct match (e.g. B.2.6.0200)
              */
             current.id === 'dataEntryTopOptionsButtons'
+            ||
+            /**
+             * Intelligently exclude things that the user would not consider visible or visible after scrolling.
+             */
+            !isUserVisible(current)
         ){
             matches = matches.filter(match => match !== current)
         }
