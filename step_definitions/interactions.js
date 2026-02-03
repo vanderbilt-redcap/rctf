@@ -980,7 +980,7 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
 
         const getElementContainingText = () => {
             const escapedText = text.replaceAll('"', '\\"')
-            return cy.wrap(target).find(`:contains("${escapedText}"):visible`).filterMatches(text)
+            return cy.wrap(target).find(`:contains("${escapedText}")`).filterMatches(text)
         }
         
         const shouldNotSee = action === 'should NOT see'
