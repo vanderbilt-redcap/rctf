@@ -25,11 +25,10 @@ Given("I should see {string} in the title", (title) => {
  * @param {string} dropdownType
  * @param {string} label - the label of the field
  * @param {string} option - the option selected
- * @param {string} baseElement
  * @description Selects a specific item from a dropdown
  */
-Given('I (should )see the {dropdownType} field labeled {string} with the option {string} selected{baseElement}', (type, label, option, base_element) => {
-    cy.getLabeledElement('dropdown', label).find(':selected').should('have.text', option)
+Given('I (should )see the {dropdownType} field labeled {string} with the option {string} selected', (type, label, option) => {
+    cy.getLabeledElement(type, label).find(':selected').should('have.text', option)
 })
 
 /**
