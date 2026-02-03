@@ -978,6 +978,11 @@ function filterCoveredElements(matches) {
 }
 
 function isUserVisible(el) {
+    if(el.tagName === 'OPTION'){
+        // Respect the visibility of the select element rather than the option element 
+        el = el.parentElement
+    }
+
     const style = getComputedStyle(el)
     if (
         style.display === 'none' ||
