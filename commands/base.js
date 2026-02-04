@@ -1480,7 +1480,7 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
 })
 
 window.isExternalModuleFeature = () => {
-    return window.original_spec_path.split('/modules/').length > 1
+    return window.original_spec_path.split('/redcap_source/modules/').length > 1
 }
 
 window.getFilePathForCurrentFeature = (path) => {
@@ -1490,10 +1490,10 @@ window.getFilePathForCurrentFeature = (path) => {
         parts.pop()
         const absolutePath = parts.join('/') + '/fixtures/' + path
 
-        const redcapSourceIndex = absolutePath.indexOf('/modules/')
+        const redcapSourceIndex = absolutePath.indexOf('/redcap_source/modules/')
 
         // Cypress requires paths relative to the redcap_cypress/cypress/fixtures dir.
-        path = '../../../' + absolutePath.substring(redcapSourceIndex)
+        path = '../../..' + absolutePath.substring(redcapSourceIndex)
     }
 
     return path
