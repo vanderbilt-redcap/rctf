@@ -60,7 +60,7 @@ function set_user_info(){
 }
 
 function reset_database(){
-    cy.base_db_seed()
+    cy.base_db_seed().then(() => { load_ems() })
 }
 
 function load_core_step_definitions (){
@@ -79,6 +79,14 @@ function load_support_files(){
     require('./support/index')
 }
 
+function load_ems(){
+    let chain = cy.logout().set_user_type('Test_Admin').fetch_login();
+
+    cy.getCsrfToken().as('csrf').then((csrf) => {
+        // Ensure enable_modules runs after the selected branch completes
+        return chain.then(() => cy.enable_modules(csrf)).then(() => cy.logout());
+    })
+}
 
 function rctf_initialize() {
     preprocessor = require('@badeball/cypress-cucumber-preprocessor')
