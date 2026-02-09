@@ -144,13 +144,10 @@ Given("I click on the image {string} link for the row containing {string}", (fil
  * @param {string} button - the text label of the Report you are looking for
  * @param {string} report_name - the name of the report you want
  * @description Interactions - Opens the Export Data dialog for a specific Report Name
+ * @deprecated
  */
 Given("I click on the {string} button for the {string} report in the My Reports & Exports table",(button, report_name) => {
-    cy.get('table[id="table-report_list"]').within(() => {
-        cy.get('tr').contains(report_name).parents('tr').within(() => {
-            cy.get('button').contains(button).click()
-        })
-    })
+    throw 'This step was failing intermittently has been deprecated in favor of more generic syntax like so: I click on the button labeled "View Report" in the row labeled "My Report"'
 })
 
 /**
