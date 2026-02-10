@@ -10,7 +10,7 @@ Cypress.Commands.add('create_cdisc_project', (project_name, project_type, cdisc_
     cy.get('input#project_template_radio2').click()
 
     if(isExternalModuleFeature()){
-        cdisc_file = getFilePathForCurrentFeature(cdisc_file)
+        cdisc_file = getFilePathForCurrentFeature("cdisc_files/" + cdisc_file)
     }
     else{
         cdisc_file = "cdisc_files/" + cdisc_file

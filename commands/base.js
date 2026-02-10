@@ -1510,7 +1510,7 @@ window.getFilePathForCurrentFeature = (path) => {
         // Make the path relative to parent dir of the feature file.
         const parts = window.original_spec_path.split('/')
         parts.pop()
-        const absolutePath = parts.join('/') + '/' + path
+        const absolutePath = parts.join('/') + '/fixtures/' + path
 
         const redcapSourceIndex = absolutePath.indexOf('/redcap_source/modules/')
 
