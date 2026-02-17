@@ -977,7 +977,7 @@ function filterCoveredElements(matches) {
     )
 }
 
-function isUserVisible(el) {
+function isVisibleToUsers(el) {
     if(el.tagName === 'OPTION'){
         // Respect the visibility of the select element rather than the option element 
         el = el.parentElement
@@ -1027,7 +1027,7 @@ Cypress.Commands.add("filterMatches", {prevSubject: true}, function (matches, te
             /**
              * Intelligently exclude things that the user would not consider visible or visible after scrolling.
              */
-            !isUserVisible(current)
+            !isVisibleToUsers(current)
         ){
             matches = matches.filter(match => match !== current)
         }
