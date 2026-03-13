@@ -151,6 +151,28 @@ Cypress.Commands.add('upload_file', (fileName, fileType = ' ', selector = '', bu
 
         return
     }
+    else if(
+        // Special cases for B.2.33.2800.
+        (
+            nearest_text === 'Upload ACGs (CSV)'
+            && Cypress.$('#ACG-import-export').length > 0
+        )
+        ||
+        (
+            nearest_text === 'Upload user assignments (CSV)'
+            && Cypress.$('#ACG-import-export-user-assn').length > 0
+        )
+    ){
+        cy.window().then((win) => {
+            const ACG = win.eval('ACG')
+            ACG.importCsv = eval('(' + ACG.importCsv.toString().replace('fileInput.click()', 'ACG.fileInput = fileInput') + ')')
+            cy.getLabeledElement('link', nearest_text).click().then(link => {
+                cy.wrap(ACG.fileInput).selectFile(filePath, {force: true})
+            })
+        })
+
+        return
+    }
 
     cy.top_layer(label_selector).within(() => {
         if(nearest_text.length > 0) {
