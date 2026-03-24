@@ -17,6 +17,16 @@ Given("I wait for background processes to finish", () => {
     cy
         .visit('/cron.php')
         .get('body')
-        .contains('Completed all jobs!')
-        .go('back')
+        .contains('Cron Run Report')
+        .document().then(oldDoc => {
+            cy.go('back')
+
+            cy.document().should(newDoc => {
+                /**
+                 * If we're calling this step multiple times in a row (e.g. B.3.16.1400.),
+                 * we must make sure we return to the old page before the next call starts.
+                 */
+                expect(newDoc).not.to.eq(oldDoc)
+            })
+        })
 })
