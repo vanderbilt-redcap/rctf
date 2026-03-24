@@ -427,11 +427,6 @@ Cypress.Commands.overwrite(
                             }
                         })
                         /**
-                         * Wait for the body of the new page to load.
-                         * Added to prevent intermittent cloud failures on the injectAxe() call below.
-                         */
-                        .get('body')
-                        /**
                          * Arbitrary wait after page load to hopefully avoid flaky tests
                          * caused by various javascript page initialization tasks.
                          */
