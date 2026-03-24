@@ -455,7 +455,7 @@ Cypress.Commands.overwrite(
                         })
                         /**
                          * Arbitrary wait after page load to hopefully avoid flaky tests
-                         * caused by various javascript page initilization tasks.
+                         * caused by various javascript page initialization tasks.
                          */
                         .wait(100)
                         .injectAxe()
