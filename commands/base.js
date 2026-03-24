@@ -445,7 +445,7 @@ Cypress.Commands.overwrite(
                                 }
 
                                 if(skipReason){
-                                    cy.log('Skipping dissappearing element detection because ' + skipReason)
+                                    cy.log('Skipping disappearing element detection because ' + skipReason)
                                     cy.wrap(true)
                                 }
                                 else{
