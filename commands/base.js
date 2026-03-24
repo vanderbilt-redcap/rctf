@@ -458,6 +458,8 @@ Cypress.Commands.overwrite(
                          * caused by various javascript page initilization tasks.
                          */
                         .wait(100)
+                        .injectAxe()
+                        .checkA11y(null, null, null, true)
                     }, 'Failed to detect page load after link click')
                 }
             })
