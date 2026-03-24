@@ -342,7 +342,7 @@ Cypress.Commands.overwrite(
 
                     /**
                      * The page should reload now.  We make sure the link element stops existing
-                     * as a way of waiting until the DOM is reloaded before continueing.
+                     * as a way of waiting until the DOM is reloaded before continuing.
                      * This prevents next steps from unexpectedly matching elements on the previous page.
                      */
                     return cy.retryUntilTimeout(() => {
