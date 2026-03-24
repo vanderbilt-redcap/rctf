@@ -426,14 +426,14 @@ Cypress.Commands.overwrite(
                                 }
                             }
                         })
-                        /**
-                         * Arbitrary wait after page load to hopefully avoid flaky tests
-                         * caused by various javascript page initialization tasks.
-                         */
-                        .wait(100)
-                        .injectAxe()
-                        .checkA11y(null, null, null, true)
                     }, 'Failed to detect page load after link click')
+                     /**
+                      * Arbitrary wait after page load to hopefully avoid flaky tests
+                      * caused by various javascript page initialization tasks.
+                      */
+                    .wait(100)
+                    .injectAxe()
+                    .checkA11y(null, null, null, true)
                 }
             })
             .window().then((win) => {
