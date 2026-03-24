@@ -6,33 +6,6 @@ cy.on('window:load', () => {
     window.aboutToUnload = false
 })
 
-Cypress.Commands.add('wait_to_hide_or_detach', (selector, options = {}) => {
-    const { timeout = Cypress.config('defaultCommandTimeout'), interval = 500 } = options
-    const startTime = Date.now()
-
-    new Promise((resolve, reject) => {
-        const checkDetachment = () => {
-            const now = Date.now()
-            const elapsedTime = now - startTime
-
-            if (elapsedTime >= timeout) {
-                throw new Error(`Element ${selector} did not become detached within ${timeout}ms`)
-            }
-
-            cy.get(selector, { timeout: 0 }).then(($element) => {
-                if (!$element.is(':visible') || Cypress.dom.isDetached($element)) {
-                    resolve(true)
-                } else {
-                    // Element is still attached, retry after interval
-                    cy.wait(interval, {log: false}).then(checkDetachment)
-                }
-            })
-        }
-
-        checkDetachment()
-    })
-})
-
 Cypress.Commands.add('wait_for_datatables', () => {
     cy.window().should((win) => {
         expect(win.$).to.be.a('function')
