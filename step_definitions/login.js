@@ -24,8 +24,8 @@ Given("I {loginTypes} the user {string}", (login_type, user) => {
              * because that command somehow corrupts the session causes it to invalidate when "Standalone Launch" is clicked.
              * The test began working fine after we changed this to simply interact like actual users would.
              */
-            cy.getLabeledElement('input', 'Username').type(window.user_info.get_current_user())
-            cy.getLabeledElement('input', 'Password').type(window.user_info.get_current_pass())
+            cy.getLabeledElement('input', 'Username').focus().type(window.user_info.get_current_user())
+            cy.getLabeledElement('input', 'Password').focus().type(window.user_info.get_current_pass())
             cy.getLabeledElement('button', 'Log In').click()
         })
     }
