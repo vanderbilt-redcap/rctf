@@ -166,14 +166,14 @@ Cypress.Commands.add('upload_file', (fileName, fileType = ' ', selector = '', bu
         cy.window().then((win) => {
             const ACG = win.eval('ACG')
             ACG.importCsv = eval('(' + ACG.importCsv.toString().replace('fileInput.click()', 'ACG.fileInput = fileInput') + ')')
-            cy.getLabeledElement('link', nearest_text).click().should(() => {
-                /**
-                 * There is a race condition where Cypress may move on to the next step
-                 * before the click action finishes executing. To avoid intermittent failures,
-                 * explicitly wait for ACG.fileInput to be set.
-                 */
-                expect(ACG.fileInput).to.not.be.undefined
-            }).then(() => {
+            cy.getLabeledElement('link', nearest_text).click()
+
+            /**
+             * There is a race condition where Cypress may move on to the next step
+             * before the click action finishes executing. To avoid intermittent failures,
+             * explicitly wait for ACG.fileInput to be set.
+             */
+            cy.wait(100).then(() => {
                 // This must be inside a "then" to ensure that "cy.wrap(ACG.fileInput)" is executed after it is set.
                 cy.wrap(ACG.fileInput).selectFile(filePath, {force: true})
             })
