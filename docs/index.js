@@ -69,7 +69,7 @@ async function addExamples(comments) {
     const endIndex = content.indexOf('\n', comment.context.loc.start.index)
     const firstContextLine = content.substring(comment.context.loc.start.index, endIndex)
     if(firstContextLine.trim().startsWith('Given')){
-      const evalContent = firstContextLine + '})'
+      const evalContent = firstContextLine.replace('enterTextIntoField)', '() => {') + '})'
 
       let firstArg
       try{
