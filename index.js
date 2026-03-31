@@ -175,6 +175,23 @@ function rctf_initialize() {
 
     BeforeStep((options) => {
         registerEventListeners()    
+
+        cy.window().then(win => {
+            if(win.oldOpen){
+                // We've already stubbed it
+                return
+            }
+
+            win.oldOpen = win.open
+            cy.stub(win, 'open').callsFake((url, target, windowFeatures) => {
+                /**
+                 * Cypress only supports operating within a single browser tab.
+                 * Modify any link targets to make sure they open within the existing tab.
+                 */
+                target = '_self'
+                win.oldOpen(url, target, windowFeatures)
+            })
+        })
     })
 
     beforeEach(() => {
