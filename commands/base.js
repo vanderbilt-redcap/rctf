@@ -6,33 +6,6 @@ cy.on('window:load', () => {
     window.aboutToUnload = false
 })
 
-Cypress.Commands.add('wait_to_hide_or_detach', (selector, options = {}) => {
-    const { timeout = Cypress.config('defaultCommandTimeout'), interval = 500 } = options
-    const startTime = Date.now()
-
-    new Promise((resolve, reject) => {
-        const checkDetachment = () => {
-            const now = Date.now()
-            const elapsedTime = now - startTime
-
-            if (elapsedTime >= timeout) {
-                throw new Error(`Element ${selector} did not become detached within ${timeout}ms`)
-            }
-
-            cy.get(selector, { timeout: 0 }).then(($element) => {
-                if (!$element.is(':visible') || Cypress.dom.isDetached($element)) {
-                    resolve(true)
-                } else {
-                    // Element is still attached, retry after interval
-                    cy.wait(interval, {log: false}).then(checkDetachment)
-                }
-            })
-        }
-
-        checkDetachment()
-    })
-})
-
 Cypress.Commands.add('wait_for_datatables', () => {
     cy.window().should((win) => {
         expect(win.$).to.be.a('function')
@@ -369,7 +342,7 @@ Cypress.Commands.overwrite(
 
                     /**
                      * The page should reload now.  We make sure the link element stops existing
-                     * as a way of waiting until the DOM is reloaded before continueing.
+                     * as a way of waiting until the DOM is reloaded before continuing.
                      * This prevents next steps from unexpectedly matching elements on the previous page.
                      */
                     return cy.retryUntilTimeout(() => {
@@ -445,7 +418,7 @@ Cypress.Commands.overwrite(
                                 }
 
                                 if(skipReason){
-                                    cy.log('Skipping dissappearing element detection because ' + skipReason)
+                                    cy.log('Skipping disappearing element detection because ' + skipReason)
                                     cy.wrap(true)
                                 }
                                 else{
@@ -453,12 +426,14 @@ Cypress.Commands.overwrite(
                                 }
                             }
                         })
-                        /**
-                         * Arbitrary wait after page load to hopefully avoid flaky tests
-                         * caused by various javascript page initilization tasks.
-                         */
-                        .wait(100)
                     }, 'Failed to detect page load after link click')
+                     /**
+                      * Arbitrary wait after page load to hopefully avoid flaky tests
+                      * caused by various javascript page initialization tasks.
+                      */
+                    .wait(100)
+                    .injectAxe()
+                    .checkA11y(null, null, null, true)
                 }
             })
             .window().then((win) => {
@@ -482,7 +457,7 @@ Cypress.Commands.overwrite(
                         /**
                          * Add a slight delay to give any actions resulting from the ajax call time to take action (like re-render parts of the page).
                          */
-                        waitAfterAjax = 250
+                        waitAfterAjax = 100
                     }
 
                     return cy.wrap(returnValue)
