@@ -312,7 +312,15 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
                 if($parent.find(element).eq(ord).length){
 
                     //If the textarea has a TinyMCE editor applied to it
-                    if(elementReference.hasClass('mceEditor') && elementReference[0].style.display === 'none'){
+                    if(
+                        elementReference[0].style.display === 'none'
+                        &&
+                        (
+                            elementReference.hasClass('mceEditor')
+                            ||
+                            elementReference.next().hasClass('tox-tinymce') // A.2.33.1700.
+                        )
+                    ){
                        cy.customSetTinyMceContent($parent.find(element).eq(ord).attr('id'), text)
 
                         //All other cases
