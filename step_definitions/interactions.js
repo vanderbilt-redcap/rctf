@@ -627,9 +627,12 @@ Given('I select {string} (in)(on) the{ordinal} {dropdownType} (field labeled)(of
     let label_selector = `:contains(${JSON.stringify(label)}):visible`
     if(type === "dropdown" || type === "multiselect"){
         const action = ($select) => {
-                cy.wrap($select).scrollIntoView().
-                should('be.visible').
-                should('be.enabled').then(($t) => {
+                if(!$select.hasClass('select2-hidden-accessible')){
+                    cy.wrap($select).scrollIntoView().
+                    should('be.visible')
+                }
+
+                cy.wrap($select).should('be.enabled').then(($t) => {
 
                     if(type === "dropdown") {
                         cy.wait(500)
