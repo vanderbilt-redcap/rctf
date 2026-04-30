@@ -236,6 +236,7 @@ const getElementThatShouldDisappearAfterClick = ($el) => {
     if(
         $el.id === 'assignDagRoleBtn' // C.3.30.1800
         || $el.innerText === 'Save signature' // A.3.28.0600
+        || ($el.getAttribute('onclick') ?? '').startsWith('window.location.href=') // C.3.31.3300
     ){
         return $el
     }
