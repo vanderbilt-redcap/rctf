@@ -436,6 +436,9 @@ Cypress.Commands.overwrite(
                     .injectAxe()
                     .checkA11y(null, null, null, true)
                 }
+                else{
+                    cy.log('Not waiting on any element to disappear')
+                }
             })
             .window().then((win) => {
                 let waitAfterAjax = 0
