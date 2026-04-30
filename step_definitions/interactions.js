@@ -334,7 +334,11 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
                              */
                             elm.type(text, {force: true})
                         } else if (enter_type === "clear field and enter") {
-                            elm.clear().type(text)
+                            elm.clear()
+
+                            if(text.length > 0){
+                                elm.type(text)
+                            }
                         } else if(enter_type === "click on"){
                             elm.click()
                         }
