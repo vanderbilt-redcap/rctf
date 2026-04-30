@@ -299,12 +299,12 @@ Cypress.Commands.overwrite(
 
         if(subject[0].nodeName === "A" ||
             subject[0].nodeName === "BUTTON" ||
-            (subject[0].nodeName === "INPUT" && ["button", "submit"].includes(subject[0].type) && ["", null].includes(subject[0].onclick))
+            (subject[0].nodeName === "INPUT" && ["button", "submit"].includes(subject[0].type))
         ){
             /**
              * Cypress sometimes click buttons too quickly before REDCap's javascript is finished initializing their actions.
              * Wait just a little bit before clicking to more closely simulate actual user behavior.
-             * This fixes an issue on B.2.6.0200.
+             * This fixes an issue on B.2.6.0200, C.3.31.3300, C.3.31.3500, and likely many others.
              */
             let preClickWait = 100
 
