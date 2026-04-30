@@ -250,14 +250,27 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
              */
             elm.clear()
             if(text !== ''){
-                elm.type(text).then(elm => {
-                    /**
-                     * Blur after typing to trigger change events (e.g. C.3.31.2500).
-                     * We used to just chain a cypress '.blur()' call after '.type()'
-                     * but it failed with an odd error in the iframe on B.6.4.1200.
-                     * Calling the jQuery blur() method instead seems to work everywhere. 
-                     */
-                    elm.blur()
+                let chain = elm.type(text)
+                chain.then(elm2 => {
+                    if(elm2.val() !== text){
+                        /**
+                         * Sometimes timing causes REDCap to autofocus elements on page load
+                         * AFTER cypress has already started typing, but hasn't finished yet.
+                         * Ensure the value was actually entered and try again if need be
+                         * (e.g. A.3.28.1300.).
+                         */
+                        chain = elm.clear().type(text)
+                    }
+
+                    chain.then(() => {
+                        /**
+                         * Blur after typing to trigger change events (e.g. C.3.31.2500).
+                         * We used to just chain a cypress '.blur()' call after '.type()'
+                         * but it failed with an odd error in the iframe on B.6.4.1200.
+                         * Calling the jQuery blur() method instead seems to work everywhere. 
+                         */
+                        elm2.blur()
+                    })
                 })
             }
         } else if (enter_type === "verify"){
