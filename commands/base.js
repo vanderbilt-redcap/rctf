@@ -277,6 +277,35 @@ const getElementThatShouldDisappearAfterClick = ($el) => {
     return null
 }
 
+function interceptNewSessionIdOnTwoFactorLogin(){
+    window.newSessionId = null
+    cy.intercept(
+        {
+            method: 'POST',
+            url: '**/two_factor_verify_code.php',
+        },
+        req => {
+            req.on('response', res => {
+                const parts = res.headers['set-cookie'][0].split('redcap_session_42099b4=')
+                window.newSessionId = parts[1].split(';')[0]
+            })
+        }
+    ).as('two_factor_verify_code')
+}
+
+function applyNewSessionIdAfterTwoFactorLogin(){
+    cy.wait('@two_factor_verify_code').then(() => {
+        /**
+         * There seems to be a bug in cypress that is prevents the session ID cookie
+         * from updating properly after this request.  We update it manually here.
+         * Mark is not sure why the extra reload before setting the cookie is necessary.
+         */
+        cy.reload()
+        cy.setCookie('redcap_session_42099b4', window.newSessionId)
+        cy.reload()
+    })
+}
+
 Cypress.Commands.overwrite(
     'click',
     (originalFn, subject, options) => {
@@ -323,6 +352,7 @@ Cypress.Commands.overwrite(
 
             const disappearingElement = getElementThatShouldDisappearAfterClick(subject[0])
             const timeBeforeClick = Date.now()
+            const isTwoFactorCodeSubmission = subject.attr('id') === 'two_factor_verification_code_btn'
 
             //If our other detachment prevention measures failed, let's check to see if it detached and deal with it
             cy.wrap(subject).then($el => {
@@ -332,11 +362,19 @@ Cypress.Commands.overwrite(
                     cy.open_survey_in_same_tab(subject, openInSameTab, false)
                 }
 
+                if(isTwoFactorCodeSubmission){
+                    interceptNewSessionIdOnTwoFactorLogin()
+                }
+
                 cy.wrap($el).then(() => {
                     originalFn($el, options)
                 })
             })
             .then($el => {
+                if(isTwoFactorCodeSubmission){
+                    applyNewSessionIdAfterTwoFactorLogin()
+                }
+
                 $el = $el[0]
                 if(disappearingElement){
                     cy.log("Waiting for this element to disappear if it hasn't already", disappearingElement)
