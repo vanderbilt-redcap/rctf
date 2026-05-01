@@ -488,6 +488,19 @@ Cypress.Commands.overwrite(
                     cy.wait(1000)
                 }
 
+                if(innerText === 'Add' && subject.closest('.fhir-system-actions').length === 1){
+                    /**
+                     * This page is strange in that it displays the exact same form once on the actual page
+                     * and again in a dialog when you click add.  Before the following was added, we had
+                     * a common issue where steps unexpectedly matched elements on the page instead of the dialog
+                     * while we're waiting for dialog to display (e.g. C.3.31.0500).
+                     */
+                    cy.log('Waiting on FHIR dialog to display')
+                    cy.wrap(subject).should(() => {
+                        expect(Cypress.$('.modal.show').length).to.equal(1)
+                    }).wait(500) // Wait for it to fully display
+                }
+
                 /**
                  * Used to check for jQuery.active === 0 here.  It mostly worked, but there were exceptions.  The value is stuck on 1 in B.6.4.1200.
                  */
