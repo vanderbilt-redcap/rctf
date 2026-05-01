@@ -298,6 +298,7 @@ function applyNewSessionIdAfterTwoFactorLogin(){
         /**
          * There seems to be a bug in cypress that is prevents the session ID cookie
          * from updating properly after this request.  We update it manually here.
+         * This only occurs on A.3.28.1200.
          * Mark is not sure why the extra reload before setting the cookie is necessary.
          */
         cy.reload()
