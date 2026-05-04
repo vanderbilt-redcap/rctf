@@ -236,6 +236,7 @@ const getElementThatShouldDisappearAfterClick = ($el) => {
     if(
         $el.id === 'assignDagRoleBtn' // C.3.30.1800
         || $el.innerText === 'Save signature' // A.3.28.0600
+        || ($el.getAttribute('onclick') ?? '').startsWith('window.location.href=') // C.3.31.3300
     ){
         return $el
     }
@@ -276,6 +277,36 @@ const getElementThatShouldDisappearAfterClick = ($el) => {
     return null
 }
 
+function interceptNewSessionIdOnTwoFactorLogin(){
+    window.newSessionId = null
+    cy.intercept(
+        {
+            method: 'POST',
+            url: '**/two_factor_verify_code.php',
+        },
+        req => {
+            req.on('response', res => {
+                const parts = res.headers['set-cookie'][0].split('redcap_session_42099b4=')
+                window.newSessionId = parts[1].split(';')[0]
+            })
+        }
+    ).as('two_factor_verify_code')
+}
+
+function applyNewSessionIdAfterTwoFactorLogin(){
+    cy.wait('@two_factor_verify_code').then(() => {
+        /**
+         * There seems to be a bug in cypress that is prevents the session ID cookie
+         * from updating properly after this request.  We update it manually here.
+         * This only occurs on A.3.28.1200.
+         * Mark is not sure why the extra reload before setting the cookie is necessary.
+         */
+        cy.reload()
+        cy.setCookie('redcap_session_42099b4', window.newSessionId)
+        cy.reload()
+    })
+}
+
 Cypress.Commands.overwrite(
     'click',
     (originalFn, subject, options) => {
@@ -299,12 +330,12 @@ Cypress.Commands.overwrite(
 
         if(subject[0].nodeName === "A" ||
             subject[0].nodeName === "BUTTON" ||
-            (subject[0].nodeName === "INPUT" && ["button", "submit"].includes(subject[0].type) && ["", null].includes(subject[0].onclick))
+            (subject[0].nodeName === "INPUT" && ["button", "submit"].includes(subject[0].type))
         ){
             /**
              * Cypress sometimes click buttons too quickly before REDCap's javascript is finished initializing their actions.
              * Wait just a little bit before clicking to more closely simulate actual user behavior.
-             * This fixes an issue on B.2.6.0200.
+             * This fixes an issue on B.2.6.0200, C.3.31.3300, C.3.31.3500, and likely many others.
              */
             let preClickWait = 100
 
@@ -322,6 +353,7 @@ Cypress.Commands.overwrite(
 
             const disappearingElement = getElementThatShouldDisappearAfterClick(subject[0])
             const timeBeforeClick = Date.now()
+            const isTwoFactorCodeSubmission = subject.attr('id') === 'two_factor_verification_code_btn'
 
             //If our other detachment prevention measures failed, let's check to see if it detached and deal with it
             cy.wrap(subject).then($el => {
@@ -331,11 +363,19 @@ Cypress.Commands.overwrite(
                     cy.open_survey_in_same_tab(subject, openInSameTab, false)
                 }
 
+                if(isTwoFactorCodeSubmission){
+                    interceptNewSessionIdOnTwoFactorLogin()
+                }
+
                 cy.wrap($el).then(() => {
                     originalFn($el, options)
                 })
             })
             .then($el => {
+                if(isTwoFactorCodeSubmission){
+                    applyNewSessionIdAfterTwoFactorLogin()
+                }
+
                 $el = $el[0]
                 if(disappearingElement){
                     cy.log("Waiting for this element to disappear if it hasn't already", disappearingElement)
@@ -435,6 +475,9 @@ Cypress.Commands.overwrite(
                     .injectAxe()
                     .checkA11y(null, null, null, true)
                 }
+                else{
+                    cy.log('Not waiting on any element to disappear')
+                }
             })
             .window().then((win) => {
                 let waitAfterAjax = 0
@@ -482,6 +525,19 @@ Cypress.Commands.overwrite(
                      */
                     cy.log('Waiting for potential page load after project setting changes')
                     cy.wait(1000)
+                }
+
+                if(innerText === 'Add' && subject.closest('.fhir-system-actions').length === 1){
+                    /**
+                     * This page is strange in that it displays the exact same form once on the actual page
+                     * and again in a dialog when you click add.  Before the following was added, we had
+                     * a common issue where steps unexpectedly matched elements on the page instead of the dialog
+                     * while we're waiting for dialog to display (e.g. C.3.31.0500).
+                     */
+                    cy.log('Waiting on FHIR dialog to display')
+                    cy.wrap(subject).should(() => {
+                        expect(Cypress.$('.modal.show').length).to.equal(1)
+                    }).wait(500) // Wait for it to fully display
                 }
 
                 /**
