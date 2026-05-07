@@ -233,10 +233,20 @@ Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
 })
 
 const getElementThatShouldDisappearAfterClick = ($el) => {
+    /**
+     * We piggy back off of disappearing element detection to also wait for expected file downloads via fetchLatestDownload() later on.
+     */
+    const downloadExpected = $el.classList.contains('external-modules-download-file') // Used by a Module Development Examples EM test.
+
     if(
         $el.id === 'assignDagRoleBtn' // C.3.30.1800
         || $el.innerText === 'Save signature' // A.3.28.0600
         || ($el.getAttribute('onclick') ?? '').startsWith('window.location.href=') // C.3.31.3300
+        /**
+         * It doesn't matter what we return for downloads as long as we return something
+         * It might as well just be the element.
+         */
+        || downloadExpected
     ){
         return $el
     }
@@ -381,11 +391,14 @@ Cypress.Commands.overwrite(
                     cy.log("Waiting for this element to disappear if it hasn't already", disappearingElement)
 
                     /**
-                     * The page should reload now.  We make sure the link element stops existing
+                     * The page should reload now.  We make sure the disappearingElement stops existing
                      * as a way of waiting until the DOM is reloaded before continuing.
-                     * This prevents next steps from unexpectedly matching elements on the previous page.
+                     * This prevents subsequent steps from unexpectedly matching elements on the previous page.
                      */
                     return cy.retryUntilTimeout(() => {
+                         /**
+                         * We piggy back off of disappearing element detection to also wait for expected file downloads.
+                         */
                         let downloadDetected = false
                         return cy.task('fetchLatestDownload', {fileExtension: null, retry: false}).then(filePath => {
                             if(filePath){
