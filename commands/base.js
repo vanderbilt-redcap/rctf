@@ -245,6 +245,8 @@ const getElementThatShouldDisappearAfterClick = ($el) => {
     const href = $el.href ?? ''
 
     if(
+        $el.id === 'login_btn'
+        ||
         (
             href.startsWith('http')
             &&
