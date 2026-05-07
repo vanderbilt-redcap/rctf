@@ -299,13 +299,11 @@ function applyNewSessionIdAfterTwoFactorLogin(){
     cy.wait('@two_factor_verify_code').then(() => {
         /**
          * There seems to be a bug in cypress that is prevents the session ID cookie
-         * from updating properly after this request.  We update it manually here.
-         * This only occurs on A.3.28.1200.
-         * Mark is not sure why the extra reload before setting the cookie is necessary.
+         * from updating properly after this request.  We must clear the cookies and
+         * manually set the new one for it to stick.  This only occurs on A.3.28.1200.
          */
-        cy.reload()
+        cy.clearCookies() 
         cy.setCookie('redcap_session_42099b4', window.newSessionId)
-        cy.reload()
     })
 }
 
