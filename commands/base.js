@@ -434,7 +434,7 @@ Cypress.Commands.overwrite(
                                          */
                                         body !== disappearingElement
                                     ){
-                                        cy.log('Disappearing element as disappeared')
+                                        cy.log('Disappearing element has disappeared')
                                         cy.wrap(true)
                                     }
                                     else{
