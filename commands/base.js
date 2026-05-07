@@ -1532,8 +1532,23 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
     })
 })
 
+window.getExternalModuleDetails = () => {
+    const parts = window.original_spec_path.split('/redcap_source/modules/')
+    if(parts.length === 1){
+        return false
+    }
+
+    const moduleDirName = parts[1].split('/')[0]
+    const i = moduleDirName.lastIndexOf('_')
+
+    return {
+        prefix: moduleDirName.substr(0, i),
+        version: moduleDirName.substr(i+1),
+    }
+}
+
 window.isExternalModuleFeature = () => {
-    return window.original_spec_path.split('/redcap_source/modules/').length > 1
+    return window.getExternalModuleDetails() !== false
 }
 
 window.getFilePathForCurrentFeature = (path) => {

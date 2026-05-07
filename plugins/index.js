@@ -129,7 +129,7 @@ module.exports = (cypressOn, config) => {
             return fs.existsSync(snapshot_file)
         },
 
-        async populateStructureAndData({redcap_version, advanced_user_info, source_location}) {
+        async populateStructureAndData({redcap_version, advanced_user_info, source_location, additional_queries}) {
             /**
              * We're clearing the DB.  We should clear the filesystem at the same time,
              * to ensure each test starts with a clean slate.
@@ -194,6 +194,8 @@ module.exports = (cypressOn, config) => {
             //shell.cat(rights_sql).toEnd(structure_and_data_file);
 
             shell.cat(config_sql).sed('REDCAP_VERSION_MAGIC_STRING', redcap_version).toEnd(structure_and_data_file);
+
+            shell.ShellString(`\n${additional_queries};`).toEnd(structure_and_data_file);
 
             shell.ShellString('\nCOMMIT;').toEnd(structure_and_data_file);
 
