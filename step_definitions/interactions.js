@@ -825,7 +825,9 @@ Given("I {enterType} {string} into the field with the placeholder text of {strin
  */
 Given("I close the iframe window", () => {
     cy.frameLoaded()
+    const body = Cypress.$('body')
     cy.get('div.trim-close-btn').click()
+    cy.wrap(body).should('not.exist')
 })
 
 /**
