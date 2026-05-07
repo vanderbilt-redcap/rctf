@@ -110,7 +110,7 @@ Given("I select the User Right named {string} and choose {string}", (text, optio
  * @deprecated
  */
 Given("I save changes within the context of User Rights", () => {
-    throw 'This step has been deprecated in favor of the following: I click on the button labeled "Save Changes"'
+    throw 'This step has been removed in favor of the following: I click on the button labeled "Save Changes"'
 })
 
 /**
@@ -156,5 +156,5 @@ Given('I {userRightAction} all Basic Rights within the open User Rights dialog b
  * @deprecated
  */
 Given('I set Data Viewing Rights to {dataViewingRights}{editSurveyRights} for the instrument {string}', (level, survey, instrument) => {
-    throw 'This step has been deprecated in favor of steps like the following: I click on the radio in the column labeled "No Access" and the row labeled "Text Validation"'
+    throw 'This step has been removed in favor of steps like the following: I click on the radio in the column labeled "No Access" and the row labeled "Text Validation"'
 })

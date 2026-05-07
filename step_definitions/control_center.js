@@ -81,7 +81,7 @@ Given('I enable the Administrator Privilege {string} for a new administrator', (
  * @deprecated
  */
 Given('I click on the "{toDoTableIcons}" icon for the "{toDoRequestTypes}" request created for the project named {string} within the "{toDoTableTypes}" table', (icon, request_type, project_name, table_name) => {
-    throw `This step has been deprecated because it was brittle.  It should be replaced with more generic steps like those after the 'Pending Requests' line in B.6.4.1200.`
+    throw `This step was removed because it was brittle.  It should be replaced with more generic steps like those after the 'Pending Requests' line in B.6.4.1200.`
 })
 
 /**
@@ -94,5 +94,5 @@ Given('I click on the "{toDoTableIcons}" icon for the "{toDoRequestTypes}" reque
  * @deprecated
  */
 Given('I (should )see the "{toDoRequestTypes}" request created for the project named {string} within the "{toDoTableTypes}" table', (request_type, project_name, table_name) => {
-    throw `This step has been deprecated because it was brittle.  It should be replaced with more generic steps like those after the 'Pending Requests' line in B.6.4.1200.`
+    throw `This step was removed because it was brittle.  It should be replaced with more generic steps like those after the 'Pending Requests' line in B.6.4.1200.`
 })

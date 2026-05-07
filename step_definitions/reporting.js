@@ -147,7 +147,7 @@ Given("I click on the image {string} link for the row containing {string}", (fil
  * @deprecated
  */
 Given("I click on the {string} button for the {string} report in the My Reports & Exports table",(button, report_name) => {
-    throw 'This step was failing intermittently has been deprecated in favor of more generic syntax like so: I click on the button labeled "View Report" in the row labeled "My Report"'
+    throw 'This step was failing intermittently has been removed in favor of more generic syntax like so: I click on the button labeled "View Report" in the row labeled "My Report"'
 })
 
 /**
