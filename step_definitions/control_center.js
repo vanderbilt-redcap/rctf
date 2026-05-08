@@ -78,10 +78,13 @@ Given('I enable the Administrator Privilege {string} for a new administrator', (
  * @param {string} project_name - the text value of project name you want to target
  * @param {string} toDoTableTypes
  * @description Clicks on an icon within the To-Do-List page based upon Icon, Request Type, Project Name, and Table Name specified.
- * @deprecated
  */
 Given('I click on the "{toDoTableIcons}" icon for the "{toDoRequestTypes}" request created for the project named {string} within the "{toDoTableTypes}" table', (icon, request_type, project_name, table_name) => {
-    throw `This step was removed because it was brittle.  It should be replaced with more generic steps like those after the 'Pending Requests' line in B.6.4.1200.`
+    cy.get(`.${window.toDoListTables[table_name]}`).within(() => {
+        cy.get(`.request-container:contains("${project_name}"):has(.type:contains("${request_type}"))`).within(() => {
+            cy.get(`button[data-tooltip="${icon}"]`).click()
+        })
+    })
 })
 
 /**
@@ -91,8 +94,9 @@ Given('I click on the "{toDoTableIcons}" icon for the "{toDoRequestTypes}" reque
  * @param {string} project_name - the text value of project name you want to target
  * @param {string} toDoTableTypes
  * @description Identifies Request Type within the To-Do-List page based upon Project Name, and Table Name specified.
- * @deprecated
  */
 Given('I (should )see the "{toDoRequestTypes}" request created for the project named {string} within the "{toDoTableTypes}" table', (request_type, project_name, table_name) => {
-    throw `This step was removed because it was brittle.  It should be replaced with more generic steps like those after the 'Pending Requests' line in B.6.4.1200.`
+    cy.get(`.${window.toDoListTables[table_name]}`).within(() => {
+        cy.get(`.request-container:contains("${project_name}"):has(.type:contains("${request_type}"))`)
+    })
 })
