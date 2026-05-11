@@ -587,9 +587,10 @@ Given('I enter {string} into the field identified by {string} labeled {string}',
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} value - text that is inside the element
  * @description Clicks the element that contains the text specified
+ * @deprecated
  */
 Given('I click the element containing the following text: {string}', (value) => {
-    cy.get(':contains("' + value + '"):visible:last').click()
+    throw `This step has been removed in favor of newer steps like the following that are less brittle in relation to timing and page loads: I click on "Some clickable text"`
 })
 
 /**
