@@ -233,10 +233,20 @@ Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
 })
 
 const getElementThatShouldDisappearAfterClick = ($el) => {
+    /**
+     * We piggy back off of disappearing element detection to also wait for expected file downloads via fetchLatestDownload() later on.
+     */
+    const downloadExpected = $el.classList.contains('external-modules-download-file') // Used by a Module Development Examples EM test.
+
     if(
         $el.id === 'assignDagRoleBtn' // C.3.30.1800
         || $el.innerText === 'Save signature' // A.3.28.0600
         || ($el.getAttribute('onclick') ?? '').startsWith('window.location.href=') // C.3.31.3300
+        /**
+         * It doesn't matter what we return for downloads as long as we return something
+         * It might as well just be the element.
+         */
+        || downloadExpected
     ){
         return $el
     }
@@ -245,6 +255,8 @@ const getElementThatShouldDisappearAfterClick = ($el) => {
     const href = $el.href ?? ''
 
     if(
+        $el.id === 'login_btn'
+        ||
         (
             href.startsWith('http')
             &&
@@ -297,13 +309,11 @@ function applyNewSessionIdAfterTwoFactorLogin(){
     cy.wait('@two_factor_verify_code').then(() => {
         /**
          * There seems to be a bug in cypress that is prevents the session ID cookie
-         * from updating properly after this request.  We update it manually here.
-         * This only occurs on A.3.28.1200.
-         * Mark is not sure why the extra reload before setting the cookie is necessary.
+         * from updating properly after this request.  We must clear the cookies and
+         * manually set the new one for it to stick.  This only occurs on A.3.28.1200.
          */
-        cy.reload()
+        cy.clearCookies() 
         cy.setCookie('redcap_session_42099b4', window.newSessionId)
-        cy.reload()
     })
 }
 
@@ -381,11 +391,14 @@ Cypress.Commands.overwrite(
                     cy.log("Waiting for this element to disappear if it hasn't already", disappearingElement)
 
                     /**
-                     * The page should reload now.  We make sure the link element stops existing
+                     * The page should reload now.  We make sure the disappearingElement stops existing
                      * as a way of waiting until the DOM is reloaded before continuing.
-                     * This prevents next steps from unexpectedly matching elements on the previous page.
+                     * This prevents subsequent steps from unexpectedly matching elements on the previous page.
                      */
                     return cy.retryUntilTimeout(() => {
+                         /**
+                         * We piggy back off of disappearing element detection to also wait for expected file downloads.
+                         */
                         let downloadDetected = false
                         return cy.task('fetchLatestDownload', {fileExtension: null, retry: false}).then(filePath => {
                             if(filePath){
@@ -432,7 +445,7 @@ Cypress.Commands.overwrite(
                                          */
                                         body !== disappearingElement
                                     ){
-                                        cy.log('Disappearing element as disappeared')
+                                        cy.log('Disappearing element has disappeared')
                                         cy.wrap(true)
                                     }
                                     else{
@@ -1532,8 +1545,23 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
     })
 })
 
+window.getExternalModuleDetails = () => {
+    const parts = window.original_spec_path.split('/redcap_source/modules/')
+    if(parts.length === 1){
+        return false
+    }
+
+    const moduleDirName = parts[1].split('/')[0]
+    const i = moduleDirName.lastIndexOf('_')
+
+    return {
+        prefix: moduleDirName.substr(0, i),
+        version: moduleDirName.substr(i+1),
+    }
+}
+
 window.isExternalModuleFeature = () => {
-    return window.original_spec_path.split('/redcap_source/modules/').length > 1
+    return window.getExternalModuleDetails() !== false
 }
 
 window.getFilePathForCurrentFeature = (path) => {
