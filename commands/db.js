@@ -6,7 +6,7 @@ Cypress.Commands.add('base_db_seed', () => {
     const getAdditionalDatabaseSeedQueries = () => {
         const moduleDirNames = []
 
-        for (const [moduleDirName, enabled] of Object.entries(Cypress.env('bootstrap_settings')['modules'])) {
+        for (const [moduleDirName, enabled] of Object.entries(Cypress.env('bootstrap_settings')['modules'] ?? {})) {
             if(enabled){
                 moduleDirNames.push(moduleDirName)
             }
