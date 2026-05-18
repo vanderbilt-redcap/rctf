@@ -70,9 +70,10 @@ Given("I should see the radio labeled {string} with option {string} {select}", (
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} text - the text that should be displayed in a dialog box
  * @description Visually verifies that the dialog box contains text
+ * @deprecated
  */
 Given("I (should )see a dialog containing the following text: {string}", (text) => {
-    cy.verify_text_on_dialog(text)
+    throw `This step has been removed in favor of newer steps like the following that are less brittle in relation to timing and page loads.  If a dialog is currently open, it will automatically be the search target: I should see "Some visible text"`
 })
 
 /**

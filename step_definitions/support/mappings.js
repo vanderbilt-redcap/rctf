@@ -187,13 +187,6 @@ for (const category in window.projectModules) {
     }
 }
 
-window.icons = {
-    'enabled survey icon'   : 'i.fa-clipboard-user:visible',
-    'disabled icon'         : `img[src*=delete]:visible`,
-    'checkmark icon'        : `img[src*=tick]:visible`,
-    'x icon'                : `img[src*=cross]:visible`
-}
-
 window.ordinalChoices = {
     first: 0,
     second: 1,
