@@ -17,7 +17,7 @@ if(prompt(`Are you sure ${rctfCommit} is working as expected against recent clou
   process.exit()
 }
 
-const redcapVersion = child_process.execSync(`grep REDCAP_VERSION: ../redcap_cypress_docker/redcap_cypress/.circleci/config.yml |cut -d'"' -f 2`, { encoding: 'utf8' }).trim()
+const redcapVersion = child_process.execSync(`grep '"redcap_version":' ../redcap_cypress_docker/redcap_cypress/cypress.env.json.example |cut -d'"' -f 4`, { encoding: 'utf8' }).trim()
 if(prompt(`Are cloud builds currently running against REDCap ${redcapVersion} (y/n)? `) !== 'y'){
   console.log(`In the redcap_cypress directory, please check out the branch from which recent successful cloud builds have run.`)
   process.exit()
@@ -69,7 +69,17 @@ async function addExamples(comments) {
     const endIndex = content.indexOf('\n', comment.context.loc.start.index)
     const firstContextLine = content.substring(comment.context.loc.start.index, endIndex)
     if(firstContextLine.trim().startsWith('Given')){
-      const firstArg = eval(firstContextLine + '})')
+      const evalContent = firstContextLine.replace('enterTextIntoField)', '() => {') + '})'
+
+      let firstArg
+      try{
+        firstArg = eval(evalContent)
+      }
+      catch(e){
+        console.log('Error running eval on the following: ' + evalContent)
+        throw e
+      }
+
       if(typeof firstArg === 'string'){
         comment.examples.push({description: firstArg})
       }

@@ -3,6 +3,22 @@
 //#############################################################################
 
 Cypress.Commands.add('base_db_seed', () => {
+    const getAdditionalDatabaseSeedQueries = () => {
+        const queries = []
+
+        const emDetails = window.getExternalModuleDetails()
+        if(emDetails){
+            queries.push(`INSERT INTO redcap_external_modules(directory_prefix) VALUES ('${emDetails.prefix}')`)
+            queries.push(`INSERT INTO redcap_external_module_settings VALUES (LAST_INSERT_ID(), null, 'version', 'string', '${emDetails.version}')`)
+        }
+
+        if(queries.length === 0){
+            return ''
+        }
+        else{
+            return '\n' + queries.join(';\n')
+        }
+    }
 
     /**
      * The `redcap_source_path` setting in cypress.env.json can be omitted in most cases.
@@ -58,7 +74,8 @@ Cypress.Commands.add('base_db_seed', () => {
                     cy.task('populateStructureAndData', {
                         redcap_version: Cypress.env('redcap_version'),
                         advanced_user_info: window.compareVersions.compare(Cypress.env('redcap_version'), '10.1.0', '>='),
-                        source_location: redcap_source_path
+                        source_location: redcap_source_path,
+                        additional_queries: getAdditionalDatabaseSeedQueries(),
                     }).then((structure_and_data_file_exists) => {
 
                         //Only run this block if the Structure and Data File exists and has gone through proper processes
