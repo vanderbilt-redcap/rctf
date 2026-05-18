@@ -10,7 +10,7 @@ Cypress.Commands.add('base_db_seed', () => {
             if(enabled){
                 moduleDirNames.push(moduleDirName)
             }
-        }       
+        }
 
         const currentModuleDirName = window.getCurrentExternalModuleDirectory()
         if(currentModuleDirName){
