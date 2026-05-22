@@ -79,7 +79,9 @@ Cypress.Commands.add('not_loading', () => {
 
 Cypress.Commands.add("top_layer", (label_selector, base_element = 'div[role=dialog]:visible,html') => {
     cy.get_top_layer(base_element, ($el) => {
-        expect($el.find(label_selector)).length.to.be.above(0)}
+        if(label_selector){
+            expect($el.find(label_selector)).length.to.be.above(0)}
+        }
     ).then((el) => { return el })
 })
 
