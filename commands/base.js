@@ -370,7 +370,11 @@ Cypress.Commands.overwrite(
                 ['Import Data', 'Commit Changes'].includes(innerText)
                 ||
                 // Wait for the javascript action to be attached to this link
-                innerText.includes('FHIR Systems')
+                (
+                    innerText.includes('FHIR Systems')
+                    ||
+                    (innerText.includes('Lock entire record') && subject[0].nodeName === "BUTTON")
+                )
             ){
                 preClickWait = 1000
             }
