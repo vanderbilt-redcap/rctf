@@ -195,6 +195,20 @@ Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
 
     let top_layer
     cy.get(element, {log: false}).should($els => {
+        if($els[0].tagName === 'HTML'){
+            /**
+             * There seems to be a bug where Cypress returns elements that are no longer
+             * actually present in the dom if the cy.get() call occurs around the time of a page load
+             * It's like the reference to the HTML tag is stale internally in Cypress somewhere,
+             * and does not refresh before each iteration of the should() action like it normally does.
+             * We work around this by manually getting our own reference to the HTML element to fix
+             * quite infrequent intermittent failures that seems to occur randomly in different places.
+             * 
+             * We've seen something similar inside our 'click' method overwrite call, and have also have a check there
+             * to manually get our own element reference in each iteration of the retry action.
+             */
+            $els = Cypress.$('html')
+        }
         $els = $els.filter(':visible')
 
         //if more than body found, find element with highest z-index
@@ -423,6 +437,9 @@ Cypress.Commands.overwrite(
                                       * a bug in Cypress where calls like cy.get() still return elements that are no longer
                                       * actually present in the dom.  It's like the reference to the body is stale internally
                                       * in Cypress somewhere.  In any case, this works around this issue on B.6.4.1400.
+                                      * 
+                                      * We've seen something similar inside get_top_layer(), and have also have a check there
+                                      * to manually get our own element reference in each iteration of the retry action.
                                       */
                                     getBodyAction = cy.get('body')
                                 }
