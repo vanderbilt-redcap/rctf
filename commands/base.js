@@ -195,7 +195,7 @@ Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
 
     let top_layer
     cy.get(element, {log: false}).should($els => {
-        if($els[0].tagName === 'HTML'){
+        if($els.last()[0].tagName === 'HTML'){
             /**
              * There seems to be a bug where Cypress returns elements that are no longer
              * actually present in the dom if the cy.get() call occurs around the time of a page load
