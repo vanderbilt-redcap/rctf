@@ -1567,23 +1567,17 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
     })
 })
 
-window.getExternalModuleDetails = () => {
+window.getCurrentExternalModuleDirectory = () => {
     const parts = window.original_spec_path.split('/redcap_source/modules/')
     if(parts.length === 1){
-        return false
+        return null
     }
 
-    const moduleDirName = parts[1].split('/')[0]
-    const i = moduleDirName.lastIndexOf('_')
-
-    return {
-        prefix: moduleDirName.substr(0, i),
-        version: moduleDirName.substr(i+1),
-    }
+    return parts[1].split('/')[0]
 }
 
 window.isExternalModuleFeature = () => {
-    return window.getExternalModuleDetails() !== false
+    return window.getCurrentExternalModuleDirectory() !== null
 }
 
 window.getFilePathForCurrentFeature = (path) => {
