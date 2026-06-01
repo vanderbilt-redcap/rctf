@@ -79,7 +79,9 @@ Cypress.Commands.add('not_loading', () => {
 
 Cypress.Commands.add("top_layer", (label_selector, base_element = 'div[role=dialog]:visible,html') => {
     cy.get_top_layer(base_element, ($el) => {
-        expect($el.find(label_selector)).length.to.be.above(0)}
+        if(label_selector){
+            expect($el.find(label_selector)).length.to.be.above(0)}
+        }
     ).then((el) => { return el })
 })
 
@@ -193,6 +195,19 @@ Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
 
     let top_layer
     cy.get(element, {log: false}).should($els => {
+        /**
+         * There seems to be a bug where Cypress returns elements that are no longer
+         * actually present in the dom if the cy.get() call occurs around the time of a page load
+         * It's like the reference to the HTML tag is stale internally in Cypress somewhere,
+         * and does not refresh before each iteration of the should() action like it normally does.
+         * We work around this by manually getting our own reference to the HTML element to fix
+         * quite infrequent intermittent failures that seems to occur randomly in different places.
+         * 
+         * We've seen something similar inside our 'click' method overwrite call, and have also have a check there
+         * to manually get our own element reference in each iteration of the retry action.
+         */
+        $els = Cypress.$(element)
+
         $els = $els.filter(':visible')
 
         //if more than body found, find element with highest z-index
@@ -354,7 +369,11 @@ Cypress.Commands.overwrite(
                 ['Import Data', 'Commit Changes'].includes(innerText)
                 ||
                 // Wait for the javascript action to be attached to this link
-                innerText.includes('FHIR Systems')
+                (
+                    innerText.includes('FHIR Systems')
+                    ||
+                    (innerText.includes('Lock entire record') && subject[0].nodeName === "BUTTON")
+                )
             ){
                 preClickWait = 1000
             }
@@ -420,14 +439,17 @@ Cypress.Commands.overwrite(
                                       * Calling checkVisibility() is apparently not good enough since there seems to be
                                       * a bug in Cypress where calls like cy.get() still return elements that are no longer
                                       * actually present in the dom.  It's like the reference to the body is stale internally
-                                      * in Cypress somehere.  In any case, this works around this issue on B.6.4.1400.
+                                      * in Cypress somewhere.  In any case, this works around this issue on B.6.4.1400.
+                                      * 
+                                      * We've seen something similar inside get_top_layer(), and have also have a check there
+                                      * to manually get our own element reference in each iteration of the retry action.
                                       */
                                     getBodyAction = cy.get('body')
                                 }
 
                                 getBodyAction.then(body => {
                                     if(
-                                        // Was window.withinTarget was set above?
+                                        // Was window.withinTarget set above?
                                         body === null 
                                         ||
                                         /**

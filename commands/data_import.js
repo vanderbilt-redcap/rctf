@@ -133,6 +133,13 @@ Cypress.Commands.add('upload_file', (fileName, fileType = ' ', selector = '', bu
     let upload_element = ''
     let submit_button_selector = `input[type=submit][value*="${button_label}"]:visible,:button:contains("${button_label}"):visible`
 
+    if(nearest_text === 'Choose File' && !Cypress.$('body')[0].innerText.includes(nearest_text)){
+        // We're looking for the default "Choose File" text rendered by the browser but not actually present in the DOM.         
+        nearest_text = ''
+        selector = 'input[type=file]'
+        label_selector = null
+    }
+
     if(nearest_text.length > 0) label_selector = `:contains("${nearest_text}"):has(${upload_selector}):visible`
 
     if(fileName.startsWith('downloads/')){
@@ -186,7 +193,7 @@ Cypress.Commands.add('upload_file', (fileName, fileType = ' ', selector = '', bu
         if(nearest_text.length > 0) {
             upload_element = cy.get_labeled_element(upload_selector, nearest_text).first()
         } else {
-            upload_element = cy.get(selector)
+            upload_element = cy.get(selector).filterMatches()
         }
 
         upload_element.selectFile(filePath)

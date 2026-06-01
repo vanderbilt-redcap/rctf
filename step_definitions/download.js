@@ -230,6 +230,32 @@ Given("I should see the following values in the most recent file in the {storage
 
 const DOCKER_COMMAND_PREFIX = 'docker compose --project-directory ../redcap_docker/ '
 
+function createAzureContainer(){
+    const url = '/azure/create-container.php'
+    const startTime = Date.now()
+    
+    const createContainer = (resolve, reject) => {
+        cy.request({
+            url,
+            failOnStatusCode: false,
+        }).then((response) => {
+            if (response.status === 200) {
+                resolve(response)
+            } else if (Date.now() - startTime > 30000) {
+                reject(new Error(`Request to ${url} did not return 200 within timeout. Last status: ${response.status}`))
+            } else {
+                cy.wait(500).then(() => createContainer(resolve, reject))
+            }
+        })
+    }
+
+    cy.wrap(new Cypress.Promise((resolve, reject) => {
+        createContainer(resolve, reject)
+    })).then(() => {
+        cy.log('Azure container was successfully created')
+    })
+}
+
 /**
  * @module Download
  * @author Mark McEver <mark.mcever@vumc.org>
@@ -253,6 +279,7 @@ Given(/^if running via automation, (start|stop) external storage services/, (act
     
     if(action === 'start'){
         cy.exec(DOCKER_COMMAND_PREFIX + '--profile external-storage up -d')
+        createAzureContainer()
     }
 })
 
