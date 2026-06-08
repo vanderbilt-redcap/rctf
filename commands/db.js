@@ -4,14 +4,30 @@
 
 Cypress.Commands.add('base_db_seed', () => {
     const getAdditionalDatabaseSeedQueries = () => {
+        const moduleDirNames = []
+
+        for (const [moduleDirName, enabled] of Object.entries(Cypress.env('bootstrap_settings')['modules'] ?? {})) {
+            if(enabled){
+                moduleDirNames.push(moduleDirName)
+            }
+        }
+
+        const currentModuleDirName = window.getCurrentExternalModuleDirectory()
+        if(currentModuleDirName){
+            moduleDirNames.push(currentModuleDirName)
+        }
+        
         const queries = [
             "UPDATE redcap_config SET value = 0 WHERE field_name = 'auto_report_stats'"
         ]
 
-        const emDetails = window.getExternalModuleDetails()
-        if(emDetails){
-            queries.push(`INSERT INTO redcap_external_modules(directory_prefix) VALUES ('${emDetails.prefix}')`)
-            queries.push(`INSERT INTO redcap_external_module_settings VALUES (LAST_INSERT_ID(), null, 'version', 'string', '${emDetails.version}')`)
+        for(const moduleDirName of moduleDirNames){
+            const i = moduleDirName.lastIndexOf('_')
+            const prefix = moduleDirName.substr(0, i)
+            const version = moduleDirName.substr(i+1)
+
+            queries.push(`INSERT INTO redcap_external_modules(directory_prefix) VALUES ('${prefix}')`)
+            queries.push(`INSERT INTO redcap_external_module_settings VALUES (LAST_INSERT_ID(), null, 'version', 'string', '${version}')`)
         }
 
         return '\n' + queries.join(';\n')
