@@ -108,6 +108,7 @@ Cypress.Commands.add('checkCookieAndLogin', (options) => {
 
 Cypress.Commands.add('logout', () => {
     cy.clearCookies()
+    cy.reload()
     
     cy.url().then((url) => {
         url = window.adjustInvalidLoginUrls(url)

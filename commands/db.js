@@ -17,7 +17,10 @@ Cypress.Commands.add('base_db_seed', () => {
             moduleDirNames.push(currentModuleDirName)
         }
         
-        const queries = []
+        const queries = [
+            "UPDATE redcap_config SET value = 0 WHERE field_name = 'auto_report_stats'"
+        ]
+
         for(const moduleDirName of moduleDirNames){
             const i = moduleDirName.lastIndexOf('_')
             const prefix = moduleDirName.substr(0, i)
@@ -27,12 +30,7 @@ Cypress.Commands.add('base_db_seed', () => {
             queries.push(`INSERT INTO redcap_external_module_settings VALUES (LAST_INSERT_ID(), null, 'version', 'string', '${version}')`)
         }
 
-        if(queries.length === 0){
-            return ''
-        }
-        else{
-            return '\n' + queries.join(';\n')
-        }
+        return '\n' + queries.join(';\n')
     }
 
     /**
