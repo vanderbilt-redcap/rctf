@@ -16,9 +16,6 @@
     "prompt-sync": "^4.2.0",
     "sed-lite": "^0"
   },
-  "overrides": {
-    "esbuild": "0.28.0"
-  },
   "devDependencies": {
     "documentation": "github:documentationjs/documentation"
   },
