@@ -68,7 +68,7 @@ module.exports = (cypressOn, config) => {
     })
 
     on("after:run", async (results) => {
-        afterRunHandler(config, results);
+        afterRunHandler(config);
 
         // Your own `after:run` code goes here.
     })
