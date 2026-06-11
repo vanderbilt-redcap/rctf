@@ -107,11 +107,11 @@ Cypress.Commands.add('checkCookieAndLogin', (options) => {
 })
 
 Cypress.Commands.add('logout', () => {
-    cy.visit('/index.php?logout=1')
     cy.url().then((url) => {
-        url = window.adjustInvalidLoginUrls(url)
+        url = new URL(window.adjustInvalidLoginUrls(url))
+        url.searchParams.set('logout', '1')
         
-        cy.visit(url)
+        cy.visit(url.toString())
         cy.contains('button', 'Log In').should('exist')
     })
 })
