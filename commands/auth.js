@@ -108,10 +108,16 @@ Cypress.Commands.add('checkCookieAndLogin', (options) => {
 
 Cypress.Commands.add('logout', () => {
     cy.url().then((url) => {
-        url = new URL(window.adjustInvalidLoginUrls(url))
-        url.searchParams.set('logout', '1')
+        const urlObject = new URL(url)
+        urlObject.searchParams.set('logout', '1')
+        url = urlObject.toString()
+
+        url = window.adjustInvalidLoginUrls(url)
+
+        // The cy.visit() call never completes when a "#" (fragment) portion of a url exists (e.g. C.3.31.0200)
+        url = url.split('#')[0]
         
-        cy.visit(url.toString())
+        cy.visit(url)
         cy.contains('button', 'Log In').should('exist')
     })
 })
