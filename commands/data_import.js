@@ -128,8 +128,8 @@ Cypress.Commands.add('read_directory', (dir) => {
 })
 
 Cypress.Commands.add('upload_file', (fileName, fileType = ' ', selector = '', button_label = '', nearest_text = '') => {
-    let label_selector = `:has(${selector}):visible`
-    let upload_selector = 'input[type=file]:visible'
+    let label_selector = `:has(${selector})`
+    let upload_selector = 'input[type=file]'
     let upload_element = ''
     let submit_button_selector = `input[type=submit][value*="${button_label}"]:visible,:button:contains("${button_label}"):visible`
 
