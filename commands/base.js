@@ -49,34 +49,6 @@ Cypress.Commands.add('assertWindowProperties', () => {
     cy.waitForInitDtEvent()
 })
 
-Cypress.Commands.add('not_loading', () => {
-    // For a 302 redirect, wait for performance.navigation.type to be 1 - (TYPE_RELOAD)
-    // This prevents us from looking at stuff before a reload is done (hopefully!)
-    if (window.aboutToUnload && window.registeredAlias){
-        cy.window().its('performance.navigation.type').then((type) => {
-            if (type === 0) {
-                cy.wait('@interceptedRequest', {timeout: 1000}).then((interception) => {
-                    if (interception && interception.response.statusCode === 302) {
-                        cy.window().its('performance.navigation.type').should('eq', 1)
-                    }
-                })
-            }
-        })
-    }
-
-    /**
-     * The 'if' checks below don't work properly 100% of the time because there is a race condition
-     * if the page happens to reload between the 'Cypress.$' and the 'cy.get()' calls,
-     * and the latter page no longer contains the specified div.
-     * I think we may want to deprecate the not_loading() command in favor of steps that
-     * look for something guaranteed to exist on the next page.
-     * That could be as simple as an "I should see" step specifying some text.
-     */
-    if(Cypress.$('span#progress_save').length) cy.get('span#progress_save').should('not.be.visible')
-    if(Cypress.$('div#progress').length) cy.get('div#progress').should('not.be.visible')
-    if(Cypress.$('div#working').length) cy.get('div#working', { timeout: 30000 }).should('not.be.visible')
-})
-
 Cypress.Commands.add("top_layer", (label_selector, base_element = 'div[role=dialog]:visible,html') => {
     cy.get_top_layer(base_element, ($el) => {
         if(label_selector){

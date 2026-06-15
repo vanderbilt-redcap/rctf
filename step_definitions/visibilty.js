@@ -271,7 +271,6 @@ Given("I (should )see (a )(an ){string} within the {string} row of the column la
  * @description Identify specific text within a table
  */
 Given('I should see {string} in (the ){tableTypes} table', (text, table_type = 'a') => {
-    cy.not_loading()
     let selector = window.tableMappings[table_type]
     cy.get(`${selector}:visible`).contains('td', text, { matchCase: false })
 })
@@ -286,8 +285,6 @@ Given('I should see {string} in (the ){tableTypes} table', (text, table_type = '
  * @description Allows us to check tabular data rows within REDCap
  */
 Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the following values in (the ){tableTypes} table{baseElement}:', (header, table_type = 'a', base_element, dataTable) => {
-    cy.not_loading()
-
     cy.url().then((currentUrl) => {
         cy.get('body').then(($body) => {
             if ($body.find('.dataTables_processing').length > 0) {
@@ -603,8 +600,6 @@ Given("I should see the consent pdf has loaded in the iframe", () => {
  * @description Determine whether the lock image is visible or not for a given record
  */
 Given("I should NOT see the lock image on the Record Home Page for the Data Collection Instrument labeled {string} for event {string}", (instrument, event) => {
-    cy.not_loading()
-
     cy.table_cell_by_column_and_row_label(event, instrument, '#event_grid_table').then((record_id) => {
         expect(record_id).to.not.have.descendants('img[src*=lock]')
     })
