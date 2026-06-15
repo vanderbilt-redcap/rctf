@@ -640,7 +640,6 @@ Given('I select the checkbox option {string} for the field labeled {string}', (c
  * @description Selects a specific item from a dropdown
  */
 Given('I select {string} (in)(on) the{ordinal} {dropdownType} (field labeled)(of the open date picker widget for) {string}{baseElement}', (option, ordinal, type, label, base_element) => {
-    cy.not_loading()
     let outer_element = window.elementChoices[base_element]
     let label_selector = `:contains(${JSON.stringify(label)}):visible`
     if(type === "dropdown" || type === "multiselect"){

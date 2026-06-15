@@ -4,7 +4,7 @@
 
 window.adjustInvalidLoginUrls = (url) => {
     const baseUrl = Cypress.config().baseUrl
-    if (!url.startsWith(baseUrl)) {
+    if (
         /**
          * We might be coming back from Mailhog like in this feature:
          * https://github.com/CCTC-team/redcap_rsvc/blob/redcap_val/Feature%20Tests/D/Two%20Factor%20Authentication_101/D.101.100%20-%20Two%20Factor%20Authentication.feature
@@ -12,16 +12,15 @@ window.adjustInvalidLoginUrls = (url) => {
          * If you'd like to run this feature, you'll likely need to load this file:
          * https://github.com/CCTC-team/redcap_cypress/blob/redcap_val/cypress/support/step_definitions/noncore.js
          */
-        url = baseUrl
-    }
-    else if (
-        // This is the first page load from a blank browser windows
+        !url.startsWith(baseUrl)
+        ||
+        // This is the first page load from a blank browser window
         url === 'about:blank'
         ||
         // Take us back to the homepage so the login form will be displayed
         url.includes('/surveys/')
     ) {
-        url = '/'
+        url = baseUrl
     }
     else {
         /**
@@ -107,13 +106,16 @@ Cypress.Commands.add('checkCookieAndLogin', (options) => {
 })
 
 Cypress.Commands.add('logout', () => {
-    cy.clearCookies()
-    cy.reload()
-    
     cy.url().then((url) => {
         url = window.adjustInvalidLoginUrls(url)
+
+        // The cy.visit() call never completes when a "#" (fragment) portion of a url exists (e.g. C.3.31.0200)
+        url = url.split('#')[0]
         
-        cy.visit(url)
+        const urlObject = new URL(url)
+        urlObject.searchParams.set('logout', '1')
+        
+        cy.visit(urlObject.toString())
         cy.contains('button', 'Log In').should('exist')
     })
 })
