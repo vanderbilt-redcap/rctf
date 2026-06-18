@@ -34,6 +34,7 @@ const {
 } = require("@badeball/cypress-cucumber-preprocessor")
 const {createEsbuildPlugin}  = require("@badeball/cypress-cucumber-preprocessor/esbuild")
 const glob = require('glob')
+const { UploadVideoToREDCapProject } = require('./upload_videos_to_redcap_project.js')
 
 module.exports = (cypressOn, config) => {
     const on = require('cypress-on-fix')(cypressOn)
@@ -72,6 +73,12 @@ module.exports = (cypressOn, config) => {
 
         // Your own `after:run` code goes here.
     })
+    
+    let browser = null
+    on('before:browser:launch', (browserArg, launchOptions) => {
+        browser = browserArg
+        return launchOptions
+    })
 
     on("before:spec", async (spec) => {
         beforeSpecHandler(config, spec);
@@ -82,7 +89,13 @@ module.exports = (cypressOn, config) => {
     on("after:spec", async (spec, results) => {
         afterSpecHandler(config, spec, results);
 
-        // Your own `after:spec` code goes here.
+        results.cypressVersion = config.version
+        results.browser = browser
+
+        const pushResultsToREDCapInstance = false // TODO - somehow pipe in this flag from an ENV or by detecting a special branch
+        if(pushResultsToREDCapInstance && results.stats.failures === 0){
+            await (new UploadVideoToREDCapProject(results)).promise
+        }
     })
 
     on("after:screenshot", async (details) => {
