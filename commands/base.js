@@ -196,16 +196,11 @@ Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
         }
         expect($els.length > 0).to.be.true
         top_layer = $els.last() // Get the last since they are sorted in order of appearance in the DOM
-        if(Cypress.dom.isDetached(top_layer)){
-            const element = top_layer[0]
-            throw new Error(
-                'An unknown error occurred causing a detached element to be detected as the top layer'
-                + ': '
-                + element.tagName.toLowerCase()
-                + '#' + element.id
-                + '.' + element.className.replaceAll(' ', '.')
-            )
-        }
+        const detachedError = 'An unknown error occurred causing a detached element to be detected as the top layer: '
+            + top_layer[0].tagName.toLowerCase()
+            + '#' + top_layer[0].id
+            + '.' + top_layer[0].className.replaceAll(' ', '.')
+        expect(Cypress.dom.isDetached(top_layer), detachedError).to.be.false
         if(retryUntil){
             retryUntil(top_layer) //run assertions, so get can retry on failure
         }
