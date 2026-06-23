@@ -34,6 +34,7 @@ const {
 } = require("@badeball/cypress-cucumber-preprocessor")
 const {createEsbuildPlugin}  = require("@badeball/cypress-cucumber-preprocessor/esbuild")
 const glob = require('glob')
+const { execSync } = require('child_process');
 const { UploadVideoToREDCapProject } = require('./upload_videos_to_redcap_project.js')
 
 module.exports = (cypressOn, config) => {
@@ -83,7 +84,24 @@ module.exports = (cypressOn, config) => {
     on("before:spec", async (spec) => {
         beforeSpecHandler(config, spec);
 
-        // Your own `before:spec` code goes here.
+        if(process.env.UPLOAD_RESULTS === 'true'){
+            const actualCypressBranch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8' }).trim()
+            if(actualCypressBranch === 'run-only-specified-features'){
+                // Allow uploads to run on this branch for testing
+            }
+            else{
+                const redcapVersion = config.env.redcap_version
+                const expectedCypressBranch = 'v' + redcapVersion
+                if(expectedCypressBranch !== actualCypressBranch){
+                    throw new Error(`Failing build to prevent incorrect result upload because expected cypress branch (${expectedCypressBranch}) did not match the actual cypress branch (${actualCypressBranch}).`)
+                }
+    
+                const tagName = execSync(`git --git-dir=../redcap_source/redcap_v${redcapVersion}.git describe --tags --exact-match`, { encoding: 'utf-8' }).trim()
+                if(tagName !== redcapVersion){
+                    throw new Error(`Failing build to prevent incorrect result upload because the checked out tag name (${tagName}) did not match the REDCap version (${redcapVersion}).`)
+                }
+            }
+        }
     })
 
     on("after:spec", async (spec, results) => {
@@ -92,8 +110,7 @@ module.exports = (cypressOn, config) => {
         results.cypressVersion = config.version
         results.browser = browser
 
-        const pushResultsToREDCapInstance = false // TODO - somehow pipe in this flag from an ENV or by detecting a special branch
-        if(pushResultsToREDCapInstance && results.stats.failures === 0){
+        if(process.env.UPLOAD_RESULTS === 'true' && results.stats.failures === 0){
             await (new UploadVideoToREDCapProject(results)).promise
         }
     })
