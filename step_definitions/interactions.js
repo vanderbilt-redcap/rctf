@@ -108,17 +108,15 @@ Given("I click on the button labeled {string} for the row labeled {string}", (te
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} enterType
  * @param {string} label - the label of the field
- * @param {string} baseElement
  */
-Given("I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}", enterTextIntoField)
+Given("I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} field( ){columnLabel} labeled {string}{iframeVisibility}", enterTextIntoField)
 
 /**
  * @module Interactions
  * @author Mark McEver <mark.mcever@vumc.org>
  * @param {string} label - the label of the field
- * @param {string} baseElement
  */
-Given("I enter the current user's Super API Token into the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}", (...args) => {
+Given("I enter the current user's Super API Token into the( ){ordinal}( ){inputType} field( ){columnLabel} labeled {string}{iframeVisibility}", (...args) => {
     cy.get('#username-reference').then(element => {
         const username = element.text()
         const query = `SELECT api_token FROM redcap_user_information WHERE username = '${username}'`
@@ -139,9 +137,8 @@ Given("I enter the current user's Super API Token into the( ){ordinal}( ){inputT
  * @module Interactions
  * @author Mark McEver <mark.mcever@vumc.org>
  * @param {string} label - the label of the field
- * @param {string} baseElement
  */
-Given('I enter the code that was emailed to the current user into the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}', (...args) => {
+Given('I enter the code that was emailed to the current user into the( ){ordinal}( ){inputType} field( ){columnLabel} labeled {string}{iframeVisibility}', (...args) => {
     const getCodeFromEmail = () => {
         return cy.request('http://localhost:8025/api/v1/messages').then(response => {
             // Make null the default return value & override any previous subject
@@ -195,7 +192,7 @@ Given('I enter the code that was emailed to the current user into the( ){ordinal
     getSentEmails()
 })
 
-function enterTextIntoField(enter_type, text, ordinal, input_type, column, labeled_exactly, label, base_element, iframe){
+function enterTextIntoField(enter_type, text, ordinal, input_type, column, label, iframe){
     let select = 'input[type=text]:visible,input[type=password]:visible'
 
     // Also look for inputs that omit a "type", like "Name of trigger"
@@ -293,7 +290,7 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
  * @description Enters a specific text string into a field identified by a label.  (NOTE: The field is not automatically cleared.)
  */
 
-Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledExactly} {string}{baseElement}', (enter_type, text, ordinal, labeled_exactly, label, base_element) => {
+Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field labeled {string}{baseElement}', (enter_type, text, ordinal, label, base_element) => {
     let sel = `:contains(${JSON.stringify(label)}):visible`
 
     let ord = 0
