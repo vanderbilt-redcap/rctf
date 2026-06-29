@@ -34,6 +34,8 @@ const {
 } = require("@badeball/cypress-cucumber-preprocessor")
 const {createEsbuildPlugin}  = require("@badeball/cypress-cucumber-preprocessor/esbuild")
 const glob = require('glob')
+const { execSync } = require('child_process');
+const { UploadVideoToREDCapProject } = require('./upload_videos_to_redcap_project.js')
 
 module.exports = (cypressOn, config) => {
     const on = require('cypress-on-fix')(cypressOn)
@@ -72,17 +74,45 @@ module.exports = (cypressOn, config) => {
 
         // Your own `after:run` code goes here.
     })
+    
+    let browser = null
+    on('before:browser:launch', (browserArg, launchOptions) => {
+        browser = browserArg
+        return launchOptions
+    })
 
     on("before:spec", async (spec) => {
         beforeSpecHandler(config, spec);
 
-        // Your own `before:spec` code goes here.
+        if(process.env.UPLOAD_RESULTS === 'true'){
+            const actualCypressBranch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8' }).trim()
+            if(actualCypressBranch === 'run-only-specified-features'){
+                // Allow uploads to run on this branch for testing
+            }
+            else{
+                const redcapVersion = config.env.redcap_version
+                const expectedCypressBranch = 'v' + redcapVersion
+                if(expectedCypressBranch !== actualCypressBranch){
+                    throw new Error(`Failing build to prevent incorrect result upload because expected cypress branch (${expectedCypressBranch}) did not match the actual cypress branch (${actualCypressBranch}).`)
+                }
+    
+                const tagName = execSync(`git --git-dir=../redcap_source/redcap_v${redcapVersion}.git describe --tags --exact-match`, { encoding: 'utf-8' }).trim()
+                if(tagName !== redcapVersion){
+                    throw new Error(`Failing build to prevent incorrect result upload because the checked out tag name (${tagName}) did not match the REDCap version (${redcapVersion}).`)
+                }
+            }
+        }
     })
 
     on("after:spec", async (spec, results) => {
         afterSpecHandler(config, spec, results);
 
-        // Your own `after:spec` code goes here.
+        results.cypressVersion = config.version
+        results.browser = browser
+
+        if(process.env.UPLOAD_RESULTS === 'true' && results.stats.failures === 0){
+            await (new UploadVideoToREDCapProject(results)).promise
+        }
     })
 
     on("after:screenshot", async (details) => {
