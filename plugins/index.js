@@ -121,6 +121,7 @@ module.exports = (cypressOn, config) => {
         // Your own `after:screenshot` code goes here.
     })
 
+    let phpTimeZone
     on('task', {
         readTextFile({textFilePath}){
             return new Promise((resolve) => {
@@ -309,7 +310,11 @@ module.exports = (cypressOn, config) => {
         },
 
         phpTimeZone(php_path){
-            return `${php_path} -r "echo date_default_timezone_get();"`
+            if(!phpTimeZone){
+                phpTimeZone = execSync(`${php_path} -r "echo date_default_timezone_get();"`, { encoding: 'utf-8' })
+            }
+            
+            return phpTimeZone
         },
 
         async fetchLatestDownload({fileExtension, retry = true}){

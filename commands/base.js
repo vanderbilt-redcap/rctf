@@ -621,9 +621,7 @@ Cypress.Commands.add('php_time_zone', () => {
     // Check if php path is set in Cypress.env.json
     if (Cypress.env('php') && Cypress.env('php')['path']) {
         cy.task("phpTimeZone", Cypress.env('php')['path']).then((timeZone) => {
-            cy.exec(timeZone, { timeout: 100000}).then((time) => {
-                window.php_time_zone = time['stdout']
-            })
+            window.php_time_zone = timeZone
         })
     //If we have no PHP path set, we'll look for timezone override
     } else if (Cypress.env('timezone_override')) {
@@ -633,7 +631,9 @@ Cypress.Commands.add('php_time_zone', () => {
         window.php_time_zone = Intl.DateTimeFormat().resolvedOptions().timeZone
     }
 
-    cy.wrap(`Configured Timezone: ${window.php_time_zone}`)
+    cy.then(() => {
+        cy.wrap(`Configured Timezone: ${window.php_time_zone}`)
+    })
 })
 
 Cypress.Commands.add("suppressWaitForPageLoad", function () {
