@@ -50,7 +50,16 @@ Cypress.Commands.add('assertWindowProperties', () => {
 })
 
 Cypress.Commands.add("top_layer", (label_selector, base_element = 'div[role=dialog]:visible,html') => {
-    cy.get_top_layer(base_element).then((el) => { return el })
+    cy.retryUntilTimeout(() => {
+        return cy.get_top_layer(base_element).then((topLayer) => {
+            if(topLayer.find(label_selector).length > 0){
+                cy.wrap(topLayer)
+            }
+            else{
+                cy.wrap(false)
+            }
+        })
+    })
 })
 
 Cypress.Commands.add("get_labeled_element", (element_selector, label, value = null, labeled_exactly = false) => {
