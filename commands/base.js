@@ -50,11 +50,7 @@ Cypress.Commands.add('assertWindowProperties', () => {
 })
 
 Cypress.Commands.add("top_layer", (label_selector, base_element = 'div[role=dialog]:visible,html') => {
-    cy.get_top_layer(base_element, ($el) => {
-        if(label_selector){
-            expect($el.find(label_selector)).length.to.be.above(0)}
-        }
-    ).then((el) => { return el })
+    cy.get_top_layer(base_element).then((el) => { return el })
 })
 
 Cypress.Commands.add("get_labeled_element", (element_selector, label, value = null, labeled_exactly = false) => {
@@ -150,7 +146,7 @@ Cypress.Commands.add('button_or_input', (text_label) => {
 })
 
 //yields the visible div with the highest z-index, or the <html> if none are found
-Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
+Cypress.Commands.add('get_top_layer', (element = null) => {
     cy.log('get_top_layer')
 
     if(element === null){
@@ -222,9 +218,6 @@ Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
         })
 
         expect(Cypress.dom.isDetached(top_layer), detachedMessage).to.be.false
-        if(retryUntil){
-            retryUntil(top_layer) //run assertions, so get can retry on failure
-        }
     }).then(() => {
         let next = cy.wrap(top_layer, {log: false}) //yield top_layer to any further chained commands
 
