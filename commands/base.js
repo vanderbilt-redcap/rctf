@@ -369,8 +369,6 @@ Cypress.Commands.overwrite(
                     innerText.includes('FHIR Systems')
                     ||
                     (innerText.includes('Lock entire record') && subject[0].nodeName === "BUTTON")
-                    ||
-                    innerText.includes('Request a configuration change')
                 )
             ){
                 preClickWait = 1000
