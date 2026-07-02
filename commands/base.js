@@ -196,31 +196,32 @@ Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
         }
         expect($els.length > 0).to.be.true
         top_layer = $els.last() // Get the last since they are sorted in order of appearance in the DOM
-        let detachedError = "An unknown error occurred causing a detached element to be detected as the top layer. Here are the top layer candidates: "
+        // change to an a plain old log instead of error, since its printed all the time
+        let detachedMessage = "Of the following top layer candidates, we are selecting the last one (often the only one): "
            
         $els.each((index, element) => {
             if(index > 0){
-                detachedError += ","
+                detachedMessage += ","
             }
 
-            detachedError += element.tagName.toLowerCase()
+            detachedMessage += element.tagName.toLowerCase()
 
             const id = element.id
             if(id){
-                detachedError += '#' + id
+                detachedMessage += '#' + id
             }
 
             const classNames = element.className.replaceAll(' ', '.')
             if(classNames){
-                detachedError += '.' + classNames
+                detachedMessage += '.' + classNames
             }
 
             if(element.tagName === 'HTML'){
-                detachedError += " with body classes '" + element.querySelector('body').className + "'"
+                detachedMessage += " with body classes '" + element.querySelector('body').className + "'"
             }
         })
 
-        expect(Cypress.dom.isDetached(top_layer), detachedError).to.be.false
+        expect(Cypress.dom.isDetached(top_layer), detachedMessage).to.be.false
         if(retryUntil){
             retryUntil(top_layer) //run assertions, so get can retry on failure
         }
