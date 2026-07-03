@@ -21,11 +21,6 @@ export class ResultsUploader {
             throw new Error('No REDCap API token found.')
         }
 
-        const project_id = process.env.PROJECT_ID
-        if(!project_id){
-            throw new Error('No Project ID found.')
-        }
-
         this.redcap_api_url = process.env.REDCAP_API_URL
         if(!this.redcap_api_url){
             throw new Error('No REDCap API URL found.')
