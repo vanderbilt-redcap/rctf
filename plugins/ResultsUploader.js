@@ -51,15 +51,13 @@ export class ResultsUploader {
             content: 'fileRepository',
             action: 'list',
         }).then((response) => {
-            return new Promise((resolve, reject) => {
-                const folder = response.find(r => r.name === "Automated Videos");
+            const folder = response.find(r => r.name === "Automated Videos");
 
-                if (folder) {
-                    resolve(folder.folder_id)
-                } else {
-                    reject('Automated Videos folder not found');
-                }
-            })
+            if (!folder) {
+                throw new Error('Automated Videos folder not found');
+            }
+
+            return folder.folder_id
         })
     }
 
