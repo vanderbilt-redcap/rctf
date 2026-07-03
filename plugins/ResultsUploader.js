@@ -21,15 +21,14 @@ export class ResultsUploader {
             throw new Error('No REDCap API token found.')
         }
 
-        this.redcap_api_url = process.env.REDCAP_API_URL
-        if(!this.redcap_api_url){
+        if(!process.env.REDCAP_API_URL){
             throw new Error('No REDCap API URL found.')
         }
 
         // Replace slashes to ensure paths are consistent on Windows & Linux
         const video_path = results.video.split(path.sep).join("/")
 
-        if(this.redcap_api_url.includes('redcap.loc')){
+        if(process.env.REDCAP_API_URL.includes('redcap.loc')){
             // This is local environment.  Do not check the cert.
             process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
         }
@@ -128,7 +127,7 @@ export class ResultsUploader {
     }) {
         payload.token = process.env.REDCAP_API_TOKEN
 
-        return  fetch(this.redcap_api_url, {
+        return fetch(process.env.REDCAP_API_URL, {
             method: 'POST',
             headers: headers,
             body: new URLSearchParams(payload)
@@ -234,7 +233,7 @@ export class ResultsUploader {
         form.append('filename', filename)
         form.append('file', new Blob([fileBuffer]), filename)
 
-        const response = await fetch(this.redcap_api_url, {
+        const response = await fetch(process.env.REDCAP_API_URL, {
             method: 'POST',
             headers: { Accept: 'application/json' },
             body: form
