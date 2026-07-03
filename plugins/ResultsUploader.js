@@ -1,7 +1,6 @@
-#!/usr/bin/env node
-const fs = require('fs')
-const { promisify } = require('util')
-const path = require('path')
+import fs from 'fs'
+import { promisify } from 'util'
+import path from 'path'
 const readdir = promisify(fs.readdir)
 const stat = promisify(fs.stat)
 
@@ -11,7 +10,11 @@ const stat = promisify(fs.stat)
  * Videos push to the File Repo when a feature has been marked as passed
  */
 export class ResultsUploader {
-    constructor(results) {
+    static uploadResults(results){
+        return (new this()).uploadResults(results)
+    }
+
+    uploadResults(results){
         console.log('Uploading results to REDCap project...')
 
         const redcap_api_token = process.env.REDCAP_API_TOKEN
@@ -38,7 +41,7 @@ export class ResultsUploader {
         }
 
         //Get the Folder ID
-        this.promise = this.redcap_project_query(new URLSearchParams({
+        return this.redcap_project_query(new URLSearchParams({
             token: redcap_api_token, // Replace with actual token if not using environment variables
             content: 'fileRepository',
             action: 'list',

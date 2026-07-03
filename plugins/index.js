@@ -111,7 +111,7 @@ module.exports = (cypressOn, config) => {
         results.browser = browser
 
         if(process.env.UPLOAD_RESULTS === 'true' && results.stats.failures === 0){
-            await (new ResultsUploader(results)).promise
+            await ResultsUploader.uploadResults(results)
         }
     })
 
