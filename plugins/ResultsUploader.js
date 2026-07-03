@@ -110,6 +110,7 @@ export class ResultsUploader {
                         record_id: -1, // We're required to specify something, but the value doesn't matter since forceAutoNumber is true
                         redcap_version: redcapVersion,
                         frs_id: frs_id,
+                        redcap_release: 'lts',
                         feature_test_script: feature_content,
                         projects_feature: this.get_referenced_files(feature_content),
                         testing_method: 'automated',
