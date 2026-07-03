@@ -132,7 +132,8 @@ export class ResultsUploader {
         return fetch(process.env.REDCAP_API_URL, {
             method: 'POST',
             headers: headers,
-            body: new URLSearchParams(payload)
+            body: new URLSearchParams(payload),
+            signal: AbortSignal.timeout(1000*60*5),
         }).then(response => response.json())  // Parse the JSON response
         .then(json => {
             if(json.error){
