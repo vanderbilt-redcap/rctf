@@ -46,13 +46,7 @@ export class ResultsUploader {
         return (new this()).uploadResults(redcapVersion, results)
     }
 
-    uploadResults(redcapVersion, results){
-        console.log('Uploading results to REDCap project...')
-       
-        // Replace slashes to ensure paths are consistent on Windows & Linux
-        const video_path = results.video.split(path.sep).join("/")
-
-        //Get the Folder ID
+    getVideoFolder(redcapVersion){
         return this.redcap_project_query({
             content: 'fileRepository',
             action: 'list',
@@ -66,7 +60,16 @@ export class ResultsUploader {
                     reject('Automated Videos folder not found');
                 }
             })
-        }).then(async (folder_id) => {
+        })
+    }
+
+    uploadResults(redcapVersion, results){
+        console.log('Uploading results to REDCap project...')
+       
+        // Replace slashes to ensure paths are consistent on Windows & Linux
+        const video_path = results.video.split(path.sep).join("/")
+
+        return this.getVideoFolder(redcapVersion).then(async (folder_id) => {
             let dataToSave = []
 
             return this.redcap_project_query({
