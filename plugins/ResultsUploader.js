@@ -25,11 +25,28 @@ export class ResultsUploader {
         }
     }
 
-    static uploadResults(results){
-        return (new this()).uploadResults(results)
+    static doesRecordExist(redcapVersion, frsId) {
+        return (new this()).redcap_project_query({
+            content: 'record',
+            filterLogic: `
+                [redcap_version] = "${redcapVersion}"
+                and
+                [frs_id] = "${frsId}"
+            `,
+        }).then((response) => {
+            return Array.isArray(response) && response.length > 0
+        })
     }
 
-    uploadResults(results){
+    static getFRSId(spec){
+        return spec.name.split(' ')[0]
+    }
+
+    static uploadResults(redcapVersion, results){
+        return (new this()).uploadResults(redcapVersion, results)
+    }
+
+    uploadResults(redcapVersion, results){
         console.log('Uploading results to REDCap project...')
        
         // Replace slashes to ensure paths are consistent on Windows & Linux
@@ -59,11 +76,11 @@ export class ResultsUploader {
             }).then((uploaded_feature_videos) =>{
                 const filename = video_path.split('/').pop()
 
-                const frs_id = filename.split(' ')[0]
+                const frs_id = this.constructor.getFRSId(results.spec)
                 console.log(`Uploading ${frs_id}`)
                 
                 if(uploaded_feature_videos.find(r => r.name === filename)){
-                    console.log(`ALREADY UPLOADED: ${filename}`)
+                    throw new Error('Video already uploaded!  This should never happen since our doesRecordExist() should prevent this feature from running!')
                 } else {
                     console.log(`NEW UPLOAD: ${filename}`)
                     console.log(`FILE PATH: ${video_path}`)
@@ -75,6 +92,7 @@ export class ResultsUploader {
 
                     const recordData = {
                         record_id: -1, // We're required to specify something, but the value doesn't matter since forceAutoNumber is true
+                        redcap_version: redcapVersion,
                         frs_id: frs_id,
                         feature_test_script: feature_content,
                         projects_feature: this.get_referenced_files(feature_content),

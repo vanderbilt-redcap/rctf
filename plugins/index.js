@@ -85,12 +85,17 @@ module.exports = (cypressOn, config) => {
         beforeSpecHandler(config, spec);
 
         if(process.env.UPLOAD_RESULTS === 'true'){
+            const redcapVersion = config.env.redcap_version
+            const frsId = ResultsUploader.getFRSId(spec)
+            if(await ResultsUploader.doesRecordExist(redcapVersion, frsId)){
+                throw new Error(`Failing build to prevent incorrect result upload because results have already been uploaded for REDCap version ${redcapVersion} and frs_id ${frsId} `)
+            }
+
             const actualCypressBranch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8' }).trim()
             if(actualCypressBranch === 'run-only-specified-features'){
                 // Allow uploads to run on this branch for testing
             }
             else{
-                const redcapVersion = config.env.redcap_version
                 const expectedCypressBranch = 'v' + redcapVersion
                 if(expectedCypressBranch !== actualCypressBranch){
                     throw new Error(`Failing build to prevent incorrect result upload because expected cypress branch (${expectedCypressBranch}) did not match the actual cypress branch (${actualCypressBranch}).`)
@@ -111,7 +116,7 @@ module.exports = (cypressOn, config) => {
         results.browser = browser
 
         if(process.env.UPLOAD_RESULTS === 'true' && results.stats.failures === 0){
-            await ResultsUploader.uploadResults(results)
+            await ResultsUploader.uploadResults(config.env.redcap_version, results)
         }
     })
 
