@@ -39,8 +39,6 @@ export class ResultsUploader {
         return this.redcap_project_query({
             content: 'fileRepository',
             action: 'list',
-            format: 'json',
-            returnFormat: 'json'
         }).then((response) => {
             return new Promise((resolve, reject) => {
                 const folder = response.find(r => r.name === "Automated Videos");
@@ -58,8 +56,6 @@ export class ResultsUploader {
                 content: 'fileRepository',
                 action: 'list',
                 folder_id: folder_id,
-                format: 'json',
-                returnFormat: 'json'
             }).then((uploaded_feature_videos) =>{
                 const filename = video_path.split('/').pop()
 
@@ -107,8 +103,6 @@ export class ResultsUploader {
                 return this.redcap_project_query({
                     content: 'record',
                     action: 'import',
-                    format: 'json',
-                    returnFormat: 'json',
                     overwriteBehavior: 'overwrite',
                     forceAutoNumber: 'true',
                     data: JSON.stringify(dataToSave, null, 2),
@@ -128,6 +122,8 @@ export class ResultsUploader {
         'Accept': 'application/json',
     }) {
         payload.token = process.env.REDCAP_API_TOKEN
+        payload.format = 'json'
+        payload.returnFormat = 'json'
 
         return fetch(process.env.REDCAP_API_URL, {
             method: 'POST',
