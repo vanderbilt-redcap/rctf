@@ -10,13 +10,7 @@ const stat = promisify(fs.stat)
  * Videos push to the File Repo when a feature has been marked as passed
  */
 export class ResultsUploader {
-    static uploadResults(results){
-        return (new this()).uploadResults(results)
-    }
-
-    uploadResults(results){
-        console.log('Uploading results to REDCap project...')
-
+    constructor(){
         if(!process.env.REDCAP_API_TOKEN){
             throw new Error('No REDCap API token found.')
         }
@@ -25,13 +19,21 @@ export class ResultsUploader {
             throw new Error('No REDCap API URL found.')
         }
 
-        // Replace slashes to ensure paths are consistent on Windows & Linux
-        const video_path = results.video.split(path.sep).join("/")
-
         if(process.env.REDCAP_API_URL.includes('redcap.loc')){
             // This is local environment.  Do not check the cert.
             process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
         }
+    }
+
+    static uploadResults(results){
+        return (new this()).uploadResults(results)
+    }
+
+    uploadResults(results){
+        console.log('Uploading results to REDCap project...')
+       
+        // Replace slashes to ensure paths are consistent on Windows & Linux
+        const video_path = results.video.split(path.sep).join("/")
 
         //Get the Folder ID
         return this.redcap_project_query({
