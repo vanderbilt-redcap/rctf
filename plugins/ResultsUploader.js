@@ -17,8 +17,7 @@ export class ResultsUploader {
     uploadResults(results){
         console.log('Uploading results to REDCap project...')
 
-        const redcap_api_token = process.env.REDCAP_API_TOKEN
-        if(!redcap_api_token){
+        if(!process.env.REDCAP_API_TOKEN){
             throw new Error('No REDCap API token found.')
         }
 
@@ -106,7 +105,7 @@ export class ResultsUploader {
                         throw new Error(`Video file does not exist at path: ${video_path}`)
                     }
 
-                    return this.upload_video_file(redcap_api_token, folder_id, filename, video_path)
+                    return this.upload_video_file(folder_id, filename, video_path)
                 }
             }).then(() => {
                 return this.redcap_project_query({
@@ -229,11 +228,11 @@ export class ResultsUploader {
         }
     }
 
-    async upload_video_file(redcap_api_token, folder_id, filename, videoPath) {
+    async upload_video_file(folder_id, filename, videoPath) {
         const fileBuffer = fs.readFileSync(videoPath)
         const form = new FormData()
 
-        form.append('token', redcap_api_token)
+        form.append('token', process.env.REDCAP_API_TOKEN)
         form.append('content', 'fileRepository')
         form.append('action', 'import')
         form.append('folder_id', String(folder_id))
