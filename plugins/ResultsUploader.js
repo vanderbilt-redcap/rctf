@@ -41,13 +41,12 @@ export class ResultsUploader {
         }
 
         //Get the Folder ID
-        return this.redcap_project_query(new URLSearchParams({
-            token: redcap_api_token, // Replace with actual token if not using environment variables
+        return this.redcap_project_query({
             content: 'fileRepository',
             action: 'list',
             format: 'json',
             returnFormat: 'json'
-        })).then((response) => {
+        }).then((response) => {
             return new Promise((resolve, reject) => {
                 const folder = response.find(r => r.name === "Automated Videos");
 
@@ -60,14 +59,13 @@ export class ResultsUploader {
         }).then(async (folder_id) => {
             let dataToSave = []
 
-            return this.redcap_project_query(new URLSearchParams({
-                token: redcap_api_token, // Replace with actual token if not using environment variables
+            return this.redcap_project_query({
                 content: 'fileRepository',
                 action: 'list',
                 folder_id: folder_id,
                 format: 'json',
                 returnFormat: 'json'
-            })).then((uploaded_feature_videos) =>{
+            }).then((uploaded_feature_videos) =>{
                 const filename = video_path.split('/').pop()
 
                 const frs_id = filename.split(' ')[0]
@@ -111,8 +109,7 @@ export class ResultsUploader {
                     return this.upload_video_file(redcap_api_token, folder_id, filename, video_path)
                 }
             }).then(() => {
-                return this.redcap_project_query(new URLSearchParams({
-                    token: redcap_api_token, // Replace with actual token if not using environment variables
+                return this.redcap_project_query({
                     content: 'record',
                     action: 'import',
                     format: 'json',
@@ -120,7 +117,7 @@ export class ResultsUploader {
                     overwriteBehavior: 'overwrite',
                     forceAutoNumber: 'true',
                     data: JSON.stringify(dataToSave, null, 2),
-                })) .then(json => {
+                }) .then(json => {
                     if(json.count !== dataToSave.length){
                         throw `Expected to save ${dataToSave.length} records but received a count of ${json.count} instead`
                     }
@@ -135,10 +132,12 @@ export class ResultsUploader {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Accept': 'application/json',
     }) {
+        payload.token = process.env.REDCAP_API_TOKEN
+
         return  fetch(this.redcap_api_url, {
             method: 'POST',
             headers: headers,
-            body: payload
+            body: new URLSearchParams(payload)
         }).then(response => response.json())  // Parse the JSON response
         .then(json => {
             if(json.error){
