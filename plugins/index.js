@@ -35,7 +35,7 @@ const {
 const {createEsbuildPlugin}  = require("@badeball/cypress-cucumber-preprocessor/esbuild")
 const glob = require('glob')
 const { execSync } = require('child_process');
-const { UploadVideoToREDCapProject } = require('./upload_videos_to_redcap_project.js')
+const { ResultsUploader } = require('./ResultsUploader.js')
 
 module.exports = (cypressOn, config) => {
     const on = require('cypress-on-fix')(cypressOn)
@@ -111,7 +111,7 @@ module.exports = (cypressOn, config) => {
         results.browser = browser
 
         if(process.env.UPLOAD_RESULTS === 'true' && results.stats.failures === 0){
-            await (new UploadVideoToREDCapProject(results)).promise
+            await (new ResultsUploader(results)).promise
         }
     })
 

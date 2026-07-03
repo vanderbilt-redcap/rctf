@@ -10,9 +10,9 @@ const stat = promisify(fs.stat)
  * Facilitates uploading the video results to REDCap project via REDCap API
  * Videos push to the File Repo when a feature has been marked as passed
  */
-export class UploadVideoToREDCapProject {
+export class ResultsUploader {
     constructor(results) {
-        console.log('Running UploadVideoToREDCapProject')
+        console.log('Uploading results to REDCap project...')
 
         const redcap_api_token = process.env.REDCAP_API_TOKEN
         if(!redcap_api_token){
