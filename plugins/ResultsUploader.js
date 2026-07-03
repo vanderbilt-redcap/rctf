@@ -46,15 +46,30 @@ export class ResultsUploader {
         return (new this()).uploadResults(redcapVersion, results)
     }
 
-    getVideoFolder(redcapVersion){
+    async getVideoFolder(redcapVersion){
+        const automatedVideosFolderId = await this.getFolderId(null, 'Automated Videos')
+        const versionFolderId = await this.getFolderId(automatedVideosFolderId, 'v' + redcapVersion)
+
+        return versionFolderId
+    }
+
+    getFolderId(parentFolderId, name){
         return this.redcap_project_query({
             content: 'fileRepository',
             action: 'list',
+            folder_id: parentFolderId,
         }).then((response) => {
-            const folder = response.find(r => r.name === "Automated Videos");
+            const folder = response.find(r => r.name === name);
 
             if (!folder) {
-                throw new Error('Automated Videos folder not found');
+                return this.redcap_project_query({
+                    content: 'fileRepository',
+                    action: 'createFolder',
+                    folder_id: parentFolderId,
+                    name: name,
+                }).then((response) => {
+                    return response[0].folder_id
+                })
             }
 
             return folder.folder_id
