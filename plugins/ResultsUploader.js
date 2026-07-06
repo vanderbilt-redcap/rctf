@@ -1,7 +1,6 @@
-#!/usr/bin/env node
-const fs = require('fs')
-const { promisify } = require('util')
-const path = require('path')
+import fs from 'fs'
+import { promisify } from 'util'
+import path from 'path'
 const readdir = promisify(fs.readdir)
 const stat = promisify(fs.stat)
 
@@ -10,68 +9,94 @@ const stat = promisify(fs.stat)
  * Facilitates uploading the video results to REDCap project via REDCap API
  * Videos push to the File Repo when a feature has been marked as passed
  */
-export class UploadVideoToREDCapProject {
-    constructor(results) {
-        console.log('Running UploadVideoToREDCapProject')
-
-        const redcap_api_token = process.env.REDCAP_API_TOKEN
-        if(!redcap_api_token){
+export class ResultsUploader {
+    constructor(){
+        if(!process.env.REDCAP_API_TOKEN){
             throw new Error('No REDCap API token found.')
         }
 
-        const project_id = process.env.PROJECT_ID
-        if(!project_id){
-            throw new Error('No Project ID found.')
-        }
-
-        this.redcap_api_url = process.env.REDCAP_API_URL
-        if(!this.redcap_api_url){
+        if(!process.env.REDCAP_API_URL){
             throw new Error('No REDCap API URL found.')
         }
 
-        // Replace slashes to ensure paths are consistent on Windows & Linux
-        const video_path = results.video.split(path.sep).join("/")
-
-        if(this.redcap_api_url.includes('redcap.loc')){
+        if(process.env.REDCAP_API_URL.includes('redcap.loc')){
             // This is local environment.  Do not check the cert.
             process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
         }
+    }
 
-        //Get the Folder ID
-        this.promise = this.redcap_project_query(new URLSearchParams({
-            token: redcap_api_token, // Replace with actual token if not using environment variables
+    static doesRecordExist(redcapVersion, frsId) {
+        return (new this()).redcap_project_query({
+            content: 'record',
+            filterLogic: `
+                [redcap_version] = "${redcapVersion}"
+                and
+                [frs_id] = "${frsId}"
+            `,
+        }).then((response) => {
+            return Array.isArray(response) && response.length > 0
+        })
+    }
+
+    static getFRSId(spec){
+        return spec.name.split(' ')[0]
+    }
+
+    static uploadResults(redcapVersion, results){
+        return (new this()).uploadResults(redcapVersion, results)
+    }
+
+    async getVideoFolder(redcapVersion){
+        const automatedVideosFolderId = await this.getFolderId(null, 'Automated Videos')
+        const versionFolderId = await this.getFolderId(automatedVideosFolderId, 'v' + redcapVersion)
+
+        return versionFolderId
+    }
+
+    getFolderId(parentFolderId, name){
+        return this.redcap_project_query({
             content: 'fileRepository',
             action: 'list',
-            format: 'json',
-            returnFormat: 'json'
-        })).then((response) => {
-            return new Promise((resolve, reject) => {
-                const folder = response.find(r => r.name === "Automated Videos");
+            folder_id: parentFolderId,
+        }).then((response) => {
+            const folder = response.find(r => r.name === name);
 
-                if (folder) {
-                    resolve(folder.folder_id)
-                } else {
-                    reject('Automated Videos folder not found');
-                }
-            })
-        }).then(async (folder_id) => {
+            if (!folder) {
+                return this.redcap_project_query({
+                    content: 'fileRepository',
+                    action: 'createFolder',
+                    folder_id: parentFolderId,
+                    name: name,
+                }).then((response) => {
+                    return response[0].folder_id
+                })
+            }
+
+            return folder.folder_id
+        })
+    }
+
+    uploadResults(redcapVersion, results){
+        console.log('Uploading results to REDCap project...')
+       
+        // Replace slashes to ensure paths are consistent on Windows & Linux
+        const video_path = results.video.split(path.sep).join("/")
+
+        return this.getVideoFolder(redcapVersion).then(async (folder_id) => {
             let dataToSave = []
 
-            return this.redcap_project_query(new URLSearchParams({
-                token: redcap_api_token, // Replace with actual token if not using environment variables
+            return this.redcap_project_query({
                 content: 'fileRepository',
                 action: 'list',
                 folder_id: folder_id,
-                format: 'json',
-                returnFormat: 'json'
-            })).then((uploaded_feature_videos) =>{
+            }).then((uploaded_feature_videos) =>{
                 const filename = video_path.split('/').pop()
 
-                const frs_id = filename.split(' ')[0]
+                const frs_id = this.constructor.getFRSId(results.spec)
                 console.log(`Uploading ${frs_id}`)
                 
                 if(uploaded_feature_videos.find(r => r.name === filename)){
-                    console.log(`ALREADY UPLOADED: ${filename}`)
+                    throw new Error('Video already uploaded!  This should never happen since our doesRecordExist() should prevent this feature from running!')
                 } else {
                     console.log(`NEW UPLOAD: ${filename}`)
                     console.log(`FILE PATH: ${video_path}`)
@@ -83,7 +108,9 @@ export class UploadVideoToREDCapProject {
 
                     const recordData = {
                         record_id: -1, // We're required to specify something, but the value doesn't matter since forceAutoNumber is true
+                        redcap_version: redcapVersion,
                         frs_id: frs_id,
+                        redcap_release: 'lts',
                         feature_test_script: feature_content,
                         projects_feature: this.get_referenced_files(feature_content),
                         testing_method: 'automated',
@@ -105,19 +132,16 @@ export class UploadVideoToREDCapProject {
                         throw new Error(`Video file does not exist at path: ${video_path}`)
                     }
 
-                    return this.upload_video_file(redcap_api_token, folder_id, filename, video_path)
+                    return this.upload_video_file(folder_id, filename, video_path)
                 }
             }).then(() => {
-                return this.redcap_project_query(new URLSearchParams({
-                    token: redcap_api_token, // Replace with actual token if not using environment variables
+                return this.redcap_project_query({
                     content: 'record',
                     action: 'import',
-                    format: 'json',
-                    returnFormat: 'json',
                     overwriteBehavior: 'overwrite',
                     forceAutoNumber: 'true',
                     data: JSON.stringify(dataToSave, null, 2),
-                })) .then(json => {
+                }) .then(json => {
                     if(json.count !== dataToSave.length){
                         throw `Expected to save ${dataToSave.length} records but received a count of ${json.count} instead`
                     }
@@ -132,10 +156,15 @@ export class UploadVideoToREDCapProject {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Accept': 'application/json',
     }) {
-        return  fetch(this.redcap_api_url, {
+        payload.token = process.env.REDCAP_API_TOKEN
+        payload.format = 'json'
+        payload.returnFormat = 'json'
+
+        return fetch(process.env.REDCAP_API_URL, {
             method: 'POST',
             headers: headers,
-            body: payload
+            body: new URLSearchParams(payload),
+            signal: AbortSignal.timeout(1000*60*5),
         }).then(response => response.json())  // Parse the JSON response
         .then(json => {
             if(json.error){
@@ -227,18 +256,18 @@ export class UploadVideoToREDCapProject {
         }
     }
 
-    async upload_video_file(redcap_api_token, folder_id, filename, videoPath) {
+    async upload_video_file(folder_id, filename, videoPath) {
         const fileBuffer = fs.readFileSync(videoPath)
         const form = new FormData()
 
-        form.append('token', redcap_api_token)
+        form.append('token', process.env.REDCAP_API_TOKEN)
         form.append('content', 'fileRepository')
         form.append('action', 'import')
         form.append('folder_id', String(folder_id))
         form.append('filename', filename)
         form.append('file', new Blob([fileBuffer]), filename)
 
-        const response = await fetch(this.redcap_api_url, {
+        const response = await fetch(process.env.REDCAP_API_URL, {
             method: 'POST',
             headers: { Accept: 'application/json' },
             body: form

@@ -50,11 +50,16 @@ Cypress.Commands.add('assertWindowProperties', () => {
 })
 
 Cypress.Commands.add("top_layer", (label_selector, base_element = 'div[role=dialog]:visible,html') => {
-    cy.get_top_layer(base_element, ($el) => {
-        if(label_selector){
-            expect($el.find(label_selector)).length.to.be.above(0)}
-        }
-    ).then((el) => { return el })
+    cy.retryUntilTimeout(() => {
+        return cy.get_top_layer(base_element).then((topLayer) => {
+            if(!label_selector || topLayer.find(label_selector).length > 0){
+                cy.wrap(topLayer)
+            }
+            else{
+                cy.wrap(false)
+            }
+        })
+    }, 'Failed to find top layer containing selector: ' + label_selector)
 })
 
 Cypress.Commands.add("get_labeled_element", (element_selector, label, value = null, labeled_exactly = false) => {
@@ -150,7 +155,7 @@ Cypress.Commands.add('button_or_input', (text_label) => {
 })
 
 //yields the visible div with the highest z-index, or the <html> if none are found
-Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
+Cypress.Commands.add('get_top_layer', (element = null) => {
     cy.log('get_top_layer')
 
     if(element === null){
@@ -196,14 +201,32 @@ Cypress.Commands.add('get_top_layer', (element = null, retryUntil) => {
         }
         expect($els.length > 0).to.be.true
         top_layer = $els.last() // Get the last since they are sorted in order of appearance in the DOM
-        const detachedError = 'An unknown error occurred causing a detached element to be detected as the top layer: '
-            + top_layer[0].tagName.toLowerCase()
-            + '#' + top_layer[0].id
-            + '.' + top_layer[0].className.replaceAll(' ', '.')
-        expect(Cypress.dom.isDetached(top_layer), detachedError).to.be.false
-        if(retryUntil){
-            retryUntil(top_layer) //run assertions, so get can retry on failure
-        }
+        // change to an a plain old log instead of error, since its printed all the time
+        let detachedMessage = "Of the following top layer candidates, we are selecting the last one (often the only one): "
+           
+        $els.each((index, element) => {
+            if(index > 0){
+                detachedMessage += ","
+            }
+
+            detachedMessage += element.tagName.toLowerCase()
+
+            const id = element.id
+            if(id){
+                detachedMessage += '#' + id
+            }
+
+            const classNames = element.className.replaceAll(' ', '.')
+            if(classNames){
+                detachedMessage += '.' + classNames
+            }
+
+            if(element.tagName === 'HTML'){
+                detachedMessage += " with body classes '" + element.querySelector('body').className + "'"
+            }
+        })
+
+        expect(Cypress.dom.isDetached(top_layer), detachedMessage).to.be.false
     }).then(() => {
         let next = cy.wrap(top_layer, {log: false}) //yield top_layer to any further chained commands
 
@@ -599,9 +622,7 @@ Cypress.Commands.add('php_time_zone', () => {
     // Check if php path is set in Cypress.env.json
     if (Cypress.env('php') && Cypress.env('php')['path']) {
         cy.task("phpTimeZone", Cypress.env('php')['path']).then((timeZone) => {
-            cy.exec(timeZone, { timeout: 100000}).then((time) => {
-                window.php_time_zone = time['stdout']
-            })
+            window.php_time_zone = timeZone
         })
     //If we have no PHP path set, we'll look for timezone override
     } else if (Cypress.env('timezone_override')) {
@@ -611,7 +632,9 @@ Cypress.Commands.add('php_time_zone', () => {
         window.php_time_zone = Intl.DateTimeFormat().resolvedOptions().timeZone
     }
 
-    cy.wrap(`Configured Timezone: ${window.php_time_zone}`)
+    cy.then(() => {
+        cy.wrap(`Configured Timezone: ${window.php_time_zone}`)
+    })
 })
 
 Cypress.Commands.add("suppressWaitForPageLoad", function () {
