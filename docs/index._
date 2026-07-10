@@ -153,6 +153,10 @@
           <div id='commit-and-version' class='mb1'>
             This documentation was generated from <b><%- config['project-name'] %></b> commit <b><%- rctfCommit %></b>,<br>
             which was tested against REDCap <b>v<%- redcapVersion %></b>.
+            For a summary of the most commonly used step definitions, see the
+            <a target="_blank" href="https://github.com/vanderbilt-redcap/redcap_cypress_docker/blob/main/README.md#supported-step-syntax">
+                Supported Step Syntax section of the REDCap Cypress Developer Toolkit README
+            </a>.
           </div>
           <input
             placeholder='Filter'
