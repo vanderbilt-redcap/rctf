@@ -1139,6 +1139,7 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
 
         const rowContainsSelector = `${rowElement} :contains("${escapedRowLabel}")`
         cy.get(rowContainsSelector).filterMatches(rowLabel).then(results => {
+            cy.log("Row Results", results) // Added for troubleshooting intermittent cloud failures
             const rows = []
             let lastRow
             results.each((i, element) => {
