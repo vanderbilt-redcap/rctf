@@ -56,7 +56,9 @@ function check_feature_filename_format(){
 }
 
 function set_user_info(){
-    cy.set_user_info(Cypress.env('users'))
+    cy.env(['users']).then(limitedEnv => {
+        cy.set_user_info(limitedEnv.users)
+    })
 }
 
 function reset_database(){
