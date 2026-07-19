@@ -82,7 +82,7 @@ function load_support_files(){
 }
 
 
-function rctf_initialize() {
+function rctf_initialize(env) {
     preprocessor = require('@badeball/cypress-cucumber-preprocessor')
 
     const { BeforeStep } = preprocessor
@@ -95,6 +95,17 @@ function rctf_initialize() {
 
     //This is where we initialize the stuff we need in a basic install
     before(() => {
+        /**
+         * The cypress.env.json file is uncommitted in redcap_cypress.
+         * This adds complication for transitioning existing developers to Cypress's new cy.env() & Cypress.expose()
+         * features that replace Cypress.env().  We create our own expose method as a compromise
+         * that is a step closer to Cypress' new syntax, without requiring us to transition all existing developers
+         * and their configuration files.
+         */
+        Cypress.exposeRCTF = (key) => {
+            return env[key]
+        }
+
         check_feature_filename_format()
         load_support_files()
         set_user_info()

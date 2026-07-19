@@ -620,8 +620,8 @@ Cypress.Commands.overwrite('within', (...args) => {
 
 Cypress.Commands.add('php_time_zone', () => {
     // Check if php path is set in Cypress.env.json
-    if (Cypress.env('php') && Cypress.env('php')['path']) {
-        cy.task("phpTimeZone", Cypress.env('php')['path']).then((timeZone) => {
+    if (Cypress.exposeRCTF('php') && Cypress.exposeRCTF('php')['path']) {
+        cy.task("phpTimeZone", Cypress.exposeRCTF('php')['path']).then((timeZone) => {
             window.php_time_zone = timeZone
         })
     //If we have no PHP path set, we'll look for timezone override
