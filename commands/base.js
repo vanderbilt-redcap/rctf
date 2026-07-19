@@ -625,8 +625,8 @@ Cypress.Commands.add('php_time_zone', () => {
             window.php_time_zone = timeZone
         })
     //If we have no PHP path set, we'll look for timezone override
-    } else if (Cypress.env('timezone_override')) {
-        window.php_time_zone = Cypress.env('timezone_override')
+    } else if (Cypress.exposeRCTF('timezone_override')) {
+        window.php_time_zone = Cypress.exposeRCTF('timezone_override')
     //If we have no PHP path set and no timezone override, we'll default to JavaScript timezone
     } else {
         window.php_time_zone = Intl.DateTimeFormat().resolvedOptions().timeZone

@@ -6,7 +6,7 @@ Cypress.Commands.add('base_db_seed', () => {
     const getAdditionalDatabaseSeedQueries = () => {
         const moduleDirNames = []
 
-        for (const [moduleDirName, enabled] of Object.entries(Cypress.env('bootstrap_settings')['modules'] ?? {})) {
+        for (const [moduleDirName, enabled] of Object.entries(Cypress.exposeRCTF('bootstrap_settings')['modules'] ?? {})) {
             if(enabled){
                 moduleDirNames.push(moduleDirName)
             }
@@ -37,7 +37,7 @@ Cypress.Commands.add('base_db_seed', () => {
      * The `redcap_source_path` setting in cypress.env.json can be omitted in most cases.
      * This setting may only currently be used by Adam De Fouw at UW Madison.
      */
-    let redcap_source_path = Cypress.env('redcap_source_path') ?? '../redcap_source'
+    let redcap_source_path = Cypress.exposeRCTF('redcap_source_path') ?? '../redcap_source'
 
     //Get MySQL array from Environment Variables
     let mysql = Cypress.exposeRCTF('mysql')
@@ -100,8 +100,8 @@ Cypress.Commands.add('base_db_seed', () => {
                                 //Pull in the structure and data from REDCap Source
                                 cy.mysql_db('structure_and_data', window.base_url).then(() => {
 
-                                    if (Cypress.env('redcap_hooks_path') !== undefined) {
-                                        const redcap_hooks_path = "REDCAP_HOOKS_PATH/" + Cypress.env('redcap_hooks_path').replace(/\//g, "\\/");
+                                    if (Cypress.exposeRCTF('redcap_hooks_path') !== undefined) {
+                                        const redcap_hooks_path = "REDCAP_HOOKS_PATH/" + Cypress.exposeRCTF('redcap_hooks_path').replace(/\//g, "\\/");
                                         cy.mysql_db('hooks_config', redcap_hooks_path) //Fetch the hooks SQL seed data
                                     }
 
