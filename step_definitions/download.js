@@ -8,7 +8,7 @@ function downloadFile(text){
 
             cy.intercept({
                 method: 'GET',
-                url: '/redcap_v' + Cypress.env('redcap_version') + "/*FileRepositoryController:download*"
+                url: '/redcap_v' + Cypress.exposeRCTF('redcap_version') + "/*FileRepositoryController:download*"
             }, (req) => {
 
                 // Need to exclude requests not made by the application, such as background browser requests.
@@ -268,7 +268,7 @@ Given(/^if running via automation, (start|stop) external storage services/, (act
     const localScriptPath = '..' + remoteScriptPath
     cy
         .writeFile(localScriptPath, `
-            cd /var/www/html/redcap_v${Cypress.env('redcap_version')}
+            cd /var/www/html/redcap_v${Cypress.exposeRCTF('redcap_version')}
             sed -i "s/googleClient = new StorageClient(\\['keyFile'/googleClient = new StorageClient(\\['apiEndpoint' => 'http:\\/\\/redcap_docker-fake-gcs-server-1', 'keyFile'/g" Classes/Files.php
         `)
         .exec(`docker cp ${localScriptPath} redcap_docker-app-1:${remoteScriptPath}`)

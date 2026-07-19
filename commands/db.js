@@ -85,8 +85,8 @@ Cypress.Commands.add('base_db_seed', () => {
                 ) {
 
                     cy.task('populateStructureAndData', {
-                        redcap_version: Cypress.env('redcap_version'),
-                        advanced_user_info: window.compareVersions.compare(Cypress.env('redcap_version'), '10.1.0', '>='),
+                        redcap_version: Cypress.exposeRCTF('redcap_version'),
+                        advanced_user_info: window.compareVersions.compare(Cypress.exposeRCTF('redcap_version'), '10.1.0', '>='),
                         source_location: redcap_source_path,
                         additional_queries: getAdditionalDatabaseSeedQueries(),
                     }).then((structure_and_data_file_exists) => {
@@ -130,7 +130,7 @@ Cypress.Commands.add('mysql_db', (type, replace = '', include_db_name = true, fr
 
     const mysql = Cypress.exposeRCTF("mysql")
 
-    let version = Cypress.env('redcap_version')
+    let version = Cypress.exposeRCTF('redcap_version')
 
     if(version === undefined){
         alert('redcap_version, which defines what version of REDCap you use in the seed database, is missing from cypress.env.json.  Please configure it before proceeding.')

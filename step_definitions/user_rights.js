@@ -73,7 +73,7 @@ Given("I select the User Right named {string} and choose {string}", (text, optio
     cy.get('div[role=dialog]').should('be.visible')
 
     //For REDCap v12 + we have per instrument data exports, so let's handle that case here
-    if(text === "Data Exports" && window.compareVersions.compare(Cypress.env('redcap_version'), '12.0.0', '>=')){
+    if(text === "Data Exports" && window.compareVersions.compare(Cypress.exposeRCTF('redcap_version'), '12.0.0', '>=')){
 
         //TODO: Possibly generate a Step Definition that allows us to configure this on a per instrument basis
         //For now, we are going to select every form to have the same option

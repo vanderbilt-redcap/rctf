@@ -190,12 +190,12 @@ Given("I delete the field named {string}", (field_name) => {
 
     cy.intercept({
         method: 'GET',
-        url: '/redcap_v' + Cypress.env('redcap_version') + "/Design/delete_field.php?*"
+        url: '/redcap_v' + Cypress.exposeRCTF('redcap_version') + "/Design/delete_field.php?*"
     }).as('delete_field')
 
     cy.intercept({
         method: 'GET',
-        url: '/redcap_v' + Cypress.env('redcap_version') + "/Design/online_designer_render_fields.php?*"
+        url: '/redcap_v' + Cypress.exposeRCTF('redcap_version') + "/Design/online_designer_render_fields.php?*"
     }).as('render_fields')
 
     cy.get('button').contains('Delete').click()
@@ -222,7 +222,7 @@ Given("I move the field named {string} after the field named {string}", (field_n
 
     cy.intercept({
         method: 'POST',
-        url: '/redcap_v' + Cypress.env('redcap_version') + "/Design/move_field.php?*"
+        url: '/redcap_v' + Cypress.exposeRCTF('redcap_version') + "/Design/move_field.php?*"
     }).as('move_field')
 
     cy.get('button').contains('Move field').click()

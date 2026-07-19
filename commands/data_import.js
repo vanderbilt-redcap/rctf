@@ -72,7 +72,7 @@ Cypress.Commands.add('import_data_file', (fixture_file,pid) => {
         } else {
 
             cy.request({ url: '/redcap_v' +
-                    Cypress.env('redcap_version') +
+                    Cypress.exposeRCTF('redcap_version') +
                     '/ControlCenter/user_api_ajax.php?action=createToken&api_username=' +
                     admin_user +
                     '&api_pid=' +
@@ -83,7 +83,7 @@ Cypress.Commands.add('import_data_file', (fixture_file,pid) => {
                 expect($token.body).to.contain(admin_user)
 
                 cy.request({ url: '/redcap_v' +
-                        Cypress.env('redcap_version') +
+                        Cypress.exposeRCTF('redcap_version') +
                         '/ControlCenter/user_api_ajax.php?action=viewToken&api_username=' + admin_user + '&api_pid=' + pid}).then(($super_token) => {
 
                     current_token = Cypress.$($super_token.body).children('div')[0].innerText
@@ -214,7 +214,7 @@ Cypress.Commands.add('file_repo_upload', (fileNames, expectSuccess = true) => {
     for(let i = 0; i < count_of_files; i++){
         cy.intercept({
             method: 'POST',
-            url: '/redcap_v' + Cypress.env('redcap_version') + "/*FileRepositoryController:upload*"
+            url: '/redcap_v' + Cypress.exposeRCTF('redcap_version') + "/*FileRepositoryController:upload*"
         }).as(`file_repo_upload_${i}`)
     }
 

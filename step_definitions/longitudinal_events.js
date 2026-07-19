@@ -29,7 +29,7 @@ Given("I verify I cannot change the Event Name of {string} while in production",
 Given("I add an event named {string} with offset of {int} day(s) into the currently selected arm", (event_name, days) => {
    cy.intercept({
       method: 'GET',
-      url: '/redcap_v' + Cypress.env('redcap_version') + "/Design/define_events_ajax.php?*"
+      url: '/redcap_v' + Cypress.exposeRCTF('redcap_version') + "/Design/define_events_ajax.php?*"
    }).as("add_event")
 
    // IMPORTANT NOTE: We are intentionally selecting one column to the left of what we want

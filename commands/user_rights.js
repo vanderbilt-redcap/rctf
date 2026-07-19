@@ -324,7 +324,7 @@ Cypress.Commands.add('verify_user_rights_available', (user_type, path, pid) => {
     cy.visit_version({page: path + '/index.php', params: 'pid=' + pid})
 
     //We should be able to visit it
-    cy.url().should('include', `/redcap_v${Cypress.env('redcap_version')}/${path}/index.php?pid=${pid}`)
+    cy.url().should('include', `/redcap_v${Cypress.exposeRCTF('redcap_version')}/${path}/index.php?pid=${pid}`)
 })
 
 Cypress.Commands.add('verify_user_rights_unavailable', (user_type, path, pid, redirect = true) => {
@@ -336,7 +336,7 @@ Cypress.Commands.add('verify_user_rights_unavailable', (user_type, path, pid, re
 
     //But ensure that we're actually redirect to index.php
     if(redirect){
-        cy.url().should('include', `/redcap_v${Cypress.env('redcap_version')}/index.php?pid=`+ pid)
+        cy.url().should('include', `/redcap_v${Cypress.exposeRCTF('redcap_version')}/index.php?pid=`+ pid)
 
         //Otherwise do we get access denied?
     } else {

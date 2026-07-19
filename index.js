@@ -16,7 +16,7 @@ function intercept_vanderbilt_requests(){
     cy.intercept({ method: 'GET', url: '*/consortium/collect_stats.php?*'}, []).as('Stats')
     cy.intercept({ method: 'GET', url: '*/ControlCenter/check_server_ping.php'}, []).as('Ping')
     cy.intercept({ method: 'GET', url: '*/ControlCenter/report_site_stats.php'}, []).as('Control Center Stats')
-    cy.intercept({ method: 'GET', url: '*/redcap_v' + Cypress.env('redcap_version') + '/**'}).as('interceptedRequest').then(() => {
+    cy.intercept({ method: 'GET', url: '*/redcap_v' + Cypress.exposeRCTF('redcap_version') + '/**'}).as('interceptedRequest').then(() => {
         window.registeredAlias = true // this is useful to know whether we can actually call a cy.wait
     })
 }
