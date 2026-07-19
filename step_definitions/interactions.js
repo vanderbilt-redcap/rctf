@@ -39,6 +39,7 @@ function performAction(action, element, elementStatus){
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} instrumentSaveOptions
  * @description Clicks a specific submit option to save a record on a Data Collection Instrument
+ * @deprecated Deprecated in favor the generic step definition 'I click on the button labeled "Whatever"'  
  */
  Given("I select the submit option labeled \"{instrumentSaveOptions}\" on the Data Collection Instrument", (text) => {
 
