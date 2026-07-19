@@ -26,16 +26,19 @@ Cypress.Commands.add('create_cdisc_project', (project_name, project_type, cdisc_
 })
 
 Cypress.Commands.add('import_data_file', (fixture_file,pid) => {
-    let admin_user = Cypress.env('users')['admin']['user']
+    let admin_user
     let current_token = null;
+    cy.env(['users']).then(limitedEnv => {
+        admin_user = limitedEnv['users']['admin']['user']
 
-    let current_user_type = window.user_info.get_previous_user_type()
-    if(current_user_type !== 'admin'){
-        cy.set_user_type('admin')
-        cy.fetch_login()
-    }
+        let current_user_type = window.user_info.get_previous_user_type()
+        if(current_user_type !== 'admin'){
+            cy.set_user_type('admin')
+            cy.fetch_login()
+        }
 
-    cy.add_api_user_to_project(admin_user, pid).then(($response) => {
+        return cy.add_api_user_to_project(admin_user, pid)
+    }).then(($response) => {
 
         if($response.hasOwnProperty('token')){
 
