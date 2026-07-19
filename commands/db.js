@@ -40,7 +40,7 @@ Cypress.Commands.add('base_db_seed', () => {
     let redcap_source_path = Cypress.env('redcap_source_path') ?? '../redcap_source'
 
     //Get MySQL array from Environment Variables
-    let mysql = Cypress.env('mysql')
+    let mysql = Cypress.exposeRCTF('mysql')
 
     cy.task('snapshotExists').then((snapshot_exists) => {
         window.original_spec_path = Cypress.spec.absolute
@@ -128,7 +128,7 @@ Cypress.Commands.add('base_db_seed', () => {
 
 Cypress.Commands.add('mysql_db', (type, replace = '', include_db_name = true, framework = true) => {
 
-    const mysql = Cypress.env("mysql")
+    const mysql = Cypress.exposeRCTF("mysql")
 
     let version = Cypress.env('redcap_version')
 
@@ -165,7 +165,7 @@ Cypress.Commands.add('mysql_db', (type, replace = '', include_db_name = true, fr
 Cypress.Commands.add('mysql_query', (query) => {
     query = query.replaceAll('\n', ' ')
 
-    const mysql = Cypress.env("mysql")
+    const mysql = Cypress.exposeRCTF("mysql")
 
     const cmd = `${mysql['path']} -h${mysql['host']} --port=${mysql['port']} ${mysql['db_name']} -u${mysql['db_user']} -p${mysql['db_pass']} -e "${query}" -N -s`
 
@@ -176,7 +176,7 @@ Cypress.Commands.add('mysql_query', (query) => {
 })
 
 Cypress.Commands.add('mysql_snapshot_export', () => {
-    const mysql = Cypress.env("mysql")
+    const mysql = Cypress.exposeRCTF("mysql")
 
     const cmd = `${mysql['path']}dump -h${mysql['host']} --port=${mysql['port']} ${mysql['db_name']} -u${mysql['db_user']} -p${mysql['db_pass']} > test_db/latest_snapshot.sql`
 
@@ -187,7 +187,7 @@ Cypress.Commands.add('mysql_snapshot_export', () => {
 })
 
 Cypress.Commands.add('mysql_snapshot_import', () => {
-    const mysql = Cypress.env("mysql")
+    const mysql = Cypress.exposeRCTF("mysql")
 
     const cmd = `${mysql['path']} -h${mysql['host']} --port=${mysql['port']} ${mysql['db_name']} -u${mysql['db_user']} -p${mysql['db_pass']} < test_db/latest_snapshot.sql`
 
