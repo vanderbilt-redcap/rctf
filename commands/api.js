@@ -39,7 +39,7 @@ Cypress.Commands.add('add_api_user_to_project', (username, pid) => {
 Cypress.Commands.add('access_api_token', (pid, user) => {
     // This assumes user already has API token created
     cy.fetch_login().then(($r) => {
-        cy.request({ url: `/redcap_v${Cypress.env('redcap_version')}/ControlCenter/user_api_ajax.php?action=viewToken&api_pid=${pid}&api_username=${user}`})
+        cy.request({ url: `/redcap_v${Cypress.exposeRCTF('redcap_version')}/ControlCenter/user_api_ajax.php?action=viewToken&api_pid=${pid}&api_username=${user}`})
             .then(($token) => {
                 return cy.wrap(Cypress.$($token.body).children('div')[0].innerText);
             })

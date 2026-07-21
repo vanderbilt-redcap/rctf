@@ -6,7 +6,7 @@ Cypress.Commands.add('base_db_seed', () => {
     const getAdditionalDatabaseSeedQueries = () => {
         const moduleDirNames = []
 
-        for (const [moduleDirName, enabled] of Object.entries(Cypress.env('bootstrap_settings')['modules'] ?? {})) {
+        for (const [moduleDirName, enabled] of Object.entries(Cypress.exposeRCTF('bootstrap_settings')['modules'] ?? {})) {
             if(enabled){
                 moduleDirNames.push(moduleDirName)
             }
@@ -37,10 +37,10 @@ Cypress.Commands.add('base_db_seed', () => {
      * The `redcap_source_path` setting in cypress.env.json can be omitted in most cases.
      * This setting may only currently be used by Adam De Fouw at UW Madison.
      */
-    let redcap_source_path = Cypress.env('redcap_source_path') ?? '../redcap_source'
+    let redcap_source_path = Cypress.exposeRCTF('redcap_source_path') ?? '../redcap_source'
 
     //Get MySQL array from Environment Variables
-    let mysql = Cypress.env('mysql')
+    let mysql = Cypress.exposeRCTF('mysql')
 
     cy.task('snapshotExists').then((snapshot_exists) => {
         window.original_spec_path = Cypress.spec.absolute
@@ -85,8 +85,8 @@ Cypress.Commands.add('base_db_seed', () => {
                 ) {
 
                     cy.task('populateStructureAndData', {
-                        redcap_version: Cypress.env('redcap_version'),
-                        advanced_user_info: window.compareVersions.compare(Cypress.env('redcap_version'), '10.1.0', '>='),
+                        redcap_version: Cypress.exposeRCTF('redcap_version'),
+                        advanced_user_info: window.compareVersions.compare(Cypress.exposeRCTF('redcap_version'), '10.1.0', '>='),
                         source_location: redcap_source_path,
                         additional_queries: getAdditionalDatabaseSeedQueries(),
                     }).then((structure_and_data_file_exists) => {
@@ -100,8 +100,8 @@ Cypress.Commands.add('base_db_seed', () => {
                                 //Pull in the structure and data from REDCap Source
                                 cy.mysql_db('structure_and_data', window.base_url).then(() => {
 
-                                    if (Cypress.env('redcap_hooks_path') !== undefined) {
-                                        const redcap_hooks_path = "REDCAP_HOOKS_PATH/" + Cypress.env('redcap_hooks_path').replace(/\//g, "\\/");
+                                    if (Cypress.exposeRCTF('redcap_hooks_path') !== undefined) {
+                                        const redcap_hooks_path = "REDCAP_HOOKS_PATH/" + Cypress.exposeRCTF('redcap_hooks_path').replace(/\//g, "\\/");
                                         cy.mysql_db('hooks_config', redcap_hooks_path) //Fetch the hooks SQL seed data
                                     }
 
@@ -128,9 +128,9 @@ Cypress.Commands.add('base_db_seed', () => {
 
 Cypress.Commands.add('mysql_db', (type, replace = '', include_db_name = true, framework = true) => {
 
-    const mysql = Cypress.env("mysql")
+    const mysql = Cypress.exposeRCTF("mysql")
 
-    let version = Cypress.env('redcap_version')
+    let version = Cypress.exposeRCTF('redcap_version')
 
     if(version === undefined){
         alert('redcap_version, which defines what version of REDCap you use in the seed database, is missing from cypress.env.json.  Please configure it before proceeding.')
@@ -165,7 +165,7 @@ Cypress.Commands.add('mysql_db', (type, replace = '', include_db_name = true, fr
 Cypress.Commands.add('mysql_query', (query) => {
     query = query.replaceAll('\n', ' ')
 
-    const mysql = Cypress.env("mysql")
+    const mysql = Cypress.exposeRCTF("mysql")
 
     const cmd = `${mysql['path']} -h${mysql['host']} --port=${mysql['port']} ${mysql['db_name']} -u${mysql['db_user']} -p${mysql['db_pass']} -e "${query}" -N -s`
 
@@ -176,7 +176,7 @@ Cypress.Commands.add('mysql_query', (query) => {
 })
 
 Cypress.Commands.add('mysql_snapshot_export', () => {
-    const mysql = Cypress.env("mysql")
+    const mysql = Cypress.exposeRCTF("mysql")
 
     const cmd = `${mysql['path']}dump -h${mysql['host']} --port=${mysql['port']} ${mysql['db_name']} -u${mysql['db_user']} -p${mysql['db_pass']} > test_db/latest_snapshot.sql`
 
@@ -187,7 +187,7 @@ Cypress.Commands.add('mysql_snapshot_export', () => {
 })
 
 Cypress.Commands.add('mysql_snapshot_import', () => {
-    const mysql = Cypress.env("mysql")
+    const mysql = Cypress.exposeRCTF("mysql")
 
     const cmd = `${mysql['path']} -h${mysql['host']} --port=${mysql['port']} ${mysql['db_name']} -u${mysql['db_user']} -p${mysql['db_pass']} < test_db/latest_snapshot.sql`
 

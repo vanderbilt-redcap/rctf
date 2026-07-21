@@ -39,6 +39,7 @@ function performAction(action, element, elementStatus){
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} instrumentSaveOptions
  * @description Clicks a specific submit option to save a record on a Data Collection Instrument
+ * @deprecated Deprecated in favor the generic step definition 'I click on the button labeled "Whatever"'  
  */
  Given("I select the submit option labeled \"{instrumentSaveOptions}\" on the Data Collection Instrument", (text) => {
 
@@ -732,7 +733,7 @@ Given("I wait for (another ){int} {timeType}", (time, unit) => {
  * @description Does not actually wait for hours, but instead simulates the specified number of hours passing by modifying the database as if all past events has occurred the specified number of hours ago.
  */
 Given("I wait for {int} hour(s)", (hours) => {
-    const mysql = Cypress.env("mysql")
+    const mysql = Cypress.exposeRCTF("mysql")
     
     // Update all tables with datetime/timestamp columns
     cy.mysql_query(`
@@ -1139,6 +1140,7 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
 
         const rowContainsSelector = `${rowElement} :contains("${escapedRowLabel}")`
         cy.get(rowContainsSelector).filterMatches(rowLabel).then(results => {
+            cy.log("Row Results", results) // Added for troubleshooting intermittent cloud failures
             const rows = []
             let lastRow
             results.each((i, element) => {

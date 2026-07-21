@@ -26,16 +26,19 @@ Cypress.Commands.add('create_cdisc_project', (project_name, project_type, cdisc_
 })
 
 Cypress.Commands.add('import_data_file', (fixture_file,pid) => {
-    let admin_user = Cypress.env('users')['admin']['user']
+    let admin_user
     let current_token = null;
+    cy.env(['users']).then(limitedEnv => {
+        admin_user = limitedEnv['users']['admin']['user']
 
-    let current_user_type = window.user_info.get_previous_user_type()
-    if(current_user_type !== 'admin'){
-        cy.set_user_type('admin')
-        cy.fetch_login()
-    }
+        let current_user_type = window.user_info.get_previous_user_type()
+        if(current_user_type !== 'admin'){
+            cy.set_user_type('admin')
+            cy.fetch_login()
+        }
 
-    cy.add_api_user_to_project(admin_user, pid).then(($response) => {
+        return cy.add_api_user_to_project(admin_user, pid)
+    }).then(($response) => {
 
         if($response.hasOwnProperty('token')){
 
@@ -69,7 +72,7 @@ Cypress.Commands.add('import_data_file', (fixture_file,pid) => {
         } else {
 
             cy.request({ url: '/redcap_v' +
-                    Cypress.env('redcap_version') +
+                    Cypress.exposeRCTF('redcap_version') +
                     '/ControlCenter/user_api_ajax.php?action=createToken&api_username=' +
                     admin_user +
                     '&api_pid=' +
@@ -80,7 +83,7 @@ Cypress.Commands.add('import_data_file', (fixture_file,pid) => {
                 expect($token.body).to.contain(admin_user)
 
                 cy.request({ url: '/redcap_v' +
-                        Cypress.env('redcap_version') +
+                        Cypress.exposeRCTF('redcap_version') +
                         '/ControlCenter/user_api_ajax.php?action=viewToken&api_username=' + admin_user + '&api_pid=' + pid}).then(($super_token) => {
 
                     current_token = Cypress.$($super_token.body).children('div')[0].innerText
@@ -211,7 +214,7 @@ Cypress.Commands.add('file_repo_upload', (fileNames, expectSuccess = true) => {
     for(let i = 0; i < count_of_files; i++){
         cy.intercept({
             method: 'POST',
-            url: '/redcap_v' + Cypress.env('redcap_version') + "/*FileRepositoryController:upload*"
+            url: '/redcap_v' + Cypress.exposeRCTF('redcap_version') + "/*FileRepositoryController:upload*"
         }).as(`file_repo_upload_${i}`)
     }
 

@@ -16,7 +16,7 @@ function intercept_vanderbilt_requests(){
     cy.intercept({ method: 'GET', url: '*/consortium/collect_stats.php?*'}, []).as('Stats')
     cy.intercept({ method: 'GET', url: '*/ControlCenter/check_server_ping.php'}, []).as('Ping')
     cy.intercept({ method: 'GET', url: '*/ControlCenter/report_site_stats.php'}, []).as('Control Center Stats')
-    cy.intercept({ method: 'GET', url: '*/redcap_v' + Cypress.env('redcap_version') + '/**'}).as('interceptedRequest').then(() => {
+    cy.intercept({ method: 'GET', url: '*/redcap_v' + Cypress.exposeRCTF('redcap_version') + '/**'}).as('interceptedRequest').then(() => {
         window.registeredAlias = true // this is useful to know whether we can actually call a cy.wait
     })
 }
@@ -56,7 +56,9 @@ function check_feature_filename_format(){
 }
 
 function set_user_info(){
-    cy.set_user_info(Cypress.env('users'))
+    cy.env(['users']).then(limitedEnv => {
+        cy.set_user_info(limitedEnv.users)
+    })
 }
 
 function reset_database(){
@@ -80,7 +82,7 @@ function load_support_files(){
 }
 
 
-function rctf_initialize() {
+function rctf_initialize(env) {
     preprocessor = require('@badeball/cypress-cucumber-preprocessor')
 
     const { BeforeStep } = preprocessor
@@ -93,6 +95,17 @@ function rctf_initialize() {
 
     //This is where we initialize the stuff we need in a basic install
     before(() => {
+        /**
+         * The cypress.env.json file is uncommitted in redcap_cypress.
+         * This adds complication for transitioning existing developers to Cypress's new cy.env() & Cypress.expose()
+         * features that replace Cypress.env().  We create our own expose method as a compromise
+         * that is a step closer to Cypress' new syntax, without requiring us to transition all existing developers
+         * and their configuration files.
+         */
+        Cypress.exposeRCTF = (key) => {
+            return env[key]
+        }
+
         check_feature_filename_format()
         load_support_files()
         set_user_info()

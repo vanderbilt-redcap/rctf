@@ -211,7 +211,7 @@ module.exports = (cypressOn, config) => {
             var structure_and_data_file = test_seeds_location + '/structure_and_data.sql';
 
             //REMOVE EXISTING STRUCTURE AND DATA FILE
-            shell.rm(structure_and_data_file);
+            shell.rm('-f', structure_and_data_file);
 
             //CREATE NEW STRUCTURE AND DATA FILE FROM REDCAP SOURCE
             shell.cat(db_prefix_sql).to(structure_and_data_file);

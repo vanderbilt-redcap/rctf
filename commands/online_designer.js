@@ -154,7 +154,7 @@ Cypress.Commands.add('select_value_by_label', ($name, $value) => {
 Cypress.Commands.add('save_field', () => {
     cy.intercept({
         method: 'GET',
-        url: '/redcap_v' + Cypress.env('redcap_version') + "/Design/online_designer_render_fields.php?*"
+        url: '/redcap_v' + Cypress.exposeRCTF('redcap_version') + "/Design/online_designer_render_fields.php?*"
     }).as('save_field')
 
     cy.get('input#field_name').then(($f) => {

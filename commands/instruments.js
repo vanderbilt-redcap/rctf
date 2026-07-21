@@ -4,7 +4,7 @@
 
 Cypress.Commands.add('delete_instrument', (instrument_name) => {
     cy.intercept({  method: 'GET',
-        url: '/redcap_v' + Cypress.env('redcap_version') + '/Design/delete_form.php?*'
+        url: '/redcap_v' + Cypress.exposeRCTF('redcap_version') + '/Design/delete_form.php?*'
     }).as('delete_instrument')
 
     cy.get('table[id=table-forms_surveys]')

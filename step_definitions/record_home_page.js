@@ -21,7 +21,7 @@ Given('I click the (bubble)("X" icon)( to ){addOrSelect}( )(a record for the)(fo
     }).then(() => {
         cy.intercept({
             method: 'POST',
-            url: '/redcap_v' + Cypress.env('redcap_version') + '/index.php?*'
+            url: '/redcap_v' + Cypress.exposeRCTF('redcap_version') + '/index.php?*'
         }).as('instance_table')
 
         if(repeating){

@@ -20,7 +20,7 @@
     var month = ("0"+(today.getMonth() + 1)).slice(-2); //Make sure we zero pad
     var year = today.getFullYear();
 
-    let version = Cypress.env('redcap_version').split('.')[0]
+    let version = Cypress.exposeRCTF('redcap_version').split('.')[0]
 
      cy.fixture(`logs/v${version}.csv`).then(fixture_data => {
          cy.task('parseCsv', {csv_string: fixture_data}).then((expected_csv) => {

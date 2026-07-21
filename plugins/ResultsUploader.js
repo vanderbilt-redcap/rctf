@@ -101,6 +101,11 @@ export class ResultsUploader {
                     console.log(`NEW UPLOAD: ${filename}`)
                     console.log(`FILE PATH: ${video_path}`)
 
+                    const pathsBeforeAndAfterRSVC = results.spec.absolute.split('redcap_rsvc')
+                    const redcapCypressPackage = pathsBeforeAndAfterRSVC[0] + 'package.json'
+                    const rsvcCommit = require(redcapCypressPackage).dependencies.redcap_rsvc.split('#')[1]
+                    const rsvcCommitUrl = 'https://github.com/vanderbilt-redcap/redcap_rsvc/commit/' + rsvcCommit
+
                     const feature_content = fs.readFileSync(results.spec.absolute, 'utf8')
                     const passingDuration = results.stats.duration/1000
                     const linuxVersion = this.get_linux_version()
@@ -111,6 +116,8 @@ export class ResultsUploader {
                         redcap_version: redcapVersion,
                         frs_id: frs_id,
                         redcap_release: 'lts',
+                        github_url: rsvcCommitUrl,
+                        github_path_name: pathsBeforeAndAfterRSVC[1].substring(1),
                         feature_test_script: feature_content,
                         projects_feature: this.get_referenced_files(feature_content),
                         testing_method: 'automated',
