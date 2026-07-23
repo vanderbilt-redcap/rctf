@@ -506,7 +506,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
 
                 row_selector.forEach((row, row_number) => {
                     cy.get(row).should('have.length.greaterThan', 0).then(($row) => {
-                     filter_selector.forEach((item) => {
+                        filter_selector.forEach((item) => {
                             if(item.row === row_number){
                                 //Big sad .. cannot combine nth-child and contains in a pseudo-selector :(
                                 //We can get around this by finding column index and looking for specific column value within a row
