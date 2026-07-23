@@ -518,6 +518,8 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                                         expect($cell[0].innerText.trim()).to.match(window.dateFormats[item.value])
                                     } else if ($cell[0].innerText.includes(item.value)) {
                                         expect($cell[0].innerText.trim()).to.contain(item.value)
+                                    } else {
+                                        throw `Did not find expected table cell value "${item.value}" in row ${row_number+1} column ${item.column}.`
                                     }
                                 })
                             }
