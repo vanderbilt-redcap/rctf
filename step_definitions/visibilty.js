@@ -454,8 +454,32 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
         })
 
         outer_element.within(() => {
-            cy.get(header_selector, {timeout: 20000}).then(($cells) => {
-                findColumnHeaders(header_selector, $cells, header, columns)
+            let bestMatchingTable
+            cy.get(header_selector, {timeout: 20000}).then((rows) => {
+                const tables = new Map
+                let bestMatchingTableInfo = null
+                rows.each((i, cell) => {
+                    let tableInfo = tables.get(cell)
+                    if(tableInfo){
+                        tableInfo.cellCount++
+                    }
+                    else{
+                        tableInfo = {
+                            table: cell.closest('table'),
+                            cellCount: 1,
+                        }
+                        
+                        tables.set(cell, tableInfo)
+                    }
+
+                    if(bestMatchingTableInfo === null || bestMatchingTableInfo.cellCount < tableInfo.cellCount){
+                        bestMatchingTableInfo = tableInfo
+                    }
+                })
+
+                bestMatchingTable = bestMatchingTableInfo.table
+
+                findColumnHeaders(header_selector, rows, header, columns)
             }).then(() => {
                 //console.log(columns)
                 let filter_selector = []
@@ -515,15 +539,17 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
 
                 //See if at least one row matches the criteria we are suggesting
                 //console.log(filter_selector)
-                let row_selector = []
+                let row_selectors = []
                 filter_selector.forEach((item) => {
-                    row_selector[item.row] = (row_selector.hasOwnProperty(item.row)) ?
-                        `${row_selector[item.row]}${item.selector}` :
+                    row_selectors[item.row] = (row_selectors.hasOwnProperty(item.row)) ?
+                        `${row_selectors[item.row]}${item.selector}` :
                         `${main_table}:visible tbody tr${item.selector}`
                 })
 
-                row_selector.forEach((row, row_number) => {
-                    cy.get(row).should('have.length.greaterThan', 0).then(($row) => {
+                row_selectors.forEach((row_selectors, row_number) => {
+                    cy.get(row_selectors).filter((i, row) => {
+                        return row.closest('table') === bestMatchingTable
+                    }).should('have.length.greaterThan', 0).then(($row) => {
                         filter_selector.forEach((item) => {
                             if(item.row === row_number){
                                 //Big sad .. cannot combine nth-child and contains in a pseudo-selector :(
