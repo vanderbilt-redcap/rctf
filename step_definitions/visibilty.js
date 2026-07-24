@@ -511,13 +511,20 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                                 //Big sad .. cannot combine nth-child and contains in a pseudo-selector :(
                                 //We can get around this by finding column index and looking for specific column value within a row
                                 cy.wrap($row).find(`td:nth-child(${item.column}),th:nth-child(${item.column})`).each(($cell) => {
-                                    //console.log(item)
+                                    /**
+                                     * jQuery normalizes newlines to spaces when :contains() is used.
+                                     * We follow similar logic here so that behavior is consistent and matching works as expected.
+                                     * Yes, this means we can't distinguish a space from new line when matching,
+                                     * but that is an acceptable compromise. We mainly want to verify that the data is present,
+                                     * not that is is formatted perfectly.
+                                     */
+                                    const normalizedCellText = $cell[0].innerText.trim().replaceAll('\n', ' ')
                                     if (item.html_elm) {
                                         cy.wrap($cell).find(html_elements[item.value].selector).should(html_elements[item.value].condition)
                                     } else if (item.regex) {
-                                        expect($cell[0].innerText.trim()).to.match(window.dateFormats[item.value])
-                                    } else if ($cell[0].innerText.includes(item.value)) {
-                                        expect($cell[0].innerText.trim()).to.contain(item.value)
+                                        expect(normalizedCellText).to.match(window.dateFormats[item.value])
+                                    } else if (normalizedCellText.includes(item.value)) {
+                                        expect(normalizedCellText).to.contain(item.value)
                                     } else {
                                         throw `Did not find expected table cell value "${item.value}" in row ${row_number+1} column ${item.column}.`
                                     }
