@@ -546,8 +546,8 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                         `${main_table}:visible tbody tr${item.selector}`
                 })
 
-                row_selectors.forEach((row_selectors, row_number) => {
-                    cy.get(row_selectors).filter((i, row) => {
+                row_selectors.forEach((row_selector, row_number) => {
+                    cy.get(row_selector).filter((i, row) => {
                         return row.closest('table') === bestMatchingTable
                     }).should('have.length.greaterThan', 0).then(($row) => {
                         filter_selector.forEach((item) => {
