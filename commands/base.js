@@ -172,6 +172,8 @@ Cypress.Commands.add('get_top_layer', (element = null) => {
 
     let top_layer
     cy.get(element, {log: false}).should($els => {
+        const matchHistory = []
+        matchHistory.push($els)
         /**
          * There seems to be a bug where Cypress returns elements that are no longer
          * actually present in the dom if the cy.get() call occurs around the time of a page load
@@ -184,8 +186,10 @@ Cypress.Commands.add('get_top_layer', (element = null) => {
          * to manually get our own element reference in each iteration of the retry action.
          */
         $els = Cypress.$(element)
+        matchHistory.push($els)
 
         $els = $els.filter(':visible')
+        matchHistory.push($els)
 
         //if more than body found, find element with highest z-index
         if ($els.length > 1) {
@@ -199,34 +203,38 @@ Cypress.Commands.add('get_top_layer', (element = null) => {
                 //return zp - zc
             })
         }
+        matchHistory.push($els)
         expect($els.length > 0).to.be.true
         top_layer = $els.last() // Get the last since they are sorted in order of appearance in the DOM
-        // change to an a plain old log instead of error, since its printed all the time
-        let detachedMessage = "Of the following top layer candidates, we are selecting the last one (often the only one): "
-           
-        $els.each((index, element) => {
-            if(index > 0){
-                detachedMessage += ","
-            }
+        let compoundMessage = 'Top layer debugging details for intermittent cloud error: '
+        for(const historyIndex in matchHistory){
+            let detachedMessage = '$els' + historyIndex + ': '
+            matchHistory[historyIndex].each((index, element) => {
+               if(index > 0){
+                   detachedMessage += ","
+               }
+   
+               detachedMessage += element.tagName.toLowerCase()
+   
+               const id = element.id
+               if(id){
+                   detachedMessage += '#' + id
+               }
+   
+               const classNames = element.className.replaceAll(' ', '.')
+               if(classNames){
+                   detachedMessage += '.' + classNames
+               }
+   
+               if(element.tagName === 'HTML'){
+                   detachedMessage += " with body classes '" + element.querySelector('body').className + "'"
+               }
+           })
 
-            detachedMessage += element.tagName.toLowerCase()
+           compoundMessage += ' ------------- ' + detachedMessage
+        }
 
-            const id = element.id
-            if(id){
-                detachedMessage += '#' + id
-            }
-
-            const classNames = element.className.replaceAll(' ', '.')
-            if(classNames){
-                detachedMessage += '.' + classNames
-            }
-
-            if(element.tagName === 'HTML'){
-                detachedMessage += " with body classes '" + element.querySelector('body').className + "'"
-            }
-        })
-
-        expect(Cypress.dom.isDetached(top_layer), detachedMessage).to.be.false
+        expect(Cypress.dom.isDetached(top_layer), compoundMessage).to.be.false
     }).then(() => {
         let next = cy.wrap(top_layer, {log: false}) //yield top_layer to any further chained commands
 
