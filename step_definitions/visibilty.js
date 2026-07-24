@@ -285,6 +285,24 @@ Given('I should see {string} in (the ){tableTypes} table', (text, table_type = '
  * @description Allows us to check tabular data rows within REDCap
  */
 Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the following values in (the ){tableTypes} table{baseElement}:', (header, table_type = 'a', base_element, dataTable) => {
+    // Merge continuation rows (empty first column) into the previous row.
+    const newTable = []
+    for (const row of dataTable.rawTable) {
+        if (row[0] !== ''){
+            // This is a new row, not a continuation of the last one.
+            newTable.push(row)
+        }
+        else{
+            const previousRow = newTable.at(-1)
+            row.forEach((val, i) => {
+                if (val !== '') {
+                    previousRow[i] += ' ' + val
+                }
+            })
+        }
+    }
+    dataTable.rawTable = newTable
+
     cy.url().then((currentUrl) => {
         cy.get('body').then(($body) => {
             if ($body.find('.dataTables_processing').length > 0) {
