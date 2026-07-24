@@ -519,7 +519,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                 filter_selector.forEach((item) => {
                     row_selector[item.row] = (row_selector.hasOwnProperty(item.row)) ?
                         `${row_selector[item.row]}${item.selector}` :
-                        `${main_table}:visible tr${item.selector}`
+                        `${main_table}:visible tbody tr${item.selector}`
                 })
 
                 row_selector.forEach((row, row_number) => {
