@@ -587,10 +587,10 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                 /**
                  * The above logic is great at matching many variations of table configurations,
                  * but it does not guarantee that all values are found in the expected columns.
-                 * It alone produces false negatives, especially with short strings like "1" or "2" that might appear elsewhere in each row.
+                 * It alone matches some values when it should not, especially with short strings like "1" or "2" that might appear elsewhere in each row.
                  * To demonstrate this, change the first "Number of records consented" column value specified in C.3.24.2000
                  * from "0" to "1".  The above logic will complete without issue because "1" exists elsewhere in the row outside that column.
-                 * This means the following logic required to ensure table matching is fully working as expected.
+                 * We added the following logic to ensure table matching is fully working as expected.
                  */
                 cy.then(() => {
                     const rowMatches = [...tableMatches.values()].reduce((a, b) => a.length >= b.length ? a : b)
