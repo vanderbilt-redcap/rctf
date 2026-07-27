@@ -454,37 +454,13 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
         })
 
         outer_element.within(() => {
-            let bestMatchingTable
             cy.get(header_selector, {timeout: 20000}).then((rows) => {
-                const tables = new Map
-                let bestMatchingTableInfo = null
-                rows.each((i, cell) => {
-                    let tableInfo = tables.get(cell)
-                    if(tableInfo){
-                        tableInfo.cellCount++
-                    }
-                    else{
-                        tableInfo = {
-                            table: cell.closest('table'),
-                            cellCount: 1,
-                        }
-                        
-                        tables.set(cell, tableInfo)
-                    }
-
-                    if(bestMatchingTableInfo === null || bestMatchingTableInfo.cellCount < tableInfo.cellCount){
-                        bestMatchingTableInfo = tableInfo
-                    }
-                })
-
-                bestMatchingTable = bestMatchingTableInfo.table
-
                 findColumnHeaders(header_selector, rows, header, columns)
             }).then(() => {
                 //console.log(columns)
                 let filter_selector = []
                 dataTable.hashes().forEach((row, row_index) => {
-                    for (const [index, key] of Object.keys(row).entries()) {
+                    for (const [gherkin_column_index, key] of Object.keys(row).entries()) {
                         let value = row[key]
                         let column = columns[key].col
                         if (isNaN(column)) {
@@ -512,6 +488,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
 
                         filter_selector.push({
                             'column': column,
+                            'gherkin_column_index': gherkin_column_index,
                             'row': row_index,
                             'value': value,
                             'html_elm': Object.keys(html_elements).includes(value),
@@ -537,6 +514,11 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                     }
                 })
 
+                if(filter_selector.length === 0){
+                    // The gherkin only contains headers, and we've already checked those.
+                    return
+                }
+
                 //See if at least one row matches the criteria we are suggesting
                 //console.log(filter_selector)
                 let row_selectors = []
@@ -546,15 +528,32 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                         `${main_table}:visible tbody tr${item.selector}`
                 })
 
+                const tableMatches = new Map
                 row_selectors.forEach((row_selector, row_number) => {
-                    cy.get(row_selector).filter((i, row) => {
-                        return row.closest('table') === bestMatchingTable
-                    }).should('have.length.greaterThan', 0).then(($row) => {
+                    cy.get(row_selector).should('have.length.greaterThan', 0).then(($row) => {
                         filter_selector.forEach((item) => {
                             if(item.row === row_number){
                                 //Big sad .. cannot combine nth-child and contains in a pseudo-selector :(
                                 //We can get around this by finding column index and looking for specific column value within a row
                                 cy.wrap($row).find(`td:nth-child(${item.column}),th:nth-child(${item.column})`).each(($cell) => {
+                                    const table = $cell[0].closest('table')
+                                    let rowMatches = tableMatches.get(table)
+                                    if(!rowMatches){
+                                        rowMatches = []
+                                        tableMatches.set(table, rowMatches)
+                                    }
+
+                                    const gherkin_row_index = parseInt(item.row)+1 // Add one to account for header in gherkin
+                                    let columnMatches = rowMatches[gherkin_row_index]
+                                    if(!columnMatches){
+                                        columnMatches = []
+                                        rowMatches[gherkin_row_index] = columnMatches
+                                    }
+
+                                    const markCellAsFound = () => {
+                                        columnMatches[item.gherkin_column_index] = true
+                                    }
+
                                     /**
                                      * jQuery normalizes newlines to spaces when :contains() is used.
                                      * We follow similar logic here so that behavior is consistent and matching works as expected.
@@ -564,18 +563,64 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                                      */
                                     const normalizedCellText = $cell[0].innerText.trim().replaceAll('\n', ' ')
                                     if (item.html_elm) {
-                                        cy.wrap($cell).find(html_elements[item.value].selector).should(html_elements[item.value].condition)
+                                        cy.wrap($cell).find(html_elements[item.value].selector).should(html_elements[item.value].condition).then(() => {
+                                            markCellAsFound()
+                                        })
                                     } else if (item.regex) {
                                         expect(normalizedCellText).to.match(window.dateFormats[item.value])
+                                        markCellAsFound()
                                     } else if (normalizedCellText.includes(item.value)) {
                                         expect(normalizedCellText).to.contain(item.value)
+                                        markCellAsFound()
                                     } else {
-                                        throw `Did not find expected table cell value "${item.value}" in row ${row_number+1} column ${item.column}.`
+                                        /**
+                                         * This case does not necessarily mean the value was not found.  It might just mean we matched more than one table for at least one value.
+                                         * This is why the tableMatches checking is necessary further down.
+                                         */
                                     }
                                 })
                             }
                         })
                     })
+                })
+                
+                /**
+                 * The above logic is great at matching many variations of table configurations,
+                 * but it does not guarantee that all values are found in the expected columns.
+                 * It alone produces false negatives, especially with short strings like "1" or "2" that might appear elsewhere in each row.
+                 * To demonstrate this, change the first "Number of records consented" column value specified in C.3.24.2000
+                 * from "0" to "1".  The above logic will complete without issue because "1" exists elsewhere in the row outside that column.
+                 * This means the following logic required to ensure table matching is fully working as expected.
+                 */
+                cy.then(() => {
+                    const rowMatches = [...tableMatches.values()].reduce((a, b) => a.length >= b.length ? a : b)
+                    console.log('tabular_data', tabular_data)
+                    for(let rowIndex in tabular_data){
+                        rowIndex = parseInt(rowIndex)
+                        if(rowIndex === 0){
+                            // Skip header row
+                            continue
+                        }
+
+                        const expectedRow = tabular_data[rowIndex]
+                        const columnMatches = rowMatches[rowIndex]
+                        for(let columnIndex in expectedRow){
+                            columnIndex = parseInt(columnIndex)
+                            const expectedValue = expectedRow[columnIndex].trim()
+                            if(expectedValue === ''){
+                                // Ignore empty expected cell values
+                                continue
+                            }
+
+                            if(!columnMatches || !columnMatches[columnIndex]){
+                                /**
+                                 * We tried showing the specific column that couldn't be found here, but that was confusing since
+                                 * a single missing value typically prevents the whole row from being matched.
+                                 */
+                                throw `Could not find the following row: | ${expectedRow.join(' | ')} |`
+                            }
+                        }
+                    }
                 })
             })
         })
