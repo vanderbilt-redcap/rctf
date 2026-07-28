@@ -540,8 +540,25 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                 })
 
                 const tableMatches = new Map
+                const processedRows = new Map
                 row_selectors.forEach((row_selector, row_number) => {
-                    cy.get(row_selector).should('have.length.greaterThan', 0).then(($row) => {
+                    cy.get(row_selector).should('have.length.greaterThan', 0).then(($rows) => {
+                        /**
+                         * Some times row_selectors are identical, or at least the values we're looking for are.
+                         * This causes them to return all matching rows each time they are run.
+                         * We used processedRows to only process a single matched row at a time.
+                         */
+                        const firstUnprocessedRow = $rows.filter((i, row) => {
+                            return !processedRows.get(row)
+                        })[0]
+
+                        if(firstUnprocessedRow === undefined){
+                            throw new Error('Expected more rows to process for row selector: ' + row_selector)
+                        }
+
+                        processedRows.set(firstUnprocessedRow, true)
+                        $row = Cypress.$(firstUnprocessedRow)
+
                         filter_selector.forEach((item) => {
                             if(item.row === row_number){
                                 //Big sad .. cannot combine nth-child and contains in a pseudo-selector :(
@@ -562,7 +579,13 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                                     }
                                     
                                     const markCellAsFound = () => {
-                                        columnMatches[item.gherkin_column_index] = $row.closest('tr').index()
+                                        const htmlRowIndex = $row.closest('tr').index()
+
+                                        if(columnMatches[item.gherkin_column_index] !== undefined){
+                                            throw new Error(`Trying to set row ${gherkin_row_index} and column ${item.gherkin_column_index} a second time!`)
+                                        }
+
+                                        columnMatches[item.gherkin_column_index] = htmlRowIndex
                                     }
 
                                     /**
@@ -605,6 +628,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                  */
                 cy.then(() => {
                     const rowMatches = [...tableMatches.values()].reduce((a, b) => a.length >= b.length ? a : b)
+                    console.log('rowMatches', rowMatches) // Useful for troubleshooting often
                     let lastHtmlRowIndex
                     for(let rowIndex in tabular_data){
                         rowIndex = parseInt(rowIndex)
