@@ -601,7 +601,6 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                  */
                 cy.then(() => {
                     const rowMatches = [...tableMatches.values()].reduce((a, b) => a.length >= b.length ? a : b)
-                    console.log('tabular_data', tabular_data)
                     let lastHtmlRowIndex
                     for(let rowIndex in tabular_data){
                         rowIndex = parseInt(rowIndex)
