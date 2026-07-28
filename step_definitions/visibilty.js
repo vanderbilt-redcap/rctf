@@ -540,80 +540,66 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                 })
 
                 const tableMatches = new Map
-                const processedRows = new Map
                 row_selectors.forEach((row_selector, row_number) => {
                     cy.get(row_selector).should('have.length.greaterThan', 0).then(($rows) => {
-                        /**
-                         * Some times row_selectors are identical, or at least the values we're looking for are.
-                         * This causes them to return all matching rows each time they are run.
-                         * We used processedRows to only process a single matched row at a time.
-                         */
-                        const firstUnprocessedRow = $rows.filter((i, row) => {
-                            return !processedRows.get(row)
-                        })[0]
-
-                        if(firstUnprocessedRow === undefined){
-                            throw new Error('Expected more rows to process for row selector: ' + row_selector)
-                        }
-
-                        processedRows.set(firstUnprocessedRow, true)
-                        $row = Cypress.$(firstUnprocessedRow)
-
-                        filter_selector.forEach((item) => {
-                            if(item.row === row_number){
-                                //Big sad .. cannot combine nth-child and contains in a pseudo-selector :(
-                                //We can get around this by finding column index and looking for specific column value within a row
-                                cy.wrap($row).find(`td:nth-child(${item.column}),th:nth-child(${item.column})`).each(($cell) => {
-                                    const table = $cell[0].closest('table')
-                                    let rowMatches = tableMatches.get(table)
-                                    if(!rowMatches){
-                                        rowMatches = []
-                                        tableMatches.set(table, rowMatches)
-                                    }
-
-                                    const gherkin_row_index = parseInt(item.row)+1 // Add one to account for header in gherkin
-                                    let columnMatches = rowMatches[gherkin_row_index]
-                                    if(!columnMatches){
-                                        columnMatches = []
-                                        rowMatches[gherkin_row_index] = columnMatches
-                                    }
-                                    
-                                    const markCellAsFound = () => {
-                                        const htmlRowIndex = $row.closest('tr').index()
-
-                                        if(columnMatches[item.gherkin_column_index] !== undefined){
-                                            throw new Error(`Trying to set row ${gherkin_row_index} and column ${item.gherkin_column_index} a second time!`)
+                        $rows.each((i, $row) => {
+                            $row = Cypress.$($row)
+                            filter_selector.forEach((item) => {
+                                if(item.row === row_number){
+                                    //Big sad .. cannot combine nth-child and contains in a pseudo-selector :(
+                                    //We can get around this by finding column index and looking for specific column value within a row
+                                    cy.wrap($row).find(`td:nth-child(${item.column}),th:nth-child(${item.column})`).each(($cell) => {
+                                        const table = $cell[0].closest('table')
+                                        let rowMatches = tableMatches.get(table)
+                                        if(!rowMatches){
+                                            rowMatches = []
+                                            tableMatches.set(table, rowMatches)
                                         }
 
-                                        columnMatches[item.gherkin_column_index] = htmlRowIndex
-                                    }
+                                        const gherkin_row_index = parseInt(item.row)+1 // Add one to account for header in gherkin
+                                        let columnMatches = rowMatches[gherkin_row_index]
+                                        if(!columnMatches){
+                                            columnMatches = []
+                                            rowMatches[gherkin_row_index] = columnMatches
+                                        }
+                                        
+                                        const markCellAsFound = () => {
+                                            const htmlRowIndex = $row.closest('tr').index()
 
-                                    /**
-                                     * jQuery normalizes newlines to spaces when :contains() is used.
-                                     * We follow similar logic here so that behavior is consistent and matching works as expected.
-                                     * Yes, this means we can't distinguish a space from new line when matching,
-                                     * but that is an acceptable compromise. We mainly want to verify that the data is present,
-                                     * not that is is formatted perfectly.
-                                     */
-                                    const normalizedCellText = $cell[0].innerText.trim().replaceAll('\n', ' ')
-                                    if (item.html_elm) {
-                                        cy.wrap($cell).find(html_elements[item.value].selector).should(html_elements[item.value].condition).then(() => {
-                                            markCellAsFound()
-                                        })
-                                    } else if (item.regex) {
-                                        expect(normalizedCellText).to.match(window.dateFormats[item.value])
-                                        markCellAsFound()
-                                    } else if (normalizedCellText.includes(item.value)) {
-                                        expect(normalizedCellText).to.contain(item.value)
-                                        markCellAsFound()
-                                    } else {
+                                            if(columnMatches[item.gherkin_column_index] === undefined){
+                                                columnMatches[item.gherkin_column_index] = {}
+                                            }
+
+                                            columnMatches[item.gherkin_column_index][htmlRowIndex] = true
+                                        }
+
                                         /**
-                                         * This case does not necessarily mean the value was not found.  It might just mean we matched more than one table for at least one value.
-                                         * This is why the tableMatches checking is necessary further down.
+                                         * jQuery normalizes newlines to spaces when :contains() is used.
+                                         * We follow similar logic here so that behavior is consistent and matching works as expected.
+                                         * Yes, this means we can't distinguish a space from new line when matching,
+                                         * but that is an acceptable compromise. We mainly want to verify that the data is present,
+                                         * not that is is formatted perfectly.
                                          */
-                                    }
-                                })
-                            }
+                                        const normalizedCellText = $cell[0].innerText.trim().replaceAll('\n', ' ')
+                                        if (item.html_elm) {
+                                            cy.wrap($cell).find(html_elements[item.value].selector).should(html_elements[item.value].condition).then(() => {
+                                                markCellAsFound()
+                                            })
+                                        } else if (item.regex) {
+                                            expect(normalizedCellText).to.match(window.dateFormats[item.value])
+                                            markCellAsFound()
+                                        } else if (normalizedCellText.includes(item.value)) {
+                                            expect(normalizedCellText).to.contain(item.value)
+                                            markCellAsFound()
+                                        } else {
+                                            /**
+                                             * This case does not necessarily mean the value was not found.  It might just mean we matched more than one table for at least one value.
+                                             * This is why the tableMatches checking is necessary further down.
+                                             */
+                                        }
+                                    })
+                                }
+                            })
                         })
                     })
                 })
@@ -652,24 +638,27 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                                 return `| ${expectedRow.join(' | ')} |`
                             }
 
-                            const htmlRowIndex = columnMatches[columnIndex]
-                            if(!columnMatches || (htmlRowIndex === undefined)){
+                            if(!columnMatches || (columnMatches[columnIndex] === undefined)){
                                 /**
                                  * We tried showing the specific column that couldn't be found here, but that was confusing since
                                  * a single missing value typically prevents the whole row from being matched.
                                  */
                                 throw new Error(`Could not find the following row: ${getRowContent()}`)
                             }
-                            
-                            if(!lastHtmlRowIndex){
-                                // This is the first row, so there's nothing to compare.
-                            }
-                            else if(firstColumn){
-                                if(htmlRowIndex <= lastHtmlRowIndex){
-                                    throw new Error(`The following row appeared out of order: ${getRowContent()}`)
+
+                            const htmlRowIndices = columnMatches[columnIndex]
+                            let htmlRowIndex
+                            for(const i in htmlRowIndices){
+                                if(!lastHtmlRowIndex || (i >= lastHtmlRowIndex)){
+                                    htmlRowIndex = i
+                                    break
                                 }
                             }
-                            else if(htmlRowIndex !== lastHtmlRowIndex){
+
+                            if(!htmlRowIndex){
+                                throw new Error(`The following row appeared out of order: ${getRowContent()}`)
+                            }
+                            else if(!firstColumn && htmlRowIndex !== lastHtmlRowIndex){
                                 throw new Error('Two columns supposedly in the same row were matched in different rows in the DOM.  This should never happen!')
                             }
 
