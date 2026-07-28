@@ -294,6 +294,10 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
         }
         else{
             const previousRow = newTable.at(-1)
+            if(previousRow === undefined){
+                throw new Error('The first column of the first row cannot be blank.')
+            }
+
             row.forEach((val, i) => {
                 if (val !== '') {
                     previousRow[i] += ' ' + val
