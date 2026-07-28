@@ -549,9 +549,9 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                                         columnMatches = []
                                         rowMatches[gherkin_row_index] = columnMatches
                                     }
-
+                                    
                                     const markCellAsFound = () => {
-                                        columnMatches[item.gherkin_column_index] = true
+                                        columnMatches[item.gherkin_column_index] = $row.closest('tr').index()
                                     }
 
                                     /**
@@ -595,6 +595,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                 cy.then(() => {
                     const rowMatches = [...tableMatches.values()].reduce((a, b) => a.length >= b.length ? a : b)
                     console.log('tabular_data', tabular_data)
+                    let lastHtmlRowIndex
                     for(let rowIndex in tabular_data){
                         rowIndex = parseInt(rowIndex)
                         if(rowIndex === 0){
@@ -604,6 +605,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
 
                         const expectedRow = tabular_data[rowIndex]
                         const columnMatches = rowMatches[rowIndex]
+                        let firstColumn = true
                         for(let columnIndex in expectedRow){
                             columnIndex = parseInt(columnIndex)
                             const expectedValue = expectedRow[columnIndex].trim()
@@ -612,13 +614,33 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                                 continue
                             }
 
-                            if(!columnMatches || !columnMatches[columnIndex]){
+                            const getRowContent = () => {
+                                return `| ${expectedRow.join(' | ')} |`
+                            }
+
+                            const htmlRowIndex = columnMatches[columnIndex]
+                            if(!columnMatches || (htmlRowIndex === undefined)){
                                 /**
                                  * We tried showing the specific column that couldn't be found here, but that was confusing since
                                  * a single missing value typically prevents the whole row from being matched.
                                  */
-                                throw `Could not find the following row: | ${expectedRow.join(' | ')} |`
+                                throw new Error(`Could not find the following row: ${getRowContent()}`)
                             }
+                            
+                            if(!lastHtmlRowIndex){
+                                // This is the first row, so there's nothing to compare.
+                            }
+                            else if(firstColumn){
+                                if(htmlRowIndex <= lastHtmlRowIndex){
+                                    throw new Error(`The following row appeared out of order: ${getRowContent()}`)
+                                }
+                            }
+                            else if(htmlRowIndex !== lastHtmlRowIndex){
+                                throw new Error('Two columns supposedly in the same row were matched in different rows in the DOM.  This should never happen!')
+                            }
+
+                            lastHtmlRowIndex = htmlRowIndex
+                            firstColumn = false
                         }
                     }
                 })
