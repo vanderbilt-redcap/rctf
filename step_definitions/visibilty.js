@@ -426,7 +426,14 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
             })
 
         }).then(() => {
-            //console.log(columns)
+            let previousColumn 
+            for(const [name, column] of Object.entries(columns)){
+                if(previousColumn && column.col <= previousColumn.col){
+                    throw new Error(`The following column is not in the expected order: ${name}`)
+                }
+
+                previousColumn = column
+            }
         })
     }
 
