@@ -445,9 +445,9 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
         let shortestRowIndices
         for(const [i, htmlRowIndices] of Object.entries(columnMatches)){
             if(
-                !shortestRowIndices
+                shortestRowIndices === undefined
                 ||
-                shortestRowIndices.length > Object.keys(htmlRowIndices).length
+                Object.keys(shortestRowIndices).length > Object.keys(htmlRowIndices).length
             ){
                 shortestRowIndices = htmlRowIndices
             }
