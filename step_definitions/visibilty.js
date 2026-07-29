@@ -679,13 +679,13 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                             let htmlRowIndex
                             for(let i in htmlRowIndices){
                                 i = parseInt(i)
-                                if(!lastHtmlRowIndex || (i >= lastHtmlRowIndex)){
+                                if(lastHtmlRowIndex === undefined || (i >= lastHtmlRowIndex)){
                                     htmlRowIndex = i
                                     break
                                 }
                             }
 
-                            if(!htmlRowIndex){
+                            if(htmlRowIndex === undefined){
                                 throw new Error(`The following row appeared out of order: ${getRowContent()}`)
                             }
                             else if(!firstColumn && htmlRowIndex !== lastHtmlRowIndex){
