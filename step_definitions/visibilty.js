@@ -610,7 +610,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                                          * but that is an acceptable compromise. We mainly want to verify that the data is present,
                                          * not that is is formatted perfectly.
                                          */
-                                        const normalizedCellText = $cell[0].innerText.trim().replaceAll('\n', ' ')
+                                        const normalizedCellText = $cell[0].innerText.trim().replaceAll('\n', ' ').replaceAll('\u00a0', ' ')
                                         if (item.html_elm) {
                                             cy.wrap($cell).find(html_elements[item.value].selector).should(html_elements[item.value].condition).then(() => {
                                                 markCellAsFound()
