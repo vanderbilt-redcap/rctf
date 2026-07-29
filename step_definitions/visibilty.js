@@ -441,6 +441,36 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
         })
     }
 
+    function removePartialColumnMatches(columnMatches){
+        let shortestRowIndices
+        for(const [i, htmlRowIndices] of Object.entries(columnMatches)){
+            if(
+                !shortestRowIndices
+                ||
+                shortestRowIndices.length > Object.keys(htmlRowIndices).length
+            ){
+                shortestRowIndices = htmlRowIndices
+            }
+            else if(
+                Object.keys(shortestRowIndices).length === Object.keys(htmlRowIndices).length
+                &&
+                JSON.stringify(shortestRowIndices) !== JSON.stringify(htmlRowIndices)
+            ){
+                throw new Error('Multiple row index objects tie for the shortest but do not have matching contents!  This should never happen.')
+            }
+        }
+
+        for(const htmlRowIndices of Object.values(columnMatches)){
+            for( const htmlRowIndex in htmlRowIndices){
+                if(shortestRowIndices[htmlRowIndex] === undefined){
+                    delete htmlRowIndices[htmlRowIndex]
+                }
+            }
+        }
+
+        return columnMatches
+    }
+
     //If we are including the table header, we are also going to match specific columns
     if(header === "header and") {
         let columns = {}
@@ -536,7 +566,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                 filter_selector.forEach((item) => {
                     row_selectors[item.row] = (row_selectors.hasOwnProperty(item.row)) ?
                         `${row_selectors[item.row]}${item.selector}` :
-                        `${main_table}:visible tbody tr${item.selector}`
+                        `${main_table}:visible tr${item.selector}`
                 })
 
                 const tableMatches = new Map
@@ -614,7 +644,6 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                  */
                 cy.then(() => {
                     const rowMatches = [...tableMatches.values()].reduce((a, b) => a.length >= b.length ? a : b)
-                    console.log('rowMatches', rowMatches) // Useful for troubleshooting often
                     let lastHtmlRowIndex
                     for(let rowIndex in tabular_data){
                         rowIndex = parseInt(rowIndex)
@@ -624,7 +653,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                         }
 
                         const expectedRow = tabular_data[rowIndex]
-                        const columnMatches = rowMatches[rowIndex]
+                        const columnMatches = removePartialColumnMatches(rowMatches[rowIndex])
                         let firstColumn = true
                         for(let columnIndex in expectedRow){
                             columnIndex = parseInt(columnIndex)
