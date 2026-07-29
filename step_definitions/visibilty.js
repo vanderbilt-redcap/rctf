@@ -677,7 +677,8 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
 
                             const htmlRowIndices = columnMatches[columnIndex]
                             let htmlRowIndex
-                            for(const i in htmlRowIndices){
+                            for(let i in htmlRowIndices){
+                                i = parseInt(i)
                                 if(!lastHtmlRowIndex || (i >= lastHtmlRowIndex)){
                                     htmlRowIndex = i
                                     break
