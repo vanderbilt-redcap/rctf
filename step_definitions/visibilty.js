@@ -442,27 +442,19 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
     }
 
     function removePartialColumnMatches(columnMatches){
-        let shortestRowIndices
-        for(const [i, htmlRowIndices] of Object.entries(columnMatches)){
-            if(
-                shortestRowIndices === undefined
-                ||
-                Object.keys(shortestRowIndices).length > Object.keys(htmlRowIndices).length
-            ){
-                shortestRowIndices = htmlRowIndices
-            }
-            else if(
-                Object.keys(shortestRowIndices).length === Object.keys(htmlRowIndices).length
-                &&
-                JSON.stringify(shortestRowIndices) !== JSON.stringify(htmlRowIndices)
-            ){
-                throw new Error('Multiple row index objects tie for the shortest but do not have matching contents!  This should never happen.')
+        const countsByRowIndex = []
+        let highestCount = 0
+        for(const htmlRowIndices of columnMatches){
+            for(const htmlRowIndex in htmlRowIndices){
+                const newCount = (countsByRowIndex[htmlRowIndex] ?? 0) + 1
+                countsByRowIndex[htmlRowIndex] = newCount
+                highestCount = Math.max(highestCount, newCount)
             }
         }
 
         for(const htmlRowIndices of Object.values(columnMatches)){
             for( const htmlRowIndex in htmlRowIndices){
-                if(shortestRowIndices[htmlRowIndex] === undefined){
+                if(countsByRowIndex[htmlRowIndex] !== highestCount){
                     delete htmlRowIndices[htmlRowIndex]
                 }
             }
