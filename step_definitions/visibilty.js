@@ -566,6 +566,10 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                     cy.get(row_selector).should('have.length.greaterThan', 0).then(($rows) => {
                         $rows.each((i, $row) => {
                             $row = Cypress.$($row)
+                            if($row.find('.reportTableSelect').length > 0){
+                                // e.g. A.2.33.1000.
+                                return
+                            }
                             filter_selector.forEach((item) => {
                                 if(item.row === row_number){
                                     //Big sad .. cannot combine nth-child and contains in a pseudo-selector :(
