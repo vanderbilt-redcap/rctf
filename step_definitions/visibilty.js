@@ -352,11 +352,11 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
 
     function subMatch(label, header, columns, colSpan, rowSpan, count){
         header.forEach((heading) => {
-            const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').trim()
             const substringPattern = new RegExp(escapedLabel);
             const substringNoCase = new RegExp(escapedLabel, 'i');
-            const reverseMatch = new RegExp(heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-            if(columns[heading].match_type === 'none' && label !== ""){
+            const reverseMatch = new RegExp(heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').split(/\s+/).join(' '))
+            if(columns[heading].match_type === 'none' && escapedLabel !== ""){
                 if (substringPattern.test(heading)){
                     columns[heading] = { col: count, match_type: 'sub', colSpan: colSpan, rowSpan: rowSpan }
                 } else if (substringNoCase.test(heading)){
@@ -419,13 +419,11 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
             prevColSpan = 1
 
             cy.wrap(rows).find(`td,th`).each(($cell, i, cells) => {
-                let labels = $cell[0].innerText.split("\n")
+                const label = $cell[0].innerText.split(/\s+/).join(' ')
                 let colSpan = parseInt($cell.attr('colspan')) || 1
                 let rowSpan = parseInt($cell.attr('rowspan')) || 1
                 count += prevColSpan //We need to find the number of cells to span across
-                labels.forEach((label) => {
-                    subMatch(label, header, columns, colSpan, rowSpan, count)
-                })
+                subMatch(label, header, columns, colSpan, rowSpan, count)
                 prevColSpan = colSpan
             })
 
