@@ -368,10 +368,10 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
         })
     }
 
-    function findColumnHeaders(header_selector, $cells, header, columns) {
+    function findColumnHeaders(header_selector, rows, header, columns) {
         let count = 0
         let prevColSpan = 1
-        cy.wrap($cells).find(`td,th`).each(($cell, i, cells) => {
+        cy.wrap(rows).find(`td,th`).each(($cell, i, cells) => {
             let colSpan = parseInt($cell.attr('colspan'))
             let rowSpan = parseInt($cell.attr('rowspan'))
 
@@ -401,7 +401,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
             prevColSpan = 1
             let prevRowSpan = 1
 
-            cy.wrap($cells).find(`td,th`).each(($cell, i, cells) => {
+            cy.wrap(rows).find(`td,th`).each(($cell, i, cells) => {
                 let labels = $cell[0].innerText.split("\n")
                 let colSpan = parseInt($cell.attr('colspan')) || 1
                 let rowSpan = parseInt($cell.attr('rowspan')) || 1
@@ -418,7 +418,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
             count = 0
             prevColSpan = 1
 
-            cy.wrap($cells).find(`td,th`).each(($cell, i, cells) => {
+            cy.wrap(rows).find(`td,th`).each(($cell, i, cells) => {
                 let labels = $cell[0].innerText.split("\n")
                 let colSpan = parseInt($cell.attr('colspan')) || 1
                 let rowSpan = parseInt($cell.attr('rowspan')) || 1
