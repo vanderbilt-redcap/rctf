@@ -496,7 +496,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                 let filter_selector = []
                 dataTable.hashes().forEach((row, row_index) => {
                     for (const [gherkin_column_index, key] of Object.keys(row).entries()) {
-                        let value = row[key]
+                        let value = row[key].replaceAll(' ', ' ')
                         let column = columns[key].col
                         if (isNaN(column)) {
                             console.log('columns', columns)
