@@ -430,7 +430,11 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
         }).then(() => {
             let previousColumn 
             for(const [name, column] of Object.entries(columns)){
-                if(previousColumn && column.col <= previousColumn.col){
+                if(name === ''){
+                    throw new Error('Column names cannot be empty')
+                }
+                else if(previousColumn && column.col <= previousColumn.col){
+                    console.log('columns', columns)
                     throw new Error(`The following column is not in the expected order: ${name}`)
                 }
 
