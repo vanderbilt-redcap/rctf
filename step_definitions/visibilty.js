@@ -492,7 +492,6 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
             cy.get(header_selector, {timeout: 20000}).then((rows) => {
                 findColumnHeaders(header_selector, rows, header, columns)
             }).then(() => {
-                //console.log(columns)
                 let filter_selector = []
                 dataTable.hashes().forEach((row, row_index) => {
                     for (const [gherkin_column_index, key] of Object.keys(row).entries()) {
