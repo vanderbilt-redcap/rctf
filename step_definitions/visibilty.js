@@ -579,7 +579,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                                 if(item.row === row_number){
                                     //Big sad .. cannot combine nth-child and contains in a pseudo-selector :(
                                     //We can get around this by finding column index and looking for specific column value within a row
-                                    cy.wrap($row).find(`td:nth-child(${item.column}),th:nth-child(${item.column})`).each(($cell) => {
+                                    $row.find(`td:nth-child(${item.column}),th:nth-child(${item.column})`).each((cellIndex, $cell) => {
                                         const table = $cell[0].closest('table')
                                         let rowMatches = tableMatches.get(table)
                                         if(!rowMatches){
