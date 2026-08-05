@@ -19,6 +19,18 @@ function intercept_vanderbilt_requests(){
     cy.intercept({ method: 'GET', url: '*/redcap_v' + Cypress.exposeRCTF('redcap_version') + '/**'}).as('interceptedRequest').then(() => {
         window.registeredAlias = true // this is useful to know whether we can actually call a cy.wait
     })
+
+    let delay = 0
+    cy.intercept({ url: '*/DataQuality/execute_ajax.php*' }, (req) => {
+        req.continue((res) => {
+            /**
+             * This is an attempt to prevent C.4.18.0200. from failing because data quality rules
+             * finish out of order, making the log statement order not match what is expected.
+             */
+            res.setDelay(delay)
+            delay += 100
+        })
+    })
 }
 
 function check_feature_filename_format(){
