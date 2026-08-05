@@ -337,6 +337,9 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
         header_table = selector[0]
         main_table = selector[1]
     }
+
+    const UNNAMED_COLUMN_PREFIX = 'Unnamed Column '
+
     //We will first try to match on exact match, then substring if no match
     function exactMatch(label, header, columns, colSpan, rowSpan, count){
         header.forEach((heading) => {
@@ -430,10 +433,13 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
         }).then(() => {
             let previousColumn 
             for(const [name, column] of Object.entries(columns)){
-                if(name === ''){
-                    throw new Error('Column names cannot be empty')
+                if(name.startsWith(UNNAMED_COLUMN_PREFIX)){
+                    // Required for B.3.14.0200.
+                    column.col = previousColumn.col+1
+                    column.match_type = 'determined from previous column'
                 }
-                else if(previousColumn && column.col <= previousColumn.col){
+                
+                if(previousColumn && column.col <= previousColumn.col){
                     console.log('columns', columns)
                     throw new Error(`The following column is not in the expected order: ${name}`)
                 }
@@ -485,6 +491,12 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
         })
 
         header.forEach((heading, index) => {
+            if(heading === ""){
+                // Required for B.3.14.0200. 
+                heading = UNNAMED_COLUMN_PREFIX + (index+1)
+                header[index] = heading
+            }
+
             columns[heading] = {match_type: 'none'}
         })
 
