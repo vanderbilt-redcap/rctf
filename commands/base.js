@@ -392,7 +392,7 @@ Cypress.Commands.overwrite(
             const isTwoFactorCodeSubmission = subject.attr('id') === 'two_factor_verification_code_btn'
 
             //If our other detachment prevention measures failed, let's check to see if it detached and deal with it
-            cy.wrap(subject).then($el => {
+            cy.wrap(subject).should('not.be.disabled').then($el => {
                 $el = Cypress.dom.isDetached($el) ? Cypress.$($el): $el
 
                 if(innerText.includes("Open public survey")){
