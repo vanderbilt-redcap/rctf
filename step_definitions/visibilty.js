@@ -285,6 +285,28 @@ Given('I should see {string} in (the ){tableTypes} table', (text, table_type = '
  * @description Allows us to check tabular data rows within REDCap
  */
 Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the following values in (the ){tableTypes} table{baseElement}:', (header, table_type = 'a', base_element, dataTable) => {
+    // Merge continuation rows (empty first column) into the previous row.
+    const newTable = []
+    for (const row of dataTable.rawTable) {
+        if (row[0] !== ''){
+            // This is a new row, not a continuation of the last one.
+            newTable.push(row)
+        }
+        else{
+            const previousRow = newTable.at(-1)
+            if(previousRow === undefined){
+                throw new Error('The first column of the first row cannot be blank.')
+            }
+
+            row.forEach((val, i) => {
+                if (val !== '') {
+                    previousRow[i] += ' ' + val
+                }
+            })
+        }
+    }
+    dataTable.rawTable = newTable
+
     cy.url().then((currentUrl) => {
         cy.get('body').then(($body) => {
             if ($body.find('.dataTables_processing').length > 0) {
@@ -315,6 +337,9 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
         header_table = selector[0]
         main_table = selector[1]
     }
+
+    const UNNAMED_COLUMN_PREFIX = 'Unnamed Column '
+
     //We will first try to match on exact match, then substring if no match
     function exactMatch(label, header, columns, colSpan, rowSpan, count){
         header.forEach((heading) => {
@@ -330,11 +355,11 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
 
     function subMatch(label, header, columns, colSpan, rowSpan, count){
         header.forEach((heading) => {
-            const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').trim()
             const substringPattern = new RegExp(escapedLabel);
             const substringNoCase = new RegExp(escapedLabel, 'i');
-            const reverseMatch = new RegExp(heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-            if(columns[heading].match_type === 'none' && label !== ""){
+            const reverseMatch = new RegExp(heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').split(/\s+/).join(' '))
+            if(columns[heading].match_type === 'none' && escapedLabel !== ""){
                 if (substringPattern.test(heading)){
                     columns[heading] = { col: count, match_type: 'sub', colSpan: colSpan, rowSpan: rowSpan }
                 } else if (substringNoCase.test(heading)){
@@ -346,10 +371,10 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
         })
     }
 
-    function findColumnHeaders(header_selector, $cells, header, columns) {
+    function findColumnHeaders(header_selector, rows, header, columns) {
         let count = 0
         let prevColSpan = 1
-        cy.wrap($cells).find(`td,th`).each(($cell, i, cells) => {
+        cy.wrap(rows).find(`td,th`).each(($cell, i, cells) => {
             let colSpan = parseInt($cell.attr('colspan'))
             let rowSpan = parseInt($cell.attr('rowspan'))
 
@@ -379,7 +404,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
             prevColSpan = 1
             let prevRowSpan = 1
 
-            cy.wrap($cells).find(`td,th`).each(($cell, i, cells) => {
+            cy.wrap(rows).find(`td,th`).each(($cell, i, cells) => {
                 let labels = $cell[0].innerText.split("\n")
                 let colSpan = parseInt($cell.attr('colspan')) || 1
                 let rowSpan = parseInt($cell.attr('rowspan')) || 1
@@ -396,20 +421,54 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
             count = 0
             prevColSpan = 1
 
-            cy.wrap($cells).find(`td,th`).each(($cell, i, cells) => {
-                let labels = $cell[0].innerText.split("\n")
+            cy.wrap(rows).find(`td,th`).each(($cell, i, cells) => {
+                const label = $cell[0].innerText.split(/\s+/).join(' ')
                 let colSpan = parseInt($cell.attr('colspan')) || 1
                 let rowSpan = parseInt($cell.attr('rowspan')) || 1
                 count += prevColSpan //We need to find the number of cells to span across
-                labels.forEach((label) => {
-                    subMatch(label, header, columns, colSpan, rowSpan, count)
-                })
+                subMatch(label, header, columns, colSpan, rowSpan, count)
                 prevColSpan = colSpan
             })
 
         }).then(() => {
-            //console.log(columns)
+            let previousColumn 
+            for(const [name, column] of Object.entries(columns)){
+                if(name.startsWith(UNNAMED_COLUMN_PREFIX)){
+                    // Required for B.3.14.0200.
+                    column.col = previousColumn.col+1
+                    column.match_type = 'determined from previous column'
+                }
+                
+                if(previousColumn && column.col <= previousColumn.col){
+                    console.log('columns', columns)
+                    throw new Error(`The following column is not in the expected order: ${name}`)
+                }
+
+                previousColumn = column
+            }
         })
+    }
+
+    function removePartialColumnMatches(columnMatches){
+        const countsByRowIndex = []
+        let highestCount = 0
+        for(const htmlRowIndices of columnMatches){
+            for(const htmlRowIndex in htmlRowIndices){
+                const newCount = (countsByRowIndex[htmlRowIndex] ?? 0) + 1
+                countsByRowIndex[htmlRowIndex] = newCount
+                highestCount = Math.max(highestCount, newCount)
+            }
+        }
+
+        for(const htmlRowIndices of Object.values(columnMatches)){
+            for( const htmlRowIndex in htmlRowIndices){
+                if(countsByRowIndex[htmlRowIndex] !== highestCount){
+                    delete htmlRowIndices[htmlRowIndex]
+                }
+            }
+        }
+
+        return columnMatches
     }
 
     //If we are including the table header, we are also going to match specific columns
@@ -432,18 +491,23 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
         })
 
         header.forEach((heading, index) => {
+            if(heading === ""){
+                // Required for B.3.14.0200. 
+                heading = UNNAMED_COLUMN_PREFIX + (index+1)
+                header[index] = heading
+            }
+
             columns[heading] = {match_type: 'none'}
         })
 
         outer_element.within(() => {
-            cy.get(header_selector, {timeout: 20000}).then(($cells) => {
-                findColumnHeaders(header_selector, $cells, header, columns)
+            cy.get(header_selector, {timeout: 20000}).then((rows) => {
+                findColumnHeaders(header_selector, rows, header, columns)
             }).then(() => {
-                //console.log(columns)
                 let filter_selector = []
                 dataTable.hashes().forEach((row, row_index) => {
-                    for (const [index, key] of Object.keys(row).entries()) {
-                        let value = row[key]
+                    for (const [gherkin_column_index, key] of Object.keys(row).entries()) {
+                        let value = row[key].replaceAll(' ', ' ')
                         let column = columns[key].col
                         if (isNaN(column)) {
                             console.log('columns', columns)
@@ -470,6 +534,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
 
                         filter_selector.push({
                             'column': column,
+                            'gherkin_column_index': gherkin_column_index,
                             'row': row_index,
                             'value': value,
                             'html_elm': Object.keys(html_elements).includes(value),
@@ -495,34 +560,152 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                     }
                 })
 
+                if(filter_selector.length === 0){
+                    // The gherkin only contains headers, and we've already checked those.
+                    return
+                }
+
                 //See if at least one row matches the criteria we are suggesting
                 //console.log(filter_selector)
-                let row_selector = []
+                let row_selectors = []
                 filter_selector.forEach((item) => {
-                    row_selector[item.row] = (row_selector.hasOwnProperty(item.row)) ?
-                        `${row_selector[item.row]}${item.selector}` :
+                    row_selectors[item.row] = (row_selectors.hasOwnProperty(item.row)) ?
+                        `${row_selectors[item.row]}${item.selector}` :
                         `${main_table}:visible tr${item.selector}`
                 })
 
-                row_selector.forEach((row, row_number) => {
-                    cy.get(row).should('have.length.greaterThan', 0).then(($row) => {
-                     filter_selector.forEach((item) => {
-                            if(item.row === row_number){
-                                //Big sad .. cannot combine nth-child and contains in a pseudo-selector :(
-                                //We can get around this by finding column index and looking for specific column value within a row
-                                cy.wrap($row).find(`td:nth-child(${item.column}),th:nth-child(${item.column})`).each(($cell) => {
-                                    //console.log(item)
-                                    if (item.html_elm) {
-                                        cy.wrap($cell).find(html_elements[item.value].selector).should(html_elements[item.value].condition)
-                                    } else if (item.regex) {
-                                        expect($cell[0].innerText.trim()).to.match(window.dateFormats[item.value])
-                                    } else if ($cell[0].innerText.includes(item.value)) {
-                                        expect($cell[0].innerText.trim()).to.contain(item.value)
-                                    }
-                                })
+                const tableMatches = new Map
+                row_selectors.forEach((row_selector, row_number) => {
+                    cy.get(row_selector).should('have.length.greaterThan', 0).then(($rows) => {
+                        $rows.each((i, $row) => {
+                            $row = Cypress.$($row)
+                            if($row.find('.reportTableSelect').length > 0){
+                                // e.g. A.2.33.1000.
+                                return
                             }
+                            filter_selector.forEach((item) => {
+                                if(item.row === row_number){
+                                    //Big sad .. cannot combine nth-child and contains in a pseudo-selector :(
+                                    //We can get around this by finding column index and looking for specific column value within a row
+                                    $row.find(`td:nth-child(${item.column}),th:nth-child(${item.column})`).each((cellIndex, $cell) => {
+                                        $cell = Cypress.$($cell)
+                                        const table = $cell[0].closest('table')
+                                        let rowMatches = tableMatches.get(table)
+                                        if(!rowMatches){
+                                            rowMatches = []
+                                            tableMatches.set(table, rowMatches)
+                                        }
+
+                                        const gherkin_row_index = parseInt(item.row)+1 // Add one to account for header in gherkin
+                                        let columnMatches = rowMatches[gherkin_row_index]
+                                        if(!columnMatches){
+                                            columnMatches = []
+                                            rowMatches[gherkin_row_index] = columnMatches
+                                        }
+                                        
+                                        const markCellAsFound = () => {
+                                            const htmlRowIndex = $row.closest('tr').index()
+
+                                            if(columnMatches[item.gherkin_column_index] === undefined){
+                                                columnMatches[item.gherkin_column_index] = {}
+                                            }
+
+                                            columnMatches[item.gherkin_column_index][htmlRowIndex] = true
+                                        }
+
+                                        /**
+                                         * jQuery normalizes newlines to spaces when :contains() is used.
+                                         * We follow similar logic here so that behavior is consistent and matching works as expected.
+                                         * Yes, this means we can't distinguish a space from new line when matching,
+                                         * but that is an acceptable compromise. We mainly want to verify that the data is present,
+                                         * not that is is formatted perfectly.
+                                         */
+                                        const normalizedCellText = $cell[0].innerText.trim().replaceAll('\n', ' ').replaceAll('\u00a0', ' ')
+                                        if (item.html_elm) {
+                                            cy.wrap($cell).find(html_elements[item.value].selector).should(html_elements[item.value].condition).then(() => {
+                                                markCellAsFound()
+                                            })
+                                        } else if (item.regex) {
+                                            expect(normalizedCellText).to.match(window.dateFormats[item.value])
+                                            markCellAsFound()
+                                        } else if (normalizedCellText.includes(item.value)) {
+                                            expect(normalizedCellText).to.contain(item.value)
+                                            markCellAsFound()
+                                        } else {
+                                            /**
+                                             * This case does not necessarily mean the value was not found.  It might just mean we matched more than one table for at least one value.
+                                             * This is why the tableMatches checking is necessary further down.
+                                             */
+                                        }
+                                    })
+                                }
+                            })
                         })
                     })
+                })
+                
+                /**
+                 * The above logic is great at matching many variations of table configurations,
+                 * but it does not guarantee that all values are found in the expected columns.
+                 * It alone matches some values when it should not, especially with short strings like "1" or "2" that might appear elsewhere in each row.
+                 * To demonstrate this, change the first "Number of records consented" column value specified in C.3.24.2000
+                 * from "0" to "1".  The above logic will complete without issue because "1" exists elsewhere in the row outside that column.
+                 * We added the following logic to ensure table matching is fully working as expected.
+                 */
+                cy.then(() => {
+                    const rowMatches = [...tableMatches.values()].reduce((a, b) => a.length >= b.length ? a : b)
+                    let lastHtmlRowIndex
+                    for(let rowIndex in tabular_data){
+                        rowIndex = parseInt(rowIndex)
+                        if(rowIndex === 0){
+                            // Skip header row
+                            continue
+                        }
+
+                        const expectedRow = tabular_data[rowIndex]
+                        const columnMatches = removePartialColumnMatches(rowMatches[rowIndex])
+                        let firstColumn = true
+                        for(let columnIndex in expectedRow){
+                            columnIndex = parseInt(columnIndex)
+                            const expectedValue = expectedRow[columnIndex].trim()
+                            if(expectedValue === ''){
+                                // Ignore empty expected cell values
+                                continue
+                            }
+
+                            const getRowContent = () => {
+                                return `| ${expectedRow.join(' | ')} |`
+                            }
+
+                            if(!columnMatches || (columnMatches[columnIndex] === undefined)){
+                                /**
+                                 * We tried showing the specific column that couldn't be found here, but that was confusing since
+                                 * a single missing value typically prevents the whole row from being matched.
+                                 */
+                                throw new Error(`Could not find the following row: ${getRowContent()}`)
+                            }
+
+                            const htmlRowIndices = columnMatches[columnIndex]
+                            let htmlRowIndex
+                            for(let i in htmlRowIndices){
+                                i = parseInt(i)
+                                if(lastHtmlRowIndex === undefined || (i >= lastHtmlRowIndex)){
+                                    htmlRowIndex = i
+                                    break
+                                }
+                            }
+
+                            if(htmlRowIndex === undefined){
+                                throw new Error(`The following row appeared out of order: ${getRowContent()}`)
+                            }
+                            else if(!firstColumn && htmlRowIndex !== lastHtmlRowIndex){
+                                throw new Error('Two columns supposedly in the same row were matched in different rows in the DOM.  This should never happen!')
+                            }
+
+                            lastHtmlRowIndex = htmlRowIndex
+                            firstColumn = false
+                        }
+                    }
                 })
             })
         })
