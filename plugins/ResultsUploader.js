@@ -28,7 +28,14 @@ export class ResultsUploader {
     static doesRecordExist(redcapVersion, frsId) {
         return (new this()).redcap_project_query({
             content: 'record',
+            /**
+             * We check for [testing_method] = "automated" since it is possible that
+             * One of the analysts is also performing manual validation for the same
+             * redcap_version & frs_id.  It's OK for manual & automated records to co-exist.
+             */
             filterLogic: `
+                [testing_method] = "automated"
+                and
                 [redcap_version] = "${redcapVersion}"
                 and
                 [frs_id] = "${frsId}"
