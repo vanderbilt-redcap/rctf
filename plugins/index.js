@@ -101,7 +101,7 @@ module.exports = (cypressOn, config) => {
                     throw new Error(`Failing build to prevent incorrect result upload because expected cypress branch (${expectedCypressBranch}) did not match the actual cypress branch (${actualCypressBranch}).`)
                 }
     
-                const tagName = execSync(`git --git-dir=../redcap_source/redcap_v${redcapVersion}.git describe --tags --exact-match`, { encoding: 'utf-8' }).trim()
+                const tagName = execSync(`git --git-dir=../redcap_source/redcap_v${redcapVersion} describe --tags --exact-match`, { encoding: 'utf-8' }).trim()
                 if(tagName !== redcapVersion){
                     throw new Error(`Failing build to prevent incorrect result upload because the checked out tag name (${tagName}) did not match the REDCap version (${redcapVersion}).`)
                 }
