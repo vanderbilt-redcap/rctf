@@ -128,7 +128,7 @@ export class ResultsUploader {
                         feature_test_script: feature_content,
                         projects_feature: this.get_referenced_files(feature_content),
                         testing_method: 'automated',
-                        feature_test_outcome: 1,
+                        result_feature: 1,
                         date_test_run: new Date().toISOString().slice(0, 10),
                         cloud_machine_number: cloudMachineNumber,
                         circle_test_env: `<ul><li>Operating System: Linux ${linuxVersion}</li><li>Testing Platform: Cypress v${results.cypressVersion}</li><li>Browser: Chrome v${results.browser.version}</li></ul>`,
