@@ -128,6 +128,7 @@ export class ResultsUploader {
                         feature_test_script: feature_content,
                         projects_feature: this.get_referenced_files(feature_content),
                         testing_method: 'automated',
+                        test_method_reason: 4,
                         result_feature: 1,
                         date_test_run: new Date().toISOString().slice(0, 10),
                         cloud_machine_number: cloudMachineNumber,
