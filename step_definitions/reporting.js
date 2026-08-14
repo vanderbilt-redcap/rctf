@@ -272,15 +272,15 @@ Given("I click on the download icon(s) to receive the file(s) for the {string} f
  * @param {DataTable} headings the DataTable of headings this file should have
  * @description Interactions - Checks the number of rows (excluding header) the file should have
  */
-Given(/^I should (see|have) (a|the latest downloaded) "(.*)" file (that contains|containing|including) the (headings|headings and rows) below?/, (see, latest, format, contains, type, headings) => {
+Given(/^I should (see|have) (a|the latest downloaded) "(.*)" file (that contains|containing|including) the (headings|headings and rows) below?/, (see, latest, format, contains, type, dataTable) => {
     cy.task('fetchLatestDownload', ({fileExtension: format})).then((latest_file) => {
         if(latest !== "the latest downloaded") latest_file = "cypress/downloads" + '/test_file.' + format
 
         cy.readFile(latest_file).then( ($text) => {
             let lines = $text.trim().split('\n')
-            let header_line = headings.rawTable[0][0]
-            for(let i = 1; i < headings.rawTable[0].length; i++){
-                header_line += "," + headings.rawTable[0][i]
+            let header_line = dataTable.rawTable[0][0]
+            for(let i = 1; i < dataTable.rawTable[0].length; i++){
+                header_line += "," + dataTable.rawTable[0][i]
             }
             expect(lines[0]).to.equal(header_line)
 
@@ -288,18 +288,16 @@ Given(/^I should (see|have) (a|the latest downloaded) "(.*)" file (that contains
             if(type === "headings and rows"){
 
                 for(let i = 1; i < lines.length; i++){
-                    let body_row = headings.rawTable[i][0]
-                    for(let h = 1; h < headings.rawTable[i].length; h++){
-                        body_row += "," + headings.rawTable[i][h]
+                    let body_row = dataTable.rawTable[i][0]
+                    for(let h = 1; h < dataTable.rawTable[i].length; h++){
+                        body_row += "," + dataTable.rawTable[i][h]
                     }
                     expect(body_row).to.eq(lines[i])
                 }
 
             //This is the "including" match option
             } else if (type === "headings and rows" && contains === "including"){
-
-                //TODO: This needs to be implemented
-
+                throw new Error("Not yet implemented")
             }
         })
     })
