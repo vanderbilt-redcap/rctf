@@ -84,6 +84,12 @@ export class ResultsUploader {
     }
 
     uploadResults(redcapVersion, results){
+        const pathsBeforeAndAfterRSVC = results.spec.absolute.split('redcap_rsvc')
+        if(pathsBeforeAndAfterRSVC.length < 2){
+            // This must not be a redcap_rsvc test (could be a Module Development Examples EM test).
+            return
+        }
+
         console.log('Uploading results to REDCap project...')
        
         // Replace slashes to ensure paths are consistent on Windows & Linux
@@ -108,7 +114,6 @@ export class ResultsUploader {
                     console.log(`NEW UPLOAD: ${filename}`)
                     console.log(`FILE PATH: ${video_path}`)
 
-                    const pathsBeforeAndAfterRSVC = results.spec.absolute.split('redcap_rsvc')
                     const redcapCypressPackage = pathsBeforeAndAfterRSVC[0] + 'package.json'
                     const rsvcCommit = require(redcapCypressPackage).dependencies.redcap_rsvc.split('#')[1]
                     const rsvcCommitUrl = 'https://github.com/vanderbilt-redcap/redcap_rsvc/commit/' + rsvcCommit
