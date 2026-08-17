@@ -28,7 +28,14 @@ export class ResultsUploader {
     static doesRecordExist(redcapVersion, frsId) {
         return (new this()).redcap_project_query({
             content: 'record',
+            /**
+             * We check for [testing_method] = "automated" since it is possible that
+             * One of the analysts is also performing manual validation for the same
+             * redcap_version & frs_id.  It's OK for manual & automated records to co-exist.
+             */
             filterLogic: `
+                [testing_method] = "automated"
+                and
                 [redcap_version] = "${redcapVersion}"
                 and
                 [frs_id] = "${frsId}"
@@ -77,6 +84,12 @@ export class ResultsUploader {
     }
 
     uploadResults(redcapVersion, results){
+        const pathsBeforeAndAfterRSVC = results.spec.absolute.split('redcap_rsvc')
+        if(pathsBeforeAndAfterRSVC.length < 2){
+            // This must not be a redcap_rsvc test (could be a Module Development Examples EM test).
+            return
+        }
+
         console.log('Uploading results to REDCap project...')
        
         // Replace slashes to ensure paths are consistent on Windows & Linux
@@ -101,7 +114,6 @@ export class ResultsUploader {
                     console.log(`NEW UPLOAD: ${filename}`)
                     console.log(`FILE PATH: ${video_path}`)
 
-                    const pathsBeforeAndAfterRSVC = results.spec.absolute.split('redcap_rsvc')
                     const redcapCypressPackage = pathsBeforeAndAfterRSVC[0] + 'package.json'
                     const rsvcCommit = require(redcapCypressPackage).dependencies.redcap_rsvc.split('#')[1]
                     const rsvcCommitUrl = 'https://github.com/vanderbilt-redcap/redcap_rsvc/commit/' + rsvcCommit
@@ -121,7 +133,8 @@ export class ResultsUploader {
                         feature_test_script: feature_content,
                         projects_feature: this.get_referenced_files(feature_content),
                         testing_method: 'automated',
-                        feature_test_outcome: 1,
+                        test_method_reason: 4,
+                        result_feature: 1,
                         date_test_run: new Date().toISOString().slice(0, 10),
                         cloud_machine_number: cloudMachineNumber,
                         circle_test_env: `<ul><li>Operating System: Linux ${linuxVersion}</li><li>Testing Platform: Cypress v${results.cypressVersion}</li><li>Browser: Chrome v${results.browser.version}</li></ul>`,

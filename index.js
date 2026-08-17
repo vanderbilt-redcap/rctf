@@ -1,7 +1,36 @@
 // Check to see if Given is defined. We may be calling get-step-usage.sh which uses an alternate definition.
 if(!globalThis.Given){
     const { Given, defineParameterType } = require('@badeball/cypress-cucumber-preprocessor')
-    globalThis.Given = Given
+
+    globalThis.Given = (pattern, action) => {
+        Given(pattern, function (...args) {
+            const lastParam = action
+                .toString()
+                .split('{')[0]
+                .split('(')[1]
+                .split(')')[0]
+                .split(',').at(-1)
+                .trim()
+
+            if (
+                args.length > 0
+                &&
+                args.at(-1).constructor.name === '_DataTable'
+                &&
+                lastParam !== 'dataTable'
+            ){
+                /**
+                 * We throw an error here because this table will be ignored if we don't.
+                 * When this happens, there's a good chance the gherkin writer forgot the following line above the table:
+                 *  I should see a table header and rows containing the following values in a table:
+                 */
+                throw new Error(`A table of data was specified for a step that does not support it.`)
+            }
+
+            action(...args)
+        })
+    }
+
     globalThis.defineParameterType = defineParameterType
     
     globalThis.compareVersions = require('compare-versions')

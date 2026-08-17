@@ -136,25 +136,6 @@ window.validationTypes = {
     'Zipcode (U.S.)'                                : 'zipcode',
 }
 
-window.projectModules = {
-    'Main project settings': [
-                              'Use surveys in this project?',
-                              'Use longitudinal data collection with defined events?',
-                              'Use the MyCap participant-facing mobile app?'
-                             ],
-
-    'Enable optional modules and customizations' : [
-                                                     'Repeating instruments and events',
-                                                     'Auto-numbering for records',
-                                                     'Scheduling module',
-                                                     'Randomization module',
-                                                     'Designate an email field for communications (including survey invitations and alerts)',
-                                                     'Twilio SMS and Voice Call services for surveys and alerts',
-                                                     'Mosio SMS services for surveys and alerts',
-                                                     'SendGrid Template email services for Alerts & Notifications'
-                                                    ]
-}
-
 //Make sure to keep the blank choice - we want to default to first option
 window.elementChoices = {
     '' : 'html',
@@ -174,17 +155,6 @@ window.elementChoices = {
     ' in the File Repository table' : '#file-repository-table:visible',
     ' in the View Access section of User Access' : 'td[class=labelrc]:contains("View Access")',
     ' in the Edit Access section of User Access' : 'td[class=labelrc]:contains("Edit Access")'
-}
-
-//IMPORTANT: Programmatically add the projectModules as element choices
-for (const category in window.projectModules) {
-    if (window.projectModules.hasOwnProperty(category)) {
-        window.elementChoices[` in the "${category}" section`] = `div:contains("${category}"):visible`
-
-        window.projectModules[category].forEach((element) => {
-            window.elementChoices[` in the "${element}" row in the "${category}" section`] = `div:contains("${element}"):visible`
-        })
-    }
 }
 
 window.ordinalChoices = {

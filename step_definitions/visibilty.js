@@ -653,6 +653,11 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                  * We added the following logic to ensure table matching is fully working as expected.
                  */
                 cy.then(() => {
+                    /**
+                     * Simple cell values like "1" often match multiple tables on the screen,
+                     * sometimes in the sidebar or footer.  Use reduce to only return the table
+                     * with the largest number of matches, and ignore the others (as is likely desired).
+                     */
                     const rowMatches = [...tableMatches.values()].reduce((a, b) => a.length >= b.length ? a : b)
                     let lastHtmlRowIndex
                     for(let rowIndex in tabular_data){
