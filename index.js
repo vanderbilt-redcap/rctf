@@ -13,9 +13,7 @@ if(!globalThis.Given){
                 .trim()
 
             if (
-                args.length > 0
-                &&
-                args.at(-1).constructor.name === '_DataTable'
+                args.at(-1)?.constructor.name === '_DataTable'
                 &&
                 lastParam !== 'dataTable'
             ){
