@@ -427,6 +427,10 @@ module.exports = (cypressOn, config) => {
             const path = os.tmpdir() + '/' + filename
             fs.writeFileSync(path, content, 'binary')
             return path
+        },
+
+        getREDCapPlusSubscriptionKeyEnv(){
+            return process.env['REDCAP_PLUS_SUBSCRIPTION_KEY'] ?? null
         }
     })
 

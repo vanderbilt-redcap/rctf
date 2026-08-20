@@ -1200,3 +1200,46 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
 Given("I remember to click cancel on the confirmation dialog that appears after the following step", () => {
    window.rctfCancelNextConfirm = true
 })
+
+/**
+ * @module Interactions
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @description Pulls the REDCap+ subscription key from either the REDCAP_PLUS_SUBSCRIPTION_KEY system environment variable, or the 'redcap_plus_subscription_key' value in cypress.env.json, and enters it into the 'Enter a REDCap+ subscription key' field. If REDCap+ tests should not be run on this system, set 'skip_redcap_plus_tests' to true in cypress.env.json to skip tests when they encounter this line.
+ */
+Given("I enter a REDCap+ subscription key into the textarea field labeled {string}", (label) => {
+    const expectedLabel = 'Enter a REDCap+ subscription key'
+    if(label !== expectedLabel){
+        throw new Error(`Invalid label given. The only label supported for this step is '${expectedLabel}'.`)
+    }
+
+    if(Cypress.exposeRCTF('skip_redcap_plus_tests')){
+        cy.state('runnable').ctx.skip()
+        return
+    }
+    
+    let key
+    cy.task('getREDCapPlusSubscriptionKeyEnv').then((keyFromSystemEnv) => {
+        if(keyFromSystemEnv){
+            key = keyFromSystemEnv
+        }
+    }).then(() => {
+        if(key){
+            // The key was set from the system env, which should override the cypress env.
+            return
+        }
+
+        const envParamName = 'redcap_plus_subscription_key'
+        cy.env([envParamName]).then(limitedEnv => {
+            const keyFromCypressEnv = limitedEnv[envParamName]
+            if(keyFromCypressEnv){
+                key = keyFromCypressEnv
+            }
+        })
+    }).then(() => {
+        if(!key){
+            throw new Error(`A REDCap+ subscription key could not be found. To disable REDCap+ tests, add/set 'skip_redcap_plus_tests' to true in cypress.env.json. To enable REDCap+ tests, either add/set 'redcap_plus_subscription_key' in cypress.env.json, or set the 'REDCAP_PLUS_SUBSCRIPTION_KEY' system environment variable.`)
+        }
+
+        cy.get('#plusKey').type(key)
+    })
+})
