@@ -218,7 +218,7 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
             let elm = cy.getLabeledElement('input', label)
 
             if(enter_type === "enter"){
-                elm.eq(ord).scrollIntoView().type(text)
+                elm.eq(ord).scrollIntoView().clear().type(text)
             } else if (enter_type === "clear field and enter") {
                 elm.eq(ord).scrollIntoView().clear().type(text)
             } else if (enter_type === "verify"){
@@ -230,7 +230,7 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
 
         cy.table_cell_by_column_and_row_label(label, '', 'table', 'td', 'td', ord, 'table.addFieldMatrixRowParent', true).then(($td) => {
             if(enter_type === "enter"){
-                cy.wrap($td).find('input:visible').type(text)
+                cy.wrap($td).find('input:visible').clear().type(text)
             } else if (enter_type === "clear field and enter") {
                 cy.wrap($td).find('input:visible').clear().type(text)
             }
@@ -339,6 +339,8 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field labeled {
                         elm = cy.wrap($parent).find(element).eq(ord)
 
                         if(enter_type === "enter"){
+                            elm.clear()
+
                             /**
                              * Force is true because of what seems like a cypress bug preventing
                              * C.3.31.0900 from scrolling a textarea into view before typing.
@@ -365,7 +367,7 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field labeled {
                     //All other cases
                     } else {
                         if(enter_type === "enter"){
-                            cy.wrap($parent).parent().find(element).eq(ord).type(text)
+                            cy.wrap($parent).parent().find(element).eq(ord).clear().type(text)
                         } else if (enter_type === "clear field and enter") {
 
                             //Logic editor does not use an actual textarea; we need to invoke the text instead!
@@ -455,6 +457,7 @@ Given('I {enterType} {string} (is within)(into) the data entry form field labele
                     cy.get('[name="' + $id.split('label-')[1] + '"]')
                 })
                 .click()
+                .clear()
                 .type(text)
                 .blur() //Remove focus after we are done so alerts pop up
         }
