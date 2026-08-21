@@ -10,7 +10,7 @@ Given("I want to pause", () => {
 /**
  * @module DevelopmentOnly
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
- * @description Exports a snapshot of the current database structure at that point in the test and pauses. On subsequent runs, feature will attempt to login with the same user on the same page.
+ * @description This step is considered obsolete since the "Continue Last Run" feature was added (see redcap_cypress_docker README for details). Exports a snapshot of the current database structure at that point in the test and pauses. On subsequent runs, feature will attempt to login with the same user on the same page.
  */
 Given("I want to export a snapshot of this feature here", (selector, label, options) => {
     //Snapshot of the DB
