@@ -23,7 +23,6 @@ const os = require('os')
 const csv = require('async-csv')
 const path = require('path')
 const pdf = require('pdf-parse')
-const createBundler = require("@bahmutov/cypress-esbuild-preprocessor")
 const {
     addCucumberPreprocessorPlugin,
     beforeRunHandler,
@@ -53,14 +52,62 @@ module.exports = (cypressOn, config) => {
         omitAfterScreenshotHandler: true,
     })
 
-    const bundler = createBundler({
-        plugins: [createEsbuildPlugin(config)],
-    })
+    // Own the esbuild watch loop (instead of createBundler) so a rebuild failure
+    // yields a spec that throws at runtime rather than a rejected bundle promise --
+    // the latter makes Cypress relaunch the browser to show its compile-error screen.
+    const esbuild = require('esbuild')
+    const bundles = {} // filePath => Promise<outputPath>
 
-    on('file:preprocessor', async (file) => {
+    const bundle = (file) => {
+        const { filePath, outputPath, shouldWatch } = file
+        const options = { plugins: [createEsbuildPlugin(config)], entryPoints: [filePath], outfile: outputPath, bundle: true }
+
+        // In `cypress run` a compile failure must be fatal, so bundle once and let it reject.
+        if (!shouldWatch) return esbuild.build(options).then(() => outputPath)
+
+        if (!bundles[filePath]) {
+            let resolveFirstBuild
+            bundles[filePath] = new Promise((resolve) => {
+                resolveFirstBuild = resolve
+            })
+
+            const recover = {
+                name: 'rctf-build-error-recovery',
+                setup: (build) => build.onEnd(async ({ errors }) => {
+                    if (errors.length > 0) {
+                        const message = (await esbuild.formatMessages(errors, { kind: 'error', color: false })).join('\n')
+                        const title = JSON.stringify('Failed to compile ' + filePath)
+                        fs.writeFileSync(outputPath, `it(${title}, () => { throw new Error(${JSON.stringify(message)}) })`)
+                    }
+
+                    // outputPath now holds a runnable spec either way.
+                    if (resolveFirstBuild) {
+                        resolveFirstBuild(outputPath)
+                        resolveFirstBuild = null
+                    } else {
+                        bundles[filePath] = Promise.resolve(outputPath)
+                        file.emit('rerun')
+                    }
+                }),
+            }
+
+            esbuild.context({ ...options, plugins: [...options.plugins, recover] })
+                .then(async (watcher) => {
+                    await watcher.watch()
+                    file.on('close', () => {
+                        delete bundles[filePath]
+                        watcher.dispose()
+                    })
+                })
+        }
+
+        return bundles[filePath]
+    }
+
+    on('file:preprocessor', (file) => {
         //Attempt to watch files locally if we're in `npx cypress open` mode
         file.shouldWatch = !config.isTextTerminal
-        return await bundler(file)
+        return bundle(file)
     })
 
     on("before:run", async (details) => {
