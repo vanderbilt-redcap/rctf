@@ -15,6 +15,7 @@ Given('I {enterType} Choice(s) of {string} in(to) the open "{addEditField}" dial
         console.log(field_choices)
         field_choices.should('contain.value', choices)
     } else {
+        field_choices.clear()
         field_choices.type(`{enter}${choices}`)
     }
 })

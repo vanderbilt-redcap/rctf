@@ -1,3 +1,5 @@
+const rctf = require('./rctf.mjs').rctf
+
 // Check to see if Given is defined. We may be calling get-step-usage.sh which uses an alternate definition.
 if(!globalThis.Given){
     const { Given, defineParameterType } = require('@badeball/cypress-cucumber-preprocessor')
@@ -13,9 +15,7 @@ if(!globalThis.Given){
                 .trim()
 
             if (
-                args.length > 0
-                &&
-                args.at(-1).constructor.name === '_DataTable'
+                args.at(-1)?.constructor.name === '_DataTable'
                 &&
                 lastParam !== 'dataTable'
             ){
@@ -124,6 +124,8 @@ function load_support_files(){
 
 
 function rctf_initialize(env) {
+    rctf.validateCurrentSpecFilename()
+
     preprocessor = require('@badeball/cypress-cucumber-preprocessor')
 
     const { BeforeStep } = preprocessor

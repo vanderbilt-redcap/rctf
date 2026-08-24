@@ -218,7 +218,7 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
             let elm = cy.getLabeledElement('input', label)
 
             if(enter_type === "enter"){
-                elm.eq(ord).scrollIntoView().type(text)
+                elm.eq(ord).scrollIntoView().clear().type(text)
             } else if (enter_type === "clear field and enter") {
                 elm.eq(ord).scrollIntoView().clear().type(text)
             } else if (enter_type === "verify"){
@@ -230,7 +230,7 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
 
         cy.table_cell_by_column_and_row_label(label, '', 'table', 'td', 'td', ord, 'table.addFieldMatrixRowParent', true).then(($td) => {
             if(enter_type === "enter"){
-                cy.wrap($td).find('input:visible').type(text)
+                cy.wrap($td).find('input:visible').clear().type(text)
             } else if (enter_type === "clear field and enter") {
                 cy.wrap($td).find('input:visible').clear().type(text)
             }
@@ -339,6 +339,8 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field labeled {
                         elm = cy.wrap($parent).find(element).eq(ord)
 
                         if(enter_type === "enter"){
+                            elm.clear()
+
                             /**
                              * Force is true because of what seems like a cypress bug preventing
                              * C.3.31.0900 from scrolling a textarea into view before typing.
@@ -365,7 +367,7 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field labeled {
                     //All other cases
                     } else {
                         if(enter_type === "enter"){
-                            cy.wrap($parent).parent().find(element).eq(ord).type(text)
+                            cy.wrap($parent).parent().find(element).eq(ord).clear().type(text)
                         } else if (enter_type === "clear field and enter") {
 
                             //Logic editor does not use an actual textarea; we need to invoke the text instead!
@@ -455,6 +457,7 @@ Given('I {enterType} {string} (is within)(into) the data entry form field labele
                     cy.get('[name="' + $id.split('label-')[1] + '"]')
                 })
                 .click()
+                .clear()
                 .type(text)
                 .blur() //Remove focus after we are done so alerts pop up
         }
@@ -1199,4 +1202,47 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
  */
 Given("I remember to click cancel on the confirmation dialog that appears after the following step", () => {
    window.rctfCancelNextConfirm = true
+})
+
+/**
+ * @module Interactions
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @description Pulls the REDCap+ subscription key from either the REDCAP_PLUS_SUBSCRIPTION_KEY system environment variable, or the 'redcap_plus_subscription_key' value in cypress.env.json, and enters it into the 'Enter a REDCap+ subscription key' field. If REDCap+ tests should not be run on this system, set 'skip_redcap_plus_tests' to true in cypress.env.json to skip tests when they encounter this line.
+ */
+Given("I enter a REDCap+ subscription key into the textarea field labeled {string}", (label) => {
+    const expectedLabel = 'Enter a REDCap+ subscription key'
+    if(label !== expectedLabel){
+        throw new Error(`Invalid label given. The only label supported for this step is '${expectedLabel}'.`)
+    }
+
+    if(Cypress.exposeRCTF('skip_redcap_plus_tests')){
+        cy.state('runnable').ctx.skip()
+        return
+    }
+    
+    let key
+    cy.task('getREDCapPlusSubscriptionKeyEnv').then((keyFromSystemEnv) => {
+        if(keyFromSystemEnv){
+            key = keyFromSystemEnv
+        }
+    }).then(() => {
+        if(key){
+            // The key was set from the system env, which should override the cypress env.
+            return
+        }
+
+        const envParamName = 'redcap_plus_subscription_key'
+        cy.env([envParamName]).then(limitedEnv => {
+            const keyFromCypressEnv = limitedEnv[envParamName]
+            if(keyFromCypressEnv){
+                key = keyFromCypressEnv
+            }
+        })
+    }).then(() => {
+        if(!key){
+            throw new Error(`A REDCap+ subscription key could not be found. To disable REDCap+ tests, add/set 'skip_redcap_plus_tests' to true in cypress.env.json. To enable REDCap+ tests, either add/set 'redcap_plus_subscription_key' in cypress.env.json, or set the 'REDCAP_PLUS_SUBSCRIPTION_KEY' system environment variable.`)
+        }
+
+        cy.get('#plusKey').type(key)
+    })
 })
