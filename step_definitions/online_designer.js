@@ -6,7 +6,14 @@
  * @param {string} addEditField
  */
 Given('I {enterType} Choice(s) of {string} in(to) the open "{addEditField}" dialog box', (enter_type, choices, add_edit_field) => {
-    throw new Error('This step has been removed in favor of steps like the following: And I enter "1, One{enter}2, Two" in the textarea field labeled "Choices"')
+    if (enter_type === "verify") {
+        let field_choices = cy.select_field_choices()
+        console.log(field_choices.value)
+        console.log(field_choices)
+        field_choices.should('contain.value', choices)
+    } else {
+        throw new Error('This step has been removed in favor of steps like the following: And I enter "1, One{enter}2, Two" in the textarea field labeled "Choices"')
+    }
 })
 
 /**
