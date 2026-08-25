@@ -341,7 +341,7 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field labeled {
                         elm = cy.wrap($parent).find(element).eq(ord)
 
                         if(enter_type === "enter"){
-                            elm.clear()
+                            elm.clear({force: true})
 
                             /**
                              * Force is true because of what seems like a cypress bug preventing
