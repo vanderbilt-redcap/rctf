@@ -292,6 +292,8 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
  */
 
 Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field labeled {string}{baseElement}', (enter_type, text, ordinal, label, base_element) => {
+    text = text.replaceAll('\\n', '{enter}') // For B.6.7.1200.
+
     let sel = `:contains(${JSON.stringify(label)}):visible`
 
     let ord = 0
