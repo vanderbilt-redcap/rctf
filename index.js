@@ -214,6 +214,11 @@ function rctf_initialize(env) {
             // Actions performed within the function must be very efficient, as they are called on every step.
             win.alert = rctfAlert
             win.confirm = rctfConfirm
+
+            // Prevent "Leave site?" dialogs since they cause tests to hang (especially important in the cloud).
+            win.onbeforeunload = (event) => {
+                event.stopImmediatePropagation()
+            }
         })
     }
 
