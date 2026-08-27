@@ -17,9 +17,7 @@ Cypress.Commands.add('base_db_seed', () => {
             moduleDirNames.push(currentModuleDirName)
         }
         
-        const queries = [
-            "UPDATE redcap_config SET value = 0 WHERE field_name = 'auto_report_stats'"
-        ]
+        const queries = []
 
         for(const moduleDirName of moduleDirNames){
             const i = moduleDirName.lastIndexOf('_')

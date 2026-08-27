@@ -7,3 +7,4 @@ UPDATE redcap_config SET value='0' WHERE field_name='is_development_server';
 UPDATE redcap_config SET value = '1' WHERE field_name = 'database_query_tool_enabled';
 UPDATE redcap_config SET value = 'fake-automated-testing-address@fake-domain.org' WHERE field_name = 'from_email';
 UPDATE redcap_config SET value = 'fake-automated-testing-address@fake-domain.org' WHERE field_name = 'project_contact_email';
+UPDATE redcap_config SET value = 0 WHERE field_name = 'auto_report_stats';
