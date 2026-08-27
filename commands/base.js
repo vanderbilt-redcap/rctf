@@ -1513,14 +1513,27 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                              */
                             return children[0]
                         }
-                        else if (
+                        else if (current.tagName === 'LABEL' && current.htmlFor !== '') {
+                            /**
+                             * This label has the 'for' attribute set.  Use it.
+                             * 
+                             * We use an attribute selector below because REDCap has some elements with duplicate IDs,
+                             * and we want to consider all of them.  Using cy.get('#some-id') will only find the first one.
+                             */
+                            const matchingChildren = children.filter(child => child.id === current.htmlFor && child.tagName !== 'DIV')
+                            if(matchingChildren.length > 1){
+                                throw "Multiple elements with this ID found: " + current.htmlFor
+                            }
+                            else if(matchingChildren.length === 1){
+                                return matchingChildren[0]
+                            }
+                        }
+                        else {
                             /**
                              * We're likely matching an unrelated group of elements.
                              * They could be children or distant siblings of the desired match
-                             * Regardles, ignore this grouping and start the search again from the next parent.
+                             * Regardless, ignore this grouping and start the search again from the next parent.
                              */
-                            children.length > 1
-                        ) {
                             childrenToIgnore.push(...children)
                         }
                     } else if (
@@ -1528,29 +1541,6 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                         current.tagName === 'A'
                      ){
                         return current
-                    }
-
-                    /**
-                     * Some label elements in REDCap contain mulitple fields.
-                     * Only use 'for' for matching as a last resort if none of the logic above matched the field.
-                     */
-                    if (current.tagName === 'LABEL' && current.htmlFor !== '') {
-                        // This label has the 'for' attribute set.  Use it.
-                        /**
-                         * We use an attribute selector because REDCap has some elements with duplicate IDs,
-                         * and we want to consider all of them.  Using cy.get('#some-id') will only find the first one.
-                         */
-                        return cy.get('[id=' + current.htmlFor + ']').then(results => {
-                            results = results.filter((index, element) => {
-                                return element.tagName !== 'DIV'
-                            })
-
-                            if(results.length > 1){
-                                throw "Multiple elements with this ID found: " +current.htmlFor
-                            }
-
-                            return results[0]
-                        })
                     }
                 } while (current = current.parentElement)
             }
