@@ -1297,7 +1297,7 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
             childSelector.replace(':visible', '') === 'input'
             &&
             // Remember, child.type will be 'text' even when type is not set in the DOM.
-            !['text', 'password', 'email', 'number', 'search', 'tel', 'url', 'file'].includes(child.type)
+            !['text', 'password', 'email', 'number', 'search', 'tel', 'url', 'file', 'date', 'datetime-local'].includes(child.type)
         ){
             /**
              * We're looking for a text type (like checkbox), but found a non-text type.  Ignore this element.
