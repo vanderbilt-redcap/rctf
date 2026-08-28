@@ -1245,23 +1245,14 @@ function getPreferredSibling(text, originalMatch, one, two){
     const indexTwo = siblings.indexOf(twoOrParent)
     const distanceOne = Math.abs(matchIndex - indexOne)
     const distanceTwo = Math.abs(matchIndex - indexTwo)
-    if(distanceOne === distanceTwo){
-        if(
-            // Support the special case for 'dropdown field labeled "to"' language
-            // Alternatively, we could replaces such steps with 'dropdown field labeled "[No Assignment]"' to resolve this.
-            text === 'to'
-            ||
-            text === 'Choose your randomization field' // C.3.30.0600
-        ){
-            return two
-        }
-
-        throw 'Two sibling matches were found the same distance away.  We should consider implementing a way to definitively determine which to match.'
-    }
-    else if(distanceOne < distanceTwo){
+    if(distanceOne < distanceTwo){
         return one
     }
     else{
+        /**
+         * Either two is closer, or this distances are equal.
+         * In the later case, assume the label comes before the element it is labeling.
+         */
         return two
     }
 }
