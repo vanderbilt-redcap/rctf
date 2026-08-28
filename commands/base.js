@@ -1503,6 +1503,15 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                         }
 
                         if (children.length === 1) {
+                            if(children[0].classList.contains('tox-editor-container')){
+                                const textarea = children[0].parentElement.previousElementSibling
+                                if(textarea.tagName !== 'TEXTAREA'){
+                                    throw new Error('Unexpected tox-editor-container element configuration!')
+                                }
+
+                                return textarea
+                            }
+
                             /**
                              * Example Steps:
                              *  I uncheck the first checkbox labeled "Participant Consent"
