@@ -1248,12 +1248,18 @@ function getPreferredSibling(text, originalMatch, one, two){
     if(distanceOne < distanceTwo){
         return one
     }
-    else{
-        /**
-         * Either two is closer, or this distances are equal.
-         * In the later case, assume the label comes before the element it is labeling.
-         */
+    else if (distanceOne > distanceTwo){
         return two
+    }
+    else{ // distanceOne === distanceTwo
+        if(['checkbox', 'radio'].includes(one.type)){
+            // Assume the checkbox comes before the label
+            return one
+        }
+        else{
+            // Assume the input comes after the label
+            return two
+        }
     }
 }
 
