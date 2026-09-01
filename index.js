@@ -118,6 +118,11 @@ function rctf_initialize(env) {
 
     const { BeforeStep } = preprocessor
 
+    let stepCount = 0
+    BeforeStep(() => {
+        stepCount++
+    })
+
     let lastFailingFeature
 
     load_support_files()
@@ -277,6 +282,10 @@ function rctf_initialize(env) {
     afterEach(abortEarly);
 
     after(() => {
+        if(stepCount === 0){
+            throw new Error('No steps were executed! Did this feature accidentally get committed before it was completed? Or should it have "REDUNDANT" in the filename?')
+        }
+
         window.shouldShowAlerts = true
         registerEventListeners()
 
