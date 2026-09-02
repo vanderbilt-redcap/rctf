@@ -1341,7 +1341,7 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
 
     const errorMessage = `The ${type} labeled "${text}" ` + (expectFailure ? 'was unexepectedly found' : 'could not be found')
     
-    return cy.retryUntilTimeout((lastRun) => {
+    return cy.retryUntilTimeout(() => {
         cy.document({log: false}).then(document => {
             const attributeName = 'data-bs-original-title'
             document.querySelectorAll(`[${attributeName}*="<"]`).forEach(element => {
