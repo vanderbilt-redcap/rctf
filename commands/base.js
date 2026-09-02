@@ -1468,6 +1468,9 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                     else if (['input', 'field'].includes(type)){
                         childSelectors = ['input']
                     }
+                    else if (type === 'tab'){
+                        childSelectors = ['a.tab-link']
+                    }
                     else {
                         /**
                          * Leave childSelector blank.
