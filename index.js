@@ -118,6 +118,12 @@ function rctf_initialize(env) {
 
     const { BeforeStep } = preprocessor
 
+    let hadAnyFailure = false
+    Cypress.on('fail', (error) => {
+        hadAnyFailure = true
+        throw error
+    })
+
     let stepCount = 0
     BeforeStep(() => {
         stepCount++
@@ -282,7 +288,12 @@ function rctf_initialize(env) {
     afterEach(abortEarly);
 
     after(() => {
-        if(stepCount === 0){
+        if(
+            stepCount === 0
+            &&
+            // If there is some other failure, let that message be displayed rather than overriding it
+            !hadAnyFailure
+        ){
             throw new Error('No steps were executed! Did this feature accidentally get committed before it was completed? Or should it have "REDUNDANT" in the filename?')
         }
 
