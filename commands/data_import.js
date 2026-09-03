@@ -194,7 +194,7 @@ Cypress.Commands.add('upload_file', (fileName, fileType = ' ', selector = '', bu
 
     cy.top_layer(label_selector).within(() => {
         if(nearest_text.length > 0) {
-            upload_element = cy.get_labeled_element(upload_selector, nearest_text).first()
+            upload_element = cy.getLabeledElement('input', nearest_text)
         } else {
             upload_element = cy.get(selector).filterMatches()
         }
