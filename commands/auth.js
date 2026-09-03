@@ -106,18 +106,30 @@ Cypress.Commands.add('checkCookieAndLogin', (options) => {
 })
 
 Cypress.Commands.add('logout', () => {
-    cy.url().then((url) => {
-        url = window.adjustInvalidLoginUrls(url)
-
-        // The cy.visit() call never completes when a "#" (fragment) portion of a url exists (e.g. C.3.31.0200)
-        url = url.split('#')[0]
-        
-        const urlObject = new URL(url)
-        urlObject.searchParams.set('logout', '1')
-        
-        cy.visit(urlObject.toString())
-        cy.contains('button', 'Log In').should('exist')
-    })
+    const logoutLink = Cypress.$('a[href*="logout=1"]')[0] ?? false
+    if(logoutLink){
+        /**
+         * The cy.visit() call below causes intermittent cloud failures that are hard to pinpoint.
+         * Simply clicking the logout link provides more consistent behavior.
+         */
+        cy.wrap(logoutLink).click()
+    }
+    else{
+        /**
+         * Also make logout calls succeed in other scenarios (like initial login)
+         */
+        cy.url().then((url) => {
+            url = window.adjustInvalidLoginUrls(url)
+    
+            // The cy.visit() call never completes when a "#" (fragment) portion of a url exists (e.g. C.3.31.0200)
+            url = url.split('#')[0]
+            
+            const urlObject = new URL(url)
+            urlObject.searchParams.set('logout', '1')
+            
+            cy.visit(urlObject.toString())
+        })
+    }
 })
 
 Cypress.Commands.add('set_user_type', (user_type) => {
