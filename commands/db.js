@@ -1,6 +1,4 @@
-//#############################################################################
-//# Commands       A B C D E F G H I J K L M N O P Q R S T U V W X Y Z        #
-//#############################################################################
+import {rctf} from '../rctf.mjs'
 
 Cypress.Commands.add('base_db_seed', () => {
     const getAdditionalDatabaseSeedQueries = () => {
@@ -67,7 +65,16 @@ Cypress.Commands.add('base_db_seed', () => {
                  */
                 window.redcap_url_pre_survey = urlData.redcap_url_pre_survey
                 window.original_spec_path = urlData.original_spec_path
-                cy.visit(urlData.url)
+                cy.visit(urlData.url).then(() => {
+                    if(Cypress.$('#rc-login-form').length > 0){
+                        // Our login has timed out. Log back in automatically.
+                        rctf.login(urlData.username)
+                    }
+                    else{
+                        // Save the user so it is available for the next run.
+                        cy.set_user_type(urlData.username)
+                    }
+                })
             })
 
         } else {

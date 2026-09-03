@@ -44,4 +44,16 @@ export const rctf = {
 
         return null
     },
+    login: (username) => {
+        return cy.set_user_type(username).then(() => {
+            /**
+             * We used to use cy.fetch_login() here, but it started failing on some CDIS tests (e.g. C.3.31.2200)
+             * because that command somehow corrupts the session causes it to invalidate when "Standalone Launch" is clicked.
+             * The test began working fine after we changed this to simply interact like actual users would.
+             */
+            cy.getLabeledElement('input', 'Username').type(window.user_info.get_current_user())
+            cy.getLabeledElement('input', 'Password').type(window.user_info.get_current_pass())
+            cy.getLabeledElement('button', 'Log In').click()
+        })
+    }
 }

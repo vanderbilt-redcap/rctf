@@ -313,6 +313,7 @@ function rctf_initialize(env) {
                 url: url,
                 redcap_url_pre_survey: window.redcap_url_pre_survey,
                 original_spec_path: window.original_spec_path,
+                username: window.user_info.get_current_user(),
             }))
         })
 
