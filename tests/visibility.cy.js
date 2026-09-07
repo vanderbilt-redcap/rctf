@@ -87,11 +87,18 @@ function executeStep(stepText, expectedFailureMessage) {
         // The action failed
         Cypress.off('fail', failHandler)
         
-        if(expectedFailureMessage){
-            expect(error.message).to.equal(expectedFailureMessage)
-        }
-        else{
-            throw error
+        try {
+            if(expectedFailureMessage){
+                expect(error.message).to.equal(expectedFailureMessage)
+            }
+            else{
+                throw error
+            }
+         } catch (caughtError) {
+            if(Cypress.config('isInteractive')){
+                Cypress.stop()
+            }
+            throw caughtError
         }
     }
     
@@ -104,6 +111,9 @@ function executeStep(stepText, expectedFailureMessage) {
         Cypress.off('fail', failHandler)
         
         if(expectedFailureMessage){
+            if(Cypress.config('isInteractive')){
+                Cypress.stop()
+            }
             throw new Error('Step succeeded when it was expected to fail')
         }
     })
