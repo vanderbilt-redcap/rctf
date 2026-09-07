@@ -133,6 +133,8 @@ function assertFailure(stepText, expectedFailureMessage) {
     })
 }
 
+Cypress.config('defaultCommandTimeout', 0)
+
 describe('Assert Text Visibility', () => {
     beforeEach(() => {
         return setPageContent('Expected Text')
