@@ -160,12 +160,19 @@ Object.entries({
     'button': `<button>My {{type}}</button>`,
     'link': `<a>My {{type}}</a>`,
     'checkbox': `<input type='checkbox'> My {{type}}`,
-    // 'icon': [
-        // `<i title='My {{type}}></i>`,
-        // `<i></i> My {{type}}`,
-        // `<img title='My {{type}}>`,
-        // `<img> My {{type}}`,
-    // ],
+    'icon': [
+        `
+            <style>
+                /* Simulate what Font Awesome does */
+                .icon:before {
+                    content: "😜";
+                }
+            </style>
+
+            <i class='icon' title='My {{type}}'></i>
+        `,
+        `<img title='My {{type}}'>`,
+    ],
     'dropdown': `My {{type}}: <select></select>`,
     'radio': `<input type='radio'> My {{type}}`,
     'textarea': `My {{type}}: <textarea></textarea>`,
