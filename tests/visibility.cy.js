@@ -120,6 +120,11 @@ function executeStep(stepText, expectedFailureMessage) {
 }
 
 function setPageContent(pageHtml) {
+    /**
+     * Our label detection logic requires a parent element in some cases.
+     */
+    pageHtml = `<div>${pageHtml}</div>`
+
     return cy.document().then((documentObject) => {
         documentObject.open()
         documentObject.write(pageHtml)
@@ -150,7 +155,41 @@ function assertFailure(stepText, expectedFailureMessage) {
  */
 Cypress.config('defaultCommandTimeout', 0)
 
-describe('Assert Text Visibility', () => {
+
+Object.entries({
+    'button': `<button>My {{type}}</button>`,
+    'link': `<a>My {{type}}</a>`,
+    'checkbox': `<input type='checkbox'> My {{type}}`,
+    // 'icon': [
+        // `<i title='My {{type}}></i>`,
+        // `<i></i> My {{type}}`,
+        // `<img title='My {{type}}>`,
+        // `<img> My {{type}}`,
+    // ],
+    'dropdown': `My {{type}}: <select></select>`,
+    'radio': `<input type='radio'> My {{type}}`,
+    'textarea': `My {{type}}: <textarea></textarea>`,
+    'tab': `<a class='tab-link'>My {{type}}</a>`,
+}).forEach(([type, html]) => {
+    if(!(html instanceof Array)){
+        html = [html]
+    }
+
+    html.forEach(currentHtml => {
+        describe('Assert Visibility: ' + type, () => {
+            beforeEach(() => {
+                return setPageContent(currentHtml.replaceAll('{{type}}', type))
+            })
+        
+            assertSuccess(`I should see a ${type} labeled "My ${type}"`)
+            assertSuccess(`I should NOT see a ${type} labeled "Other ${type}"`)
+            assertFailure(`I should see a ${type} labeled "Other ${type}"`, `The ${type} labeled "Other ${type}" could not be found`)
+            assertFailure(`I should NOT see a ${type} labeled "My ${type}"`, `The ${type} labeled "My ${type}" was unexpectedly found`)
+        })
+    })
+})
+
+describe('Assert Visibility: Text', () => {
     beforeEach(() => {
         return setPageContent('Expected Text')
     })
@@ -159,15 +198,4 @@ describe('Assert Text Visibility', () => {
     assertSuccess('I should NOT see "Unexpected Text"')
     assertFailure('I should see "Unexpected Text"', 'Expected text was not found: Unexpected Text')
     assertFailure('I should NOT see "Expected Text"', 'Unexpected text was found: Expected Text')
-})
-
-describe('Assert Button Visibility', () => {
-    beforeEach(() => {
-        return setPageContent('<button>My Button</button>')
-    })
-
-    assertSuccess('I should see a button labeled "My Button"')
-    assertSuccess('I should NOT see a button labeled "Other Button"')
-    assertFailure('I should see a button labeled "Other Button"', 'The button labeled "Other Button" could not be found')
-    assertFailure('I should NOT see a button labeled "My Button"', 'The button labeled "My Button" was unexpectedly found')
 })
