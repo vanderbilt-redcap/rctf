@@ -133,6 +133,11 @@ function assertFailure(stepText, expectedFailureMessage) {
     })
 }
 
+/**
+ * RCTF tests should be designed such that HTML is fully set/loaded
+ * before each step is run. This eliminates the need for a timeout,
+ * and allows tests to execute very quickly.
+ */
 Cypress.config('defaultCommandTimeout', 0)
 
 describe('Assert Text Visibility', () => {
