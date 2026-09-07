@@ -1339,7 +1339,7 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
     cy.log('getLabeledElement', JSON.stringify(arguments))
     console.log('getLabeledElement()', arguments)
 
-    const errorMessage = `The ${type} labeled "${text}" ` + (expectFailure ? 'was unexepectedly found' : 'could not be found')
+    const errorMessage = `The ${type} labeled "${text}" ` + (expectFailure ? 'was unexpectedly found' : 'could not be found')
     
     return cy.retryUntilTimeout(() => {
         cy.document({log: false}).then(document => {
