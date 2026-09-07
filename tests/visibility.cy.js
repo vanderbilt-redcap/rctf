@@ -155,7 +155,6 @@ function assertFailure(stepText, expectedFailureMessage) {
  */
 Cypress.config('defaultCommandTimeout', 0)
 
-
 Object.entries({
     'button': `<button>My {{type}}</button>`,
     'link': `<a>My {{type}}</a>`,
