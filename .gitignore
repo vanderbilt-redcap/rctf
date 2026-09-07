@@ -5,3 +5,5 @@
 /test_db/*.tmp
 /step_definitions/support/hints.js
 /step-usage.json
+/coverage
+/.nyc_output

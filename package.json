@@ -17,7 +17,10 @@
     "sed-lite": "^0"
   },
   "devDependencies": {
-    "documentation": "github:documentationjs/documentation"
+    "@cypress/code-coverage": "^4.0.3",
+    "documentation": "github:documentationjs/documentation",
+    "istanbul-lib-instrument": "^6.0.3",
+    "nyc": "^18.0.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

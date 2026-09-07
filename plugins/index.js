@@ -23,6 +23,7 @@ const os = require('os')
 const csv = require('async-csv')
 const path = require('path')
 const pdf = require('pdf-parse')
+const { createInstrumenter } = require('istanbul-lib-instrument')
 const {
     addCucumberPreprocessorPlugin,
     beforeRunHandler,
@@ -33,8 +34,97 @@ const {
 } = require("@badeball/cypress-cucumber-preprocessor")
 const {createEsbuildPlugin}  = require("@badeball/cypress-cucumber-preprocessor/esbuild")
 const glob = require('glob')
-const { execSync } = require('child_process');
+const { execSync, spawnSync } = require('child_process');
 const { ResultsUploader } = require('./ResultsUploader.js')
+
+const workspaceRoot = path.resolve(__dirname, '..')
+
+function isCodeCoverageEnabled(config) {
+    return config.env.codeCoverage === true
+}
+
+function shouldInstrumentFile(filePath) {
+    const relativePath = path.relative(workspaceRoot, filePath)
+
+    if (relativePath.startsWith('..')) {
+        return false
+    }
+
+    if (relativePath === 'index.js') {
+        return true
+    }
+
+    return [
+        `commands${path.sep}`,
+        `step_definitions${path.sep}`,
+        `support${path.sep}`,
+    ].some((directoryPrefix) => {
+        return relativePath.startsWith(directoryPrefix)
+    })
+}
+
+function createCoverageInstrumentationPlugin(config) {
+    return {
+        name: 'rctf-coverage-instrumentation',
+        setup(build) {
+            if (!isCodeCoverageEnabled(config)) {
+                return
+            }
+
+            const instrumenter = createInstrumenter({
+                compact: false,
+                coverageVariable: '__coverage__',
+                esModules: true,
+                produceSourceMap: true,
+            })
+
+            build.onLoad({ filter: /\.[cm]?js$/ }, async (args) => {
+                if (!shouldInstrumentFile(args.path)) {
+                    return null
+                }
+
+                const sourceCode = await fs.promises.readFile(args.path, 'utf8')
+                const instrumentedSourceCode = instrumenter.instrumentSync(sourceCode, args.path)
+
+                return {
+                    contents: instrumentedSourceCode,
+                    loader: 'js',
+                }
+            })
+        },
+    }
+}
+
+function writeCoverageReport() {
+    const nycCliPath = require.resolve('nyc/bin/nyc.js')
+    const nycResult = spawnSync(
+        process.execPath,
+        [nycCliPath, 'report', '--reporter=lcov', '--reporter=text-summary'],
+        {
+            cwd: workspaceRoot,
+            encoding: 'utf8',
+        },
+    )
+
+    if (nycResult.status !== 0) {
+        throw new Error(`Failed to generate coverage report:\n${nycResult.stderr || nycResult.stdout}`)
+    }
+
+    if (nycResult.stdout.trim()) {
+        console.log(nycResult.stdout.trim())
+    }
+
+    const lcovInfoPath = path.join(workspaceRoot, 'coverage', 'lcov.info')
+
+    if (fs.existsSync(lcovInfoPath)) {
+        const lcovContents = fs.readFileSync(lcovInfoPath, 'utf8')
+        const normalizedLcovContents = lcovContents.replace(/^SF:(.+)$/gm, (fullMatch, filePath) => {
+            return `SF:${filePath.replaceAll('\\', '/')}`
+        })
+
+        fs.writeFileSync(lcovInfoPath, normalizedLcovContents)
+    }
+}
 
 module.exports = (cypressOn, config) => {
     const on = require('cypress-on-fix')(cypressOn)
@@ -52,6 +142,8 @@ module.exports = (cypressOn, config) => {
         omitAfterScreenshotHandler: true,
     })
 
+    require('@cypress/code-coverage/task')(on, config)
+
     // Own the esbuild watch loop (instead of createBundler) so a rebuild failure
     // yields a spec that throws at runtime rather than a rejected bundle promise --
     // the latter makes Cypress relaunch the browser to show its compile-error screen.
@@ -60,7 +152,12 @@ module.exports = (cypressOn, config) => {
 
     const bundle = (file) => {
         const { filePath, outputPath, shouldWatch } = file
-        const options = { plugins: [createEsbuildPlugin(config)], entryPoints: [filePath], outfile: outputPath, bundle: true }
+        const options = {
+            plugins: [createEsbuildPlugin(config), createCoverageInstrumentationPlugin(config)],
+            entryPoints: [filePath],
+            outfile: outputPath,
+            bundle: true,
+        }
 
         // In `cypress run` a compile failure must be fatal, so bundle once and let it reject.
         if (!shouldWatch) return esbuild.build(options).then(() => outputPath)
@@ -113,6 +210,11 @@ module.exports = (cypressOn, config) => {
     on("before:run", async (details) => {
         beforeRunHandler(config);
 
+        if (isCodeCoverageEnabled(config)) {
+            fs.rmSync(path.join(workspaceRoot, '.nyc_output'), { force: true, recursive: true })
+            fs.rmSync(path.join(workspaceRoot, 'coverage'), { force: true, recursive: true })
+        }
+
         // Your own `before:run` code goes here.
     })
 
@@ -158,6 +260,11 @@ module.exports = (cypressOn, config) => {
 
     on("after:spec", async (spec, results) => {
         afterSpecHandler(config, spec, results);
+
+        if (isCodeCoverageEnabled(config)) {
+            // Write after npx cypress open
+            writeCoverageReport()
+        }
 
         results.cypressVersion = config.version
         results.browser = browser

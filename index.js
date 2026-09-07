@@ -1,5 +1,13 @@
 const rctf = require('./rctf.mjs').rctf
 
+if (
+    typeof Cypress !== 'undefined' // Don't load coverage if running get-step-usage.sh 
+    &&
+    Cypress.env('codeCoverage')
+) {
+    require('@cypress/code-coverage/support')
+}
+
 // Check to see if Given is defined. We may be calling get-step-usage.sh which uses an alternate definition.
 if(!globalThis.Given){
     const { Given, defineParameterType } = require('@badeball/cypress-cucumber-preprocessor')
