@@ -141,7 +141,9 @@ module.exports = (cypressOn, config) => {
         omitAfterScreenshotHandler: true,
     })
 
-    require('@cypress/code-coverage/task')(on, config)
+    if (isCodeCoverageEnabled(config)) {
+        require('@cypress/code-coverage/task')(on, config)
+    }
 
     // Own the esbuild watch loop (instead of createBundler) so a rebuild failure
     // yields a spec that throws at runtime rather than a rejected bundle promise --
