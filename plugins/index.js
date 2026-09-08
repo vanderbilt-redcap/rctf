@@ -23,7 +23,6 @@ const os = require('os')
 const csv = require('async-csv')
 const path = require('path')
 const pdf = require('pdf-parse')
-const { createInstrumenter } = require('istanbul-lib-instrument')
 const {
     addCucumberPreprocessorPlugin,
     beforeRunHandler,
@@ -71,7 +70,7 @@ function createCoverageInstrumentationPlugin(config) {
                 return
             }
 
-            const instrumenter = createInstrumenter({
+            const instrumenter = require('istanbul-lib-instrument').createInstrumenter({
                 compact: false,
                 coverageVariable: '__coverage__',
                 esModules: true,
@@ -153,10 +152,14 @@ module.exports = (cypressOn, config) => {
     const bundle = (file) => {
         const { filePath, outputPath, shouldWatch } = file
         const options = {
-            plugins: [createEsbuildPlugin(config), createCoverageInstrumentationPlugin(config)],
+            plugins: [createEsbuildPlugin(config)],
             entryPoints: [filePath],
             outfile: outputPath,
             bundle: true,
+        }
+
+        if (isCodeCoverageEnabled(config)) {
+            options.plugins.push(createCoverageInstrumentationPlugin(config))
         }
 
         // In `cypress run` a compile failure must be fatal, so bundle once and let it reject.
