@@ -5,7 +5,18 @@ if (
     &&
     Cypress.env('codeCoverage')
 ) {
-    require('@cypress/code-coverage/support')
+    try{
+        require('@cypress/code-coverage/support')
+    }
+    catch(error){
+        /**
+         * The esbuild bundler will execute the above require call statically
+         * without actually evaluating the if statement to see if it needs to
+         * be loaded. So we catch the error when it is thrown.
+         * This occurs during redcap_cypress' "npx cypress run" command.
+         */
+        console.log('Skipping require of @cypress/code-coverage/support')
+    }
 }
 
 // Check to see if Given is defined. We may be calling get-step-usage.sh which uses an alternate definition.
