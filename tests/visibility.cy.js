@@ -155,7 +155,7 @@ function assertFailure(stepText, expectedFailureMessage) {
  */
 Cypress.config('defaultCommandTimeout', 0)
 
-Object.entries({
+const htmlByType = {
     'button': `<button>My {{type}}</button>`,
     'link': `<a>My {{type}}</a>`,
     'field': `My {{type}}: <input>`,
@@ -177,7 +177,14 @@ Object.entries({
     'radio': `<input type='radio'> My {{type}}`,
     'textarea': `My {{type}}: <textarea></textarea>`,
     'tab': `<a class='tab-link'>My {{type}}</a>`,
-}).forEach(([type, html]) => {
+}
+
+parameterTypes.optionalLabeledElement.forEach(type => {
+    let html = htmlByType[type]
+    if(html === undefined){
+        throw new Error('Test html needs to be specified for the following labeled element type: ' + type)
+    }
+
     if(!(html instanceof Array)){
         html = [html]
     }
