@@ -205,3 +205,12 @@ describe('Assert Visibility: Text', () => {
     assertFailure('I should see "Unexpected Text"', 'Expected text was not found: Unexpected Text')
     assertFailure('I should NOT see "Expected Text"', 'Unexpected text was found: Expected Text')
 })
+
+describe('Misc. assertions', () => {
+    it('Ensure innerText is used instead of textContent since the former automatically normalizes whitespace between elements and favors matching using simple spaces rather than newlines, tabs, or nbsps', () => {
+        const command = 'git grep "\\.textContent" |grep -v ^docs/ |grep -v ^tests/ | grep -v "Ignore this line when verifying textContext usage"'
+        cy.exec(command, {failOnNonZeroExit: false}).then(result => {
+            assert.equal('', result.stdout, 'Found unexpected instances of textContent. They should likely be replaced with innerText')
+        })
+    })
+})

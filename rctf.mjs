@@ -68,7 +68,7 @@ export const rctf = {
         let text
         if(node.constructor.name === 'Text'){
             // This is a text node, as opposed to an actual HTML element
-            text = node.textContent
+            text = node.textContent // Ignore this line when verifying textContext usage
         }
         else{
             text = node.innerText
