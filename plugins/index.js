@@ -36,6 +36,9 @@ const glob = require('glob')
 const { execSync, spawnSync } = require('child_process');
 const { ResultsUploader } = require('./ResultsUploader.js')
 
+// Define rctf everywhere on the node side of things
+globalThis.rctf = require('../rctf.mjs').rctf
+
 const workspaceRoot = path.resolve(__dirname, '..')
 
 function isCodeCoverageEnabled(config) {
@@ -111,11 +114,6 @@ function writeCoverageReport() {
 
 module.exports = (cypressOn, config) => {
     const on = require('cypress-on-fix')(cypressOn)
-
-    const getRCTF = async () =>{
-        const imported = await import('../rctf.mjs') 
-        return imported.rctf
-    }
 
     addCucumberPreprocessorPlugin(on, config, {
         omitBeforeRunHandler: true,
@@ -313,7 +311,7 @@ module.exports = (cypressOn, config) => {
              * We're clearing the DB.  We should clear the filesystem at the same time,
              * to ensure each test starts with a clean slate.
              */
-            for (const [name, directory] of Object.entries((await getRCTF()).STORAGE_DIRECTORY_LOCATIONS)) {
+            for (const [name, directory] of Object.entries(rctf.STORAGE_DIRECTORY_LOCATIONS)) {
                 if(directory === false){
                     continue
                 }
@@ -563,7 +561,7 @@ module.exports = (cypressOn, config) => {
         },
 
         async getStorageDirectoryLocations() {
-            return (await getRCTF()).STORAGE_DIRECTORY_LOCATIONS
+            return rctf.STORAGE_DIRECTORY_LOCATIONS
         },
 
         createTempFile({filename, content}){

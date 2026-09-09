@@ -61,7 +61,7 @@ Cypress.Commands.add('change_event_name', (current_name, proposed_name = '', pro
         if(current_name === proposed_name) {
             cy.get('div.menubox').contains('Project status:').then(($element) => {
                 // Extract the text content of the entire div
-                const textContent = $element.text()
+                const textContent = rctf.getNormalizedTextContent($element[0])
 
                 // Use a regular expression to extract the project status value
                 const match = textContent.match(/Project status:\s*(\w+)/);

@@ -64,4 +64,16 @@ export const rctf = {
         // Replace '&nbsp;' so that normal spaces in steps will match that character
         return s.trim().replaceAll('\u00a0', ' ')
     },
+    getNormalizedTextContent: (node) => {
+        let text
+        if(node.constructor.name === 'Text'){
+            // This is a text node, as opposed to an actual HTML element
+            text = node.textContent
+        }
+        else{
+            text = node.innerText
+        }
+
+        return rctf.normalizeString(text)
+    },
 }

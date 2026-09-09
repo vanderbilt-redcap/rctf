@@ -1,3 +1,4 @@
+// Define rctf everywhere on the browser side of things
 globalThis.rctf = require('./rctf.mjs').rctf
 
 if (

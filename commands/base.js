@@ -924,8 +924,7 @@ function getShortestMatchingNodeLength(textToFind, element) {
         // This is required for 'on the dropdown field labeled "to"' syntax
         element.childNodes.forEach(child => {
             if(child.constructor.name === 'Text'){
-                let content = child.textContent
-                content = content.replaceAll(' ', ' ') // Replace no-break space chars to make matching work in more cases
+                let content = rctf.getNormalizedTextContent(child)
                 if(content.includes(textToFind)){
                     text = content
                 }
@@ -947,7 +946,7 @@ function getShortestMatchingNodeLength(textToFind, element) {
     }
 
     if(!text){
-        text = element.textContent
+        text = rctf.getNormalizedTextContent(element)
     }
 
     if(!text){
@@ -1166,7 +1165,7 @@ function getPreferredSibling(text, originalMatch, one, two){
 
         const nodeMatches = Array.from(originalMatch.childNodes).filter(child => {
             return child.tagName !== 'SCRIPT' // C.3.30.0500
-                && child.textContent.includes(text)
+                && rctf.getNormalizedTextContent(child).includes(text)
         })
 
         if(nodeMatches.length === 0){
@@ -1308,7 +1307,7 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
     removeUnpreferredSiblings(text, originalMatch, children)
 
     const exactMatches = children.filter(child =>{
-        return rctf.normalizeString(child.textContent) === selectOption // B.6.7.1900.
+        return rctf.getNormalizedTextContent(child) === selectOption // B.6.7.1900.
     })
 
     if(exactMatches.length > 0){
@@ -1338,7 +1337,7 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
             document.querySelectorAll(`[${attributeName}*="<"]`).forEach(element => {
                 // Remove html tags from bootstrap titles to allow matching things like "<b>Edit</b> Branching Logic"
                 const attributeText = element.getAttribute(attributeName)
-                element.setAttribute(attributeName, new DOMParser().parseFromString(attributeText, 'text/html').body.textContent)
+                element.setAttribute(attributeName, rctf.getNormalizedTextContent(new DOMParser().parseFromString(attributeText, 'text/html').body))
             })
         })
 
