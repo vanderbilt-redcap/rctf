@@ -215,6 +215,18 @@ parameterTypes.optionalLabeledElement.forEach(type => {
     })
 })
 
+describe('Assert checkbox status', () => {
+    beforeEach(() => {
+        return setPageContent(`
+            <input type='checkbox' checked> Checked Checkbox
+            <input type='checkbox'> Unchecked Checkbox
+        `)
+    })
+
+    assertSuccess('I should see a checkbox labeled "Checked Checkbox" that is checked')
+    assertSuccess('I should see a checkbox labeled "Unchecked Checkbox" that is unchecked')
+})
+
 describe('Assert Visibility: Text', () => {
     beforeEach(() => {
         return setPageContent('Expected Text')
