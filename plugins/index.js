@@ -43,23 +43,7 @@ function isCodeCoverageEnabled(config) {
 }
 
 function shouldInstrumentFile(filePath) {
-    const relativePath = path.relative(workspaceRoot, filePath)
-
-    if (relativePath.startsWith('..')) {
-        return false
-    }
-
-    if (relativePath === 'index.js') {
-        return true
-    }
-
-    return [
-        `commands${path.sep}`,
-        `step_definitions${path.sep}`,
-        `support${path.sep}`,
-    ].some((directoryPrefix) => {
-        return relativePath.startsWith(directoryPrefix)
-    })
+    return !filePath.includes('node_modules')
 }
 
 function createCoverageInstrumentationPlugin(config) {
