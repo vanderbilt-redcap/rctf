@@ -274,7 +274,7 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
             }
         } else if (enter_type === "verify"){
             if(window.dateFormats.hasOwnProperty(text)){
-                //elm.invoke('val').should('match', window.dateFormats[text])
+                elm.invoke('val').should('match', window.dateFormats[text])
             } else {
                 elm.invoke('val').should('include', text)
             }
