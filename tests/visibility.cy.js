@@ -156,10 +156,10 @@ function assertFailure(stepText, expectedFailureMessage) {
 Cypress.config('defaultCommandTimeout', 0)
 
 const htmlByType = {
-    'button': `<button disabled>My {{type}}</button>`,
-    'link': `<a>My {{type}}</a>`,
-    'field': `My {{type}}: <input disabled>`,
-    'checkbox': `<input type='checkbox' disabled> My {{type}}`,
+    'button': `<button disabled>My button</button>`,
+    'link': `<a>My link</a>`,
+    'field': `My field: <input disabled>`,
+    'checkbox': `<input type='checkbox' disabled> My checkbox`,
     'icon': [
         `
             <style>
@@ -169,14 +169,14 @@ const htmlByType = {
                 }
             </style>
 
-            <i class='icon' title='My {{type}}'></i>
+            <i class='icon' title='My icon'></i>
         `,
-        `<img title='My {{type}}'>`,
+        `<img title='My icon'>`,
     ],
-    'dropdown': `My {{type}}: <select disabled></select>`,
-    'radio': `<input type='radio' disabled> My {{type}}`,
-    'textarea': `My {{type}}: <textarea disabled></textarea>`,
-    'tab': `<a class='tab-link'>My {{type}}</a>`,
+    'dropdown': `My dropdown: <select disabled></select>`,
+    'radio': `<input type='radio' disabled> My radio`,
+    'textarea': `My textarea: <textarea disabled></textarea>`,
+    'tab': `<a class='tab-link'>My tab</a>`,
 }
 
 parameterTypes.optionalLabeledElement.forEach(type => {
@@ -192,7 +192,7 @@ parameterTypes.optionalLabeledElement.forEach(type => {
     html.forEach(currentHtml => {
         describe('Assert Visibility: ' + type, () => {
             beforeEach(() => {
-                return setPageContent(currentHtml.replaceAll('{{type}}', type))
+                return setPageContent(currentHtml)
             })
         
             assertSuccess(`I should see a ${type} labeled "My ${type}"`)
