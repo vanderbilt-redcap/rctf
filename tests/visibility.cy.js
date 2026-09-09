@@ -158,6 +158,7 @@ Cypress.config('defaultCommandTimeout', 0)
 Object.entries({
     'button': `<button>My {{type}}</button>`,
     'link': `<a>My {{type}}</a>`,
+    'field': `My {{type}}: <input>`,
     'checkbox': `<input type='checkbox'> My {{type}}`,
     'icon': [
         `
