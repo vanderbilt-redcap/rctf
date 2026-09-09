@@ -20,7 +20,14 @@ function performAction(action, element, elementStatus){
         element.should('be.visible')
 
         if (elementStatus === "that is disabled") {
-            element.should('be.disabled')
+            element.then(element => {
+                const type = element[0].tagName
+                if(['A', 'I', 'IMG'].includes(type)){
+                    throw new Error('The "that is disabled" suffix it not supported for this element')
+                }
+                
+                cy.wrap(element).should('be.disabled')
+            })
         }
         else if (elementStatus === "that is checked") {
             element.should("be.checked")

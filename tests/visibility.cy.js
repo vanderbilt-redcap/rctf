@@ -88,7 +88,7 @@ function executeStep(stepText, expectedFailureMessage) {
         Cypress.off('fail', failHandler)
         
         try {
-            if(expectedFailureMessage){
+            if(expectedFailureMessage !== undefined){
                 expect(error.message).to.equal(expectedFailureMessage)
             }
             else{
@@ -144,7 +144,7 @@ function assertSuccess(stepText) {
 
 function assertFailure(stepText, expectedFailureMessage) {
     it('Assert Failure: ' + stepText, () => {
-        executeStep(stepText, expectedFailureMessage)
+        executeStep(stepText, expectedFailureMessage ?? '')
     })
 }
 
@@ -156,10 +156,10 @@ function assertFailure(stepText, expectedFailureMessage) {
 Cypress.config('defaultCommandTimeout', 0)
 
 const htmlByType = {
-    'button': `<button>My {{type}}</button>`,
+    'button': `<button disabled>My {{type}}</button>`,
     'link': `<a>My {{type}}</a>`,
-    'field': `My {{type}}: <input>`,
-    'checkbox': `<input type='checkbox'> My {{type}}`,
+    'field': `My {{type}}: <input disabled>`,
+    'checkbox': `<input type='checkbox' disabled> My {{type}}`,
     'icon': [
         `
             <style>
@@ -173,9 +173,9 @@ const htmlByType = {
         `,
         `<img title='My {{type}}'>`,
     ],
-    'dropdown': `My {{type}}: <select></select>`,
-    'radio': `<input type='radio'> My {{type}}`,
-    'textarea': `My {{type}}: <textarea></textarea>`,
+    'dropdown': `My {{type}}: <select disabled></select>`,
+    'radio': `<input type='radio' disabled> My {{type}}`,
+    'textarea': `My {{type}}: <textarea disabled></textarea>`,
     'tab': `<a class='tab-link'>My {{type}}</a>`,
 }
 
@@ -199,6 +199,18 @@ parameterTypes.optionalLabeledElement.forEach(type => {
             assertSuccess(`I should NOT see a ${type} labeled "Other ${type}"`)
             assertFailure(`I should see a ${type} labeled "Other ${type}"`, `The ${type} labeled "Other ${type}" could not be found`)
             assertFailure(`I should NOT see a ${type} labeled "My ${type}"`, `The ${type} labeled "My ${type}" was unexpectedly found`)
+
+            let disabledAction
+            if(['link', 'icon', 'tab'].includes(type)){
+                disabledAction = (step) => {
+                    assertFailure(step, 'The "that is disabled" suffix it not supported for this element')
+                }
+            }
+            else{
+                disabledAction = assertSuccess
+            }
+
+            disabledAction(`I should see a ${type} labeled "My ${type}" that is disabled`)
         })
     })
 })
