@@ -230,6 +230,8 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
                 elm.eq(ord).scrollIntoView().clear().type(text)
             } else if (enter_type === "verify"){
                 elm.eq(ord).scrollIntoView().invoke('val').should('include', text)
+            } else {
+                throw new Error('The following enterType is not supported in this context' + enter_type)
             }
         })
 
@@ -240,6 +242,8 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
                 cy.wrap($td).find('input:visible').clear().type(text)
             } else if (enter_type === "clear field and enter") {
                 cy.wrap($td).find('input:visible').clear().type(text)
+            } else {
+                throw new Error('The following enterType is not supported in this context' + enter_type)
             }
         })
 
@@ -274,6 +278,8 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
             } else {
                 elm.invoke('val').should('include', text)
             }
+        } else {
+            throw new Error('The following enterType is not supported in this context' + enter_type)
         }
     }
 }
@@ -351,6 +357,8 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field labeled {
                             }
                         } else if(enter_type === "click on"){
                             elm.click()
+                        } else {
+                            throw new Error('The following enterType is not supported in this context' + enter_type)
                         }
                     }
 
@@ -385,6 +393,8 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field labeled {
 
                         } else if(enter_type === "click on"){
                             cy.wrap($parent).parent().find(element).eq(ord).click()
+                        } else {
+                            throw new Error('The following enterType is not supported in this context' + enter_type)
                         }
                     }
                 }
@@ -802,6 +812,10 @@ Given("I wait for {int} hour(s)", (hours) => {
  */
 Given("I {enterType} {string} into the field with the placeholder text of {string}", (enter_type, text, placeholder) => {
     const selector = 'input[placeholder="' + placeholder + '"]:visible,input[value="' + placeholder + '"]:visible'
+
+    if (!['enter', 'clear field and enter'].includes(enter_type)) {
+        throw new Error('The following enterType is not supported in this context' + enter_type)
+    }
 
     /**
      * We used to skip the clear() call and append text based on the enterType param,
