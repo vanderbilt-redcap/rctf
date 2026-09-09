@@ -1,4 +1,4 @@
-const rctf = require('./rctf.mjs').rctf
+globalThis.rctf = require('./rctf.mjs').rctf
 
 if (
     typeof Cypress !== 'undefined' // Don't load coverage if running get-step-usage.sh 

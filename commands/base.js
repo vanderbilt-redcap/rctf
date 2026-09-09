@@ -1133,15 +1133,6 @@ Cypress.Commands.add("filterMatches", {prevSubject: true}, function (matches, te
     return matches
 })
 
-function normalizeString(s){
-    if(s === undefined){
-        return undefined
-    }
-
-    // Replace '&nbsp;' so that normal spaces in steps will match that character
-    return s.trim().replaceAll('\u00a0', ' ')
-}
-
 /**
  * We tried implementing this as an exact match at first, but that made some steps unweildly.
  * For example:
@@ -1150,13 +1141,13 @@ function normalizeString(s){
  *      I select "gender (Do you describe yourself as a man, a woman, or in some other way?)..."...
  */
 Cypress.$.expr[':'].containsCustom = Cypress.$.expr.createPseudo(function(arg) {
-    arg = normalizeString(arg)
+    arg = rctf.normalizeString(arg)
 
     // Remove any double quote escaping added by JSON.stringify()
     arg = JSON.parse('"' + arg + '"')
 
     return function( elem ) {
-        return normalizeString(Cypress.$(elem).text()).includes(arg)
+        return rctf.normalizeString(Cypress.$(elem).text()).includes(arg)
     };
 });
 
@@ -1290,7 +1281,7 @@ function removeUnpreferredSiblings(text, originalMatch, children){
 
 function findMatchingChildren(text, selectOption, originalMatch, searchParent, childSelector, childrenToIgnore) {
     console.log('findMatchingChildren', arguments)
-    selectOption = normalizeString(selectOption)
+    selectOption = rctf.normalizeString(selectOption)
 
     let children = Array.from(Cypress.$(searchParent).find(childSelector)).filter(child => {
         if(
@@ -1317,7 +1308,7 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
     removeUnpreferredSiblings(text, originalMatch, children)
 
     const exactMatches = children.filter(child =>{
-        return normalizeString(child.textContent) === selectOption // B.6.7.1900.
+        return rctf.normalizeString(child.textContent) === selectOption // B.6.7.1900.
     })
 
     if(exactMatches.length > 0){

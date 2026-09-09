@@ -55,5 +55,13 @@ export const rctf = {
             cy.getLabeledElement('input', 'Password').type(window.user_info.get_current_pass())
             cy.getLabeledElement('button', 'Log In').click()
         })
-    }
+    },
+    normalizeString: (s) => {
+        if(s === undefined){
+            return undefined
+        }
+
+        // Replace '&nbsp;' so that normal spaces in steps will match that character
+        return s.trim().replaceAll('\u00a0', ' ')
+    },
 }
