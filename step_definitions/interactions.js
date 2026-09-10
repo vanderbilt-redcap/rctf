@@ -148,26 +148,9 @@ Given("I enter the current user's Super API Token into the( ){ordinal}( ){inputT
  */
 Given('I enter the code that was emailed to the current user into the( ){ordinal}( ){inputType} field( ){columnLabel} labeled {string}{iframeVisibility}', (...args) => {
     const getCodeFromEmail = () => {
-        return cy.request('http://localhost:8025/api/v1/messages').then(response => {
-            // Make null the default return value & override any previous subject
-            cy.wrap(null)
-
-            const messages = response.body 
-            if(messages.length === 0){
-                // Maybe it hasn't come through yet.  Return to retry.
-                return
-            }
-
-            const lastMessage = messages[0].Content
-
-            const timeSinceSent = Date.now() - new Date(lastMessage.Headers.Date)
-            if(timeSinceSent > 10000){
-                // Ignore any old emails
-                return
-            }
-            
+        return rctf.getLatestEmail().then(email => {
             let code = null
-            lastMessage.Body.split('\r').forEach(line => {
+            email.Body.split('\r').forEach(line => {
                 if(code === null && line.includes('verification code is')){
                     code = line.split(' ').at(-1)
                 }
@@ -186,7 +169,7 @@ Given('I enter the code that was emailed to the current user into the( ){ordinal
                     getSentEmails()
                 }
                 else{
-                    throw 'Could not find a recent message containing an authentication code: ' + lastMessage
+                    throw 'Could not find a recent message containing an authentication code'
                 }
             }
             else{
@@ -1273,4 +1256,19 @@ Given("I press the {string} key", (key) => {
     }
      
     cy.press(key)
+})
+
+/**
+ * @module Interactions
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @param {string} email_address - The expected email to address
+ * @param {string} subject - All or part of the expected email subject
+ * @param {string} body - All or part of the expected email body
+ */
+Given('I verify that an email was sent to {string} with a subject containing {string} and content containing {string}', (email_address, subject, body) => {
+    rctf.getLatestEmail().then(email => {
+        expect(email.Headers.To[0]).to.equal(email_address)
+        expect(email.Headers.Subject[0]).to.contain(subject)
+        expect(email.Body).to.contain(body)
+    })
 })

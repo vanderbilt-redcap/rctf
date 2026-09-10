@@ -1,3 +1,5 @@
+import { mimeWordsDecode } from 'emailjs-mime-codec'
+
 export const rctf = {
     STORAGE_DIRECTORY_LOCATIONS: {
         'local storage path': '../edocs',
@@ -75,5 +77,30 @@ export const rctf = {
         }
 
         return rctf.normalizeString(text)
+    },
+    getLatestEmail: () => {
+        return cy.request('http://localhost:8025/api/v1/messages').then(response => {
+            // Make null the default return value & override any previous subject
+            cy.wrap(null)
+
+            const messages = response.body 
+            if(messages.length === 0){
+                // Maybe it hasn't come through yet.  Return to retry.
+                return
+            }
+
+            const lastMessage = messages[0].Content
+
+            // It seems like mailhog's API would decode the subject for us, but it doesn't.
+            lastMessage.Headers.Subject[0] = mimeWordsDecode(lastMessage.Headers.Subject[0])
+
+            const timeSinceSent = Date.now() - new Date(lastMessage.Headers.Date)
+            if(timeSinceSent > 10000){
+                // Ignore any old emails
+                return
+            }
+
+            cy.wrap(lastMessage)
+        })
     },
 }
