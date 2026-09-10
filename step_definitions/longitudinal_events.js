@@ -14,8 +14,11 @@ Given("I change the current Event Name from {string} to {string}", (current_name
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} currentName - the name of the event when this step is reached
  * @description Verifies the event name cannot be changed in production mode
+ * @deprecated
  */
 Given("I verify I cannot change the Event Name of {string} while in production", (current_name) => {
+   throw `This step has been removed because it is not used by RSVC, and can likely be replaced by other more general steps. If no one requests it be re-enabled, it will be removed at a future time.`
+
    cy.change_event_name(current_name, current_name, true)
 })
 
