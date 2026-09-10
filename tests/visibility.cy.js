@@ -155,64 +155,71 @@ function assertFailure(stepText, expectedFailureMessage) {
  */
 Cypress.config('defaultCommandTimeout', 0)
 
-const htmlByType = {
-    'button': `<button disabled>My button</button>`,
-    'link': `<a>My link</a>`,
-    'field': `My field: <input disabled>`,
-    'checkbox': `<input type='checkbox' disabled> My checkbox`,
-    'icon': [
-        `
-            <style>
-                /* Simulate what Font Awesome does */
-                .icon:before {
-                    content: "😜";
-                }
-            </style>
 
-            <i class='icon' title='My icon'></i>
-        `,
-        `<img title='My icon'>`,
-    ],
-    'dropdown': `My dropdown: <select disabled></select>`,
-    'radio': `<input type='radio' disabled> My radio`,
-    'textarea': `My textarea: <textarea disabled></textarea>`,
-    'tab': `<a class='tab-link'>My tab</a>`,
-}
+const forEachType = (types, groupNamePrefix, action) => {
+    const htmlByType = {
+        'button': `<button disabled>My button</button>`,
+        'link': `<a>My link</a>`,
+        'field': `My field: <input disabled>`,
+        'checkbox': `<input type='checkbox' disabled> My checkbox`,
+        'icon': [
+            `
+                <style>
+                    /* Simulate what Font Awesome does */
+                    .icon:before {
+                        content: "😜";
+                    }
+                </style>
 
-parameterTypes.optionalLabeledElement.forEach(type => {
-    let html = htmlByType[type]
-    if(html === undefined){
-        throw new Error('Test html needs to be specified for the following labeled element type: ' + type)
+                <i class='icon' title='My icon'></i>
+            `,
+            `<img title='My icon'>`,
+        ],
+        'dropdown': `My dropdown: <select disabled></select>`,
+        'radio': `<input type='radio' disabled> My radio`,
+        'textarea': `My textarea: <textarea disabled></textarea>`,
+        'tab': `<a class='tab-link'>My tab</a>`,
     }
 
-    if(!(html instanceof Array)){
-        html = [html]
-    }
+    types.forEach(type => {
+        let html = htmlByType[type]
+        if(html === undefined){
+            throw new Error('Test html needs to be specified for the following labeled element type: ' + type)
+        }
 
-    html.forEach(currentHtml => {
-        describe('Assert Visibility: ' + type, () => {
-            beforeEach(() => {
-                return setPageContent(currentHtml)
+        if(!(html instanceof Array)){
+            html = [html]
+        }
+
+        html.forEach(currentHtml => {
+            describe(groupNamePrefix + ' ' + type, () => {
+                beforeEach(() => {
+                    return setPageContent(currentHtml)
+                })
+
+                action(type)
             })
-        
-            assertSuccess(`I should see a ${type} labeled "My ${type}"`)
-            assertSuccess(`I should NOT see a ${type} labeled "Other ${type}"`)
-            assertFailure(`I should see a ${type} labeled "Other ${type}"`, `The ${type} labeled "Other ${type}" could not be found`)
-            assertFailure(`I should NOT see a ${type} labeled "My ${type}"`, `The ${type} labeled "My ${type}" was unexpectedly found`)
-
-            let disabledAction
-            if(['link', 'icon', 'tab'].includes(type)){
-                disabledAction = (step) => {
-                    assertFailure(step, 'The "that is disabled" suffix it not supported for this element')
-                }
-            }
-            else{
-                disabledAction = assertSuccess
-            }
-
-            disabledAction(`I should see a ${type} labeled "My ${type}" that is disabled`)
         })
     })
+}
+
+forEachType(parameterTypes.optionalLabeledElement, 'Assert Visibility:', (type) => {
+    assertSuccess(`I should see a ${type} labeled "My ${type}"`)
+    assertSuccess(`I should NOT see a ${type} labeled "Other ${type}"`)
+    assertFailure(`I should see a ${type} labeled "Other ${type}"`, `The ${type} labeled "Other ${type}" could not be found`)
+    assertFailure(`I should NOT see a ${type} labeled "My ${type}"`, `The ${type} labeled "My ${type}" was unexpectedly found`)
+
+    let disabledAction
+    if(['link', 'icon', 'tab'].includes(type)){
+        disabledAction = (step) => {
+            assertFailure(step, 'The "that is disabled" suffix it not supported for this element')
+        }
+    }
+    else{
+        disabledAction = assertSuccess
+    }
+
+    disabledAction(`I should see a ${type} labeled "My ${type}" that is disabled`)
 })
 
 describe('Assert checkbox status', () => {
