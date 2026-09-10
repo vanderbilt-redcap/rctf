@@ -676,7 +676,7 @@ Given('I select {string} (in)(on) the{ordinal} {dropdownType} (field labeled)(of
                      * so use to value of the <option> element returned instead 
                      * Using '.trim()' is required as cy.select() seems to trim all options when looking for a match.
                      */
-                    option = rctf.getNormalizedTextContent(optionElement[0])
+                    option = optionElement[0].textContent.trim() // Ignore this line when verifying textContext usage
                     action(optionElement.closest('select'))
                 })
             }

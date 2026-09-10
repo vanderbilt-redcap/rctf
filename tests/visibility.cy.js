@@ -240,7 +240,13 @@ describe('Assert Visibility: Text', () => {
 
 describe('Misc. assertions', () => {
     it('Ensure innerText is used instead of textContent since the former automatically normalizes whitespace between elements and favors matching using simple spaces rather than newlines, tabs, or nbsps', () => {
-        const command = 'git grep "\\.textContent" |grep -v ^docs/ |grep -v ^tests/ | grep -v "Ignore this line when verifying textContext usage"'
+        const parts = Cypress.spec.absolute.split('/')
+        parts.pop() // pop filename
+        parts.pop() // pop visibility dir
+        expect(parts.at(-1)).to.equal('rctf')
+        const rctfPath = parts.join('/')
+        // We limit the line length because unexpected very long line matches (e.g. minified files) will make cypress go very slowly.
+        const command = `grep "\\.textContent" "${rctfPath}" -r --exclude-dir={coverage,docs,node_modules} | grep -v "Ignore this line when verifying textContext usage" | cut -c1-1000`
         cy.exec(command, {failOnNonZeroExit: false}).then(result => {
             assert.equal('', result.stdout, 'Found unexpected instances of textContent. They should likely be replaced with innerText')
         })
