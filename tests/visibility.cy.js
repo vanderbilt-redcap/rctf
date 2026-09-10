@@ -238,6 +238,15 @@ describe('Assert Visibility: Text', () => {
     assertFailure('I should NOT see "Expected Text"', 'Unexpected text was found: Expected Text')
 })
 
+describe('Assert input content', () => {
+    beforeEach(() => {
+        return setPageContent('My Input: <input value="expected value">')
+    })
+
+    assertSuccess('I verify "expected value" is within the input field labeled "My Input"')
+    assertFailure('I verify "unexpected value" is within the input field labeled "My Input"', `Timed out retrying after 0ms: expected 'expected value' to include 'unexpected value'`)
+})
+
 describe('Misc. assertions', () => {
     it('Ensure innerText is used instead of textContent since the former automatically normalizes whitespace between elements and favors matching using simple spaces rather than newlines, tabs, or nbsps', () => {
         const parts = Cypress.spec.absolute.split('/')
