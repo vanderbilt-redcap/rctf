@@ -64,7 +64,7 @@ window.parameterTypes = {
     ],
     headerOrNot: ['header and', 'header'],
     iframeVisibility: ['', ' in the iframe'],
-    inputType: ['input', 'password'],
+    inputType: ['input', 'password', 'textarea'],
     instrumentSaveOptions: [
         'Save & Stay',
         'Save & Exit Record',

@@ -161,6 +161,8 @@ const forEachType = (types, groupNamePrefix, action) => {
         'button': `<button disabled>My button</button>`,
         'link': `<a>My link</a>`,
         'field': `My field: <input disabled>`,
+        'input': `My input: <input value='expected value' disabled>`,
+        'password': `My password: <input type='password' value='expected value' disabled>`,
         'checkbox': `<input type='checkbox' disabled> My checkbox`,
         'icon': [
             `
@@ -177,7 +179,7 @@ const forEachType = (types, groupNamePrefix, action) => {
         ],
         'dropdown': `My dropdown: <select disabled></select>`,
         'radio': `<input type='radio' disabled> My radio`,
-        'textarea': `My textarea: <textarea disabled></textarea>`,
+        'textarea': `My textarea: <textarea disabled>expected value</textarea>`,
         'tab': `<a class='tab-link'>My tab</a>`,
     }
 
@@ -245,13 +247,9 @@ describe('Assert Visibility: Text', () => {
     assertFailure('I should NOT see "Expected Text"', 'Unexpected text was found: Expected Text')
 })
 
-describe('Assert input content', () => {
-    beforeEach(() => {
-        return setPageContent('My Input: <input value="expected value">')
-    })
-
-    assertSuccess('I verify "expected value" is within the input field labeled "My Input"')
-    assertFailure('I verify "unexpected value" is within the input field labeled "My Input"', `Timed out retrying after 0ms: expected 'expected value' to include 'unexpected value'`)
+forEachType(parameterTypes.inputType, 'Assert input content verification:', (type) => {
+    assertSuccess(`I verify "expected value" is within the ${type} field labeled "My ${type}"`)
+    assertFailure(`I verify "unexpected value" is within the ${type} field labeled "My ${type}"`, `Timed out retrying after 0ms: expected 'expected value' to include 'unexpected value'`)
 })
 
 describe('Misc. assertions', () => {

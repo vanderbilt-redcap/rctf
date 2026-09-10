@@ -231,7 +231,15 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
         })
 
     } else {
-        const elm = cy.getLabeledElement('input', label, ordinal)
+        let type
+        if(input_type === 'textarea'){
+            type = 'textarea'
+        }
+        else{
+            type = 'input'
+        }
+
+        const elm = cy.getLabeledElement(type, label, ordinal)
 
         if (enter_type === "enter" || enter_type === "clear field and enter") {
             // Sometimes cypress will struggle to scroll a field into view and hang on the clear() call if we don't focus it first.
