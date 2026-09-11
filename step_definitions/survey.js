@@ -18,14 +18,18 @@
  * @description Clicks on a survey option label.  Track it via an optional tag.
  */
 Given("I click on the survey option label containing {string} label{optionalString}", (survey_option_label, optionalStr) => {
-    // We've seen intermittent failures on this step.  Let's wait a little in case there's a slight js initialization delay.
-    cy.wait(100)
-
-    cy.get(`ul:visible li:visible`).contains(survey_option_label).then(($li) => {
+    /**
+     * We are seeing intermittent failures on the following call
+     * due to the browser sometime choosing to autofocus iframe content on page load
+     * which causes this menu to be closed before the option can be clicked.
+     * Mark was able to reproduced this locally once, but then it stopped happening inexplicably.
+     * Ideally we would find out why the iframe is getting focus and prevent that action somehow.
+     */
+    cy.getLabeledElement('link', survey_option_label).then(link => {
         const logout = (survey_option_label === 'Log out+ Open survey')
-        cy.open_survey_in_same_tab($li, (optionalStr !== " and will leave the tab open when I return to the REDCap project"), logout)
+        cy.open_survey_in_same_tab(link, (optionalStr !== " and will leave the tab open when I return to the REDCap project"), logout)
         if(!logout){
-            cy.wrap($li).click()
+            cy.wrap(link).click()
         }
     })
 })
