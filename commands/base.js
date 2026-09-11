@@ -924,8 +924,7 @@ function getShortestMatchingNodeLength(textToFind, element) {
         // This is required for 'on the dropdown field labeled "to"' syntax
         element.childNodes.forEach(child => {
             if(child.constructor.name === 'Text'){
-                let content = child.textContent
-                content = content.replaceAll(' ', ' ') // Replace no-break space chars to make matching work in more cases
+                let content = rctf.getNormalizedTextContent(child)
                 if(content.includes(textToFind)){
                     text = content
                 }
@@ -947,7 +946,7 @@ function getShortestMatchingNodeLength(textToFind, element) {
     }
 
     if(!text){
-        text = element.textContent
+        text = rctf.getNormalizedTextContent(element)
     }
 
     if(!text){
@@ -1133,15 +1132,6 @@ Cypress.Commands.add("filterMatches", {prevSubject: true}, function (matches, te
     return matches
 })
 
-function normalizeString(s){
-    if(s === undefined){
-        return undefined
-    }
-
-    // Replace '&nbsp;' so that normal spaces in steps will match that character
-    return s.trim().replaceAll('\u00a0', ' ')
-}
-
 /**
  * We tried implementing this as an exact match at first, but that made some steps unweildly.
  * For example:
@@ -1150,13 +1140,13 @@ function normalizeString(s){
  *      I select "gender (Do you describe yourself as a man, a woman, or in some other way?)..."...
  */
 Cypress.$.expr[':'].containsCustom = Cypress.$.expr.createPseudo(function(arg) {
-    arg = normalizeString(arg)
+    arg = rctf.normalizeString(arg)
 
     // Remove any double quote escaping added by JSON.stringify()
     arg = JSON.parse('"' + arg + '"')
 
     return function( elem ) {
-        return normalizeString(Cypress.$(elem).text()).includes(arg)
+        return rctf.normalizeString(Cypress.$(elem).text()).includes(arg)
     };
 });
 
@@ -1175,7 +1165,7 @@ function getPreferredSibling(text, originalMatch, one, two){
 
         const nodeMatches = Array.from(originalMatch.childNodes).filter(child => {
             return child.tagName !== 'SCRIPT' // C.3.30.0500
-                && child.textContent.includes(text)
+                && rctf.getNormalizedTextContent(child).includes(text)
         })
 
         if(nodeMatches.length === 0){
@@ -1245,24 +1235,21 @@ function getPreferredSibling(text, originalMatch, one, two){
     const indexTwo = siblings.indexOf(twoOrParent)
     const distanceOne = Math.abs(matchIndex - indexOne)
     const distanceTwo = Math.abs(matchIndex - indexTwo)
-    if(distanceOne === distanceTwo){
-        if(
-            // Support the special case for 'dropdown field labeled "to"' language
-            // Alternatively, we could replaces such steps with 'dropdown field labeled "[No Assignment]"' to resolve this.
-            text === 'to'
-            ||
-            text === 'Choose your randomization field' // C.3.30.0600
-        ){
-            return two
-        }
-
-        throw 'Two sibling matches were found the same distance away.  We should consider implementing a way to definitively determine which to match.'
-    }
-    else if(distanceOne < distanceTwo){
+    if(distanceOne < distanceTwo){
         return one
     }
-    else{
+    else if (distanceOne > distanceTwo){
         return two
+    }
+    else{ // distanceOne === distanceTwo
+        if(['checkbox', 'radio'].includes(one.type)){
+            // Assume the checkbox comes before the label
+            return one
+        }
+        else{
+            // Assume the input comes after the label
+            return two
+        }
     }
 }
 
@@ -1293,14 +1280,14 @@ function removeUnpreferredSiblings(text, originalMatch, children){
 
 function findMatchingChildren(text, selectOption, originalMatch, searchParent, childSelector, childrenToIgnore) {
     console.log('findMatchingChildren', arguments)
-    selectOption = normalizeString(selectOption)
+    selectOption = rctf.normalizeString(selectOption)
 
     let children = Array.from(Cypress.$(searchParent).find(childSelector)).filter(child => {
         if(
             childSelector.replace(':visible', '') === 'input'
             &&
             // Remember, child.type will be 'text' even when type is not set in the DOM.
-            !['text', 'password', 'email', 'number', 'search', 'tel', 'url', 'file'].includes(child.type)
+            !['text', 'password', 'email', 'number', 'search', 'tel', 'url', 'file', 'date', 'datetime-local'].includes(child.type)
         ){
             /**
              * We're looking for a text type (like checkbox), but found a non-text type.  Ignore this element.
@@ -1320,7 +1307,7 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
     removeUnpreferredSiblings(text, originalMatch, children)
 
     const exactMatches = children.filter(child =>{
-        return normalizeString(child.textContent) === selectOption // B.6.7.1900.
+        return rctf.getNormalizedTextContent(child) === selectOption // B.6.7.1900.
     })
 
     if(exactMatches.length > 0){
@@ -1342,15 +1329,15 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
     cy.log('getLabeledElement', JSON.stringify(arguments))
     console.log('getLabeledElement()', arguments)
 
-    const errorMessage = `The ${type} labeled "${text}" ` + (expectFailure ? 'was unexepectedly found' : 'could not be found')
+    const errorMessage = `The ${type} labeled "${text}" ` + (expectFailure ? 'was unexpectedly found' : 'could not be found')
     
-    return cy.retryUntilTimeout((lastRun) => {
+    return cy.retryUntilTimeout(() => {
         cy.document({log: false}).then(document => {
             const attributeName = 'data-bs-original-title'
             document.querySelectorAll(`[${attributeName}*="<"]`).forEach(element => {
                 // Remove html tags from bootstrap titles to allow matching things like "<b>Edit</b> Branching Logic"
                 const attributeText = element.getAttribute(attributeName)
-                element.setAttribute(attributeName, new DOMParser().parseFromString(attributeText, 'text/html').body.textContent)
+                element.setAttribute(attributeName, rctf.getNormalizedTextContent(new DOMParser().parseFromString(attributeText, 'text/html').body))
             })
         })
 
@@ -1471,6 +1458,9 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                     else if (['input', 'field'].includes(type)){
                         childSelectors = ['input']
                     }
+                    else if (type === 'tab'){
+                        childSelectors = ['a.tab-link']
+                    }
                     else {
                         /**
                          * Leave childSelector blank.
@@ -1506,6 +1496,15 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                         }
 
                         if (children.length === 1) {
+                            if(children[0].classList.contains('tox-editor-container')){
+                                const textarea = children[0].parentElement.previousElementSibling
+                                if(textarea.tagName !== 'TEXTAREA'){
+                                    throw new Error('Unexpected tox-editor-container element configuration!')
+                                }
+
+                                return textarea
+                            }
+
                             /**
                              * Example Steps:
                              *  I uncheck the first checkbox labeled "Participant Consent"
@@ -1513,14 +1512,27 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                              */
                             return children[0]
                         }
-                        else if (
+                        else if (current.tagName === 'LABEL' && current.htmlFor !== '') {
+                            /**
+                             * This label has the 'for' attribute set.  Use it.
+                             * 
+                             * We use an attribute selector below because REDCap has some elements with duplicate IDs,
+                             * and we want to consider all of them.  Using cy.get('#some-id') will only find the first one.
+                             */
+                            const matchingChildren = children.filter(child => child.id === current.htmlFor && child.tagName !== 'DIV')
+                            if(matchingChildren.length > 1){
+                                throw "Multiple elements with this ID found: " + current.htmlFor
+                            }
+                            else if(matchingChildren.length === 1){
+                                return matchingChildren[0]
+                            }
+                        }
+                        else {
                             /**
                              * We're likely matching an unrelated group of elements.
                              * They could be children or distant siblings of the desired match
-                             * Regardles, ignore this grouping and start the search again from the next parent.
+                             * Regardless, ignore this grouping and start the search again from the next parent.
                              */
-                            children.length > 1
-                        ) {
                             childrenToIgnore.push(...children)
                         }
                     } else if (
@@ -1528,29 +1540,6 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                         current.tagName === 'A'
                      ){
                         return current
-                    }
-
-                    /**
-                     * Some label elements in REDCap contain mulitple fields.
-                     * Only use 'for' for matching as a last resort if none of the logic above matched the field.
-                     */
-                    if (current.tagName === 'LABEL' && current.htmlFor !== '') {
-                        // This label has the 'for' attribute set.  Use it.
-                        /**
-                         * We use an attribute selector because REDCap has some elements with duplicate IDs,
-                         * and we want to consider all of them.  Using cy.get('#some-id') will only find the first one.
-                         */
-                        return cy.get('[id=' + current.htmlFor + ']').then(results => {
-                            results = results.filter((index, element) => {
-                                return element.tagName !== 'DIV'
-                            })
-
-                            if(results.length > 1){
-                                throw "Multiple elements with this ID found: " +current.htmlFor
-                            }
-
-                            return results[0]
-                        })
                     }
                 } while (current = current.parentElement)
             }

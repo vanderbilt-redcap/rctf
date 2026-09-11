@@ -12,12 +12,16 @@
     "cypress": "^15",
     "cypress-on-fix": "^1",
     "cypress-wait-until": "^3",
+    "emailjs-mime-codec": "^2.0.9",
     "pdf-parse": "^1",
     "prompt-sync": "^4.2.0",
     "sed-lite": "^0"
   },
   "devDependencies": {
-    "documentation": "github:documentationjs/documentation"
+    "@cypress/code-coverage": "^4.0.3",
+    "documentation": "github:documentationjs/documentation",
+    "istanbul-lib-instrument": "^6.0.3",
+    "nyc": "^18.0.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

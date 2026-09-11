@@ -19,7 +19,7 @@ Given("I should see the report with {int} distinct records", (count) => {
     cy.wrap(records).as("records")
     cy.get('table[id="report_table"]').children('tbody').find('tr').each( (tr, index) => {
         cy.get('@records').then(records => {
-            let recordId = tr.children('td')[0].textContent
+            let recordId = rctf.getNormalizedTextContent(tr.children('td')[0])
             if(!records.includes(recordId)){
                 records.push(recordId)
                 cy.wrap(records).as('records')
@@ -42,7 +42,7 @@ Given("I should see the report with {int} repeating instrument rows", (count) =>
     cy.wrap(rCount).as("rCount")
     cy.get('table[id="report_table"]').children('tbody').find('tr').each( (tr, index) => {
         cy.get('@rCount').then(rCount => {
-            let repeat = tr.children('td')[2].textContent
+            let repeat = rctf.getNormalizedTextContent(tr.children('td')[2])
             if(repeat !== ""){
                 rCount++
                 cy.wrap(rCount).as('rCount')
@@ -70,11 +70,11 @@ Given("I should see the report with the column named {string} {ordering}", (name
     }).then(function() {
         cy.get('table[id="report_table"]').children('tbody').find('tr').each( (tr, index) => {
             if(index === 0){
-                let previousRow = tr.children('td')[column].textContent
+                let previousRow = rctf.getNormalizedTextContent(tr.children('td')[column])
                 cy.wrap(previousRow).as('previousRow')
             } else {
                 cy.get('@previousRow').then(previousRow => {
-                    let currentRow = tr.children('td')[column].textContent
+                    let currentRow = rctf.getNormalizedTextContent(tr.children('td')[column])
                     let [prevM, prevD, prevY] = previousRow.split('-')
                     let [currM, currD, currY] = currentRow.split('-')
                     let prevDate = new Date(prevY, prevM - 1, prevD)

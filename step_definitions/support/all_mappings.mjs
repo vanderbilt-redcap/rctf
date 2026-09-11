@@ -5,7 +5,7 @@ function transformKeysToRegExp(variable){
     return Object.keys(variable).filter(key => key !== '')
 }
 
-const labeledElementTypes = ['button', 'link', 'field', 'checkbox', 'icon', 'dropdown', 'radio', 'textarea']
+const labeledElementTypes = ['button', 'link', 'field', 'checkbox', 'icon', 'dropdown', 'radio', 'textarea', 'tab']
 window.parameterTypes = {
     tableTypes: transformKeysToRegExp(window.tableMappings),
     baseElement: transformKeysToRegExp(window.elementChoices),
@@ -64,7 +64,7 @@ window.parameterTypes = {
     ],
     headerOrNot: ['header and', 'header'],
     iframeVisibility: ['', ' in the iframe'],
-    inputType: ['input', 'password'],
+    inputType: ['input', 'password', 'textarea'],
     instrumentSaveOptions: [
         'Save & Stay',
         'Save & Exit Record',
