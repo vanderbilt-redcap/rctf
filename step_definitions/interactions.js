@@ -147,40 +147,23 @@ Given("I enter the current user's Super API Token into the( ){ordinal}( ){inputT
  * @param {string} label - the label of the field
  */
 Given('I enter the code that was emailed to the current user into the( ){ordinal}( ){inputType} field( ){columnLabel} labeled {string}{iframeVisibility}', (...args) => {
-    const getCodeFromEmail = () => {
-        return rctf.getLatestEmail().then(email => {
-            let code = null
-            email.Body.split('\r').forEach(line => {
-                if(code === null && line.includes('verification code is')){
-                    code = line.split(' ').at(-1)
-                }
-            })
-
-            cy.wrap(code)
-        })
-    }
-
-    let triesLeft = 10
-    const getSentEmails = () => {
-        getCodeFromEmail().then(code => {
-            if(!code){
-                if(triesLeft-- > 0){
-                    cy.wait(1000)
-                    getSentEmails()
-                }
-                else{
-                    throw 'Could not find a recent message containing an authentication code'
-                }
-            }
-            else{
-                args.unshift(code)
-                args.unshift('enter')
-                enterTextIntoField(...args)
+    return rctf.getLatestEmail().then(email => {
+        let code = null
+        email.Body.split('\r').forEach(line => {
+            if(code === null && line.includes('verification code is')){
+                code = line.split(' ').at(-1)
             }
         })
-    }
 
-    getSentEmails()
+        if(!code){
+            throw 'Could not find a recent message containing an authentication code'
+        }
+        else{
+            args.unshift(code)
+            args.unshift('enter')
+            enterTextIntoField(...args)
+        }
+    })
 })
 
 function enterTextIntoField(enter_type, text, ordinal, input_type, column, label, iframe){
