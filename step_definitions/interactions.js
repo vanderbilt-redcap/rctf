@@ -122,6 +122,16 @@ Given("I {enterType} {string} (in)(to)(is within) the( ){ordinal}( ){inputType} 
 /**
  * @module Interactions
  * @author Mark McEver <mark.mcever@vumc.org>
+ * @param {string} enterType
+ * @param {string} label - the label of the field
+ */
+Given("I verify {string} (in)(to)(is within) the( ){ordinal}( )textarea field( ){columnLabel} labeled {string}{iframeVisibility}", (text, ordinal, column, label, iframe) => {
+    enterTextIntoField('verify', text, ordinal, input_type, column, label, iframe)
+})
+
+/**
+ * @module Interactions
+ * @author Mark McEver <mark.mcever@vumc.org>
  * @param {string} label - the label of the field
  */
 Given("I enter the current user's Super API Token into the( ){ordinal}( ){inputType} field( ){columnLabel} labeled {string}{iframeVisibility}", (...args) => {
@@ -268,7 +278,7 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
  * @description Enters a specific text string into a field identified by a label.  (NOTE: The field is not automatically cleared.)
  */
 
-Given ('DISABLED FOR TESTING I {enterType} {string} in(to) the( ){ordinal}( )textarea field labeled {string}{baseElement}', (enter_type, text, ordinal, label, base_element) => {
+Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field labeled {string}{baseElement}', (enter_type, text, ordinal, label, base_element) => {
     let sel = `:contains(${JSON.stringify(label)}):visible`
 
     let ord = 0
