@@ -163,7 +163,7 @@ export class ResultsUploader {
                     data: JSON.stringify(dataToSave, null, 2),
                 }) .then(json => {
                     if(json.count !== dataToSave.length){
-                        throw `Expected to save ${dataToSave.length} records but received a count of ${json.count} instead`
+                        throw new Error(`Expected to save ${dataToSave.length} records but received a count of ${json.count} instead`)
                     }
 
                     console.log(`Finished uploading ${results.spec.name}`)

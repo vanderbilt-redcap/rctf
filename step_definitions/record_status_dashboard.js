@@ -34,7 +34,7 @@ Given("I locate the bubble for the {string} instrument on event {string} for rec
  * @deprecated
  */
 Given(/I select record ID "(.*)" from arm name "(.*)" on the (Add|View) \/ Edit record page$/, (record_id, arm_name, add_or_view) => {
-    throw `This step was removed because it was brittle.  It should be replaced with more generic steps like 'I select "Arm 2" on the dropdown field labeled "Arm 1"' and 'I select "1" on the dropdown field labeled "select record"'`
+    throw new Error(`This step was removed because it was brittle.  It should be replaced with more generic steps like 'I select "Arm 2" on the dropdown field labeled "Arm 1"' and 'I select "1" on the dropdown field labeled "select record"'`)
 })
 
 

@@ -73,7 +73,7 @@ Given("I should see the radio labeled {string} with option {string} {select}", (
  * @deprecated
  */
 Given("I (should )see a dialog containing the following text: {string}", (text) => {
-    throw `This step has been removed in favor of newer steps like the following that are less brittle in relation to timing and page loads.  If a dialog is currently open, it will automatically be the search target: I should see "Some visible text"`
+    throw new Error(`This step has been removed in favor of newer steps like the following that are less brittle in relation to timing and page loads.  If a dialog is currently open, it will automatically be the search target: I should see "Some visible text"`)
 })
 
 /**

@@ -572,7 +572,7 @@ Given('I enter {string} into the field identified by {string} labeled {string}',
  * @deprecated
  */
 Given('I click the element containing the following text: {string}', (value) => {
-    throw `This step has been removed in favor of newer steps like the following that are less brittle in relation to timing and page loads: I click on "Some clickable text"`
+    throw new Error(`This step has been removed in favor of newer steps like the following that are less brittle in relation to timing and page loads: I click on "Some clickable text"`)
 })
 
 /**

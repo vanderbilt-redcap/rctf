@@ -17,7 +17,7 @@ Given("I change the current Event Name from {string} to {string}", (current_name
  * @deprecated
  */
 Given("I verify I cannot change the Event Name of {string} while in production", (current_name) => {
-   throw `This step has been removed because it is not used by RSVC, and can likely be replaced by other more general steps. If no one requests it be re-enabled, it will be removed at a future time.`
+   throw new Error(`This step has been removed because it is not used by RSVC, and can likely be replaced by other more general steps. If no one requests it be re-enabled, it will be removed at a future time.`)
 
    cy.change_event_name(current_name, current_name, true)
 })
