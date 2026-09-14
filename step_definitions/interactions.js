@@ -1046,6 +1046,9 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
                 else if(labeledElement === 'radio'){
                     selector = 'input[type="radio"]'
                 }
+                else if(labeledElement === 'link'){
+                    selector = 'a'
+                }
                 else{
                     throw 'Unexpected labeledElement and text combo'
                 }
