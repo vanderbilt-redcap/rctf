@@ -117,7 +117,7 @@ Given("I click on the button labeled {string} for the row labeled {string}", (te
  * @param {string} enterType
  * @param {string} label - the label of the field
  */
-Given("I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} field( ){columnLabel} labeled {string}{iframeVisibility}", enterTextIntoField)
+Given("I {enterType} {string} (in)(to)(is within) the( ){ordinal}( ){inputType} field( ){columnLabel} labeled {string}{iframeVisibility}", enterTextIntoField)
 
 /**
  * @module Interactions
@@ -268,7 +268,7 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
  * @description Enters a specific text string into a field identified by a label.  (NOTE: The field is not automatically cleared.)
  */
 
-Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field labeled {string}{baseElement}', (enter_type, text, ordinal, label, base_element) => {
+Given ('DISABLED FOR TESTING I {enterType} {string} in(to) the( ){ordinal}( )textarea field labeled {string}{baseElement}', (enter_type, text, ordinal, label, base_element) => {
     let sel = `:contains(${JSON.stringify(label)}):visible`
 
     let ord = 0
