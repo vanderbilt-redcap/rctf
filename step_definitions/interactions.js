@@ -929,12 +929,7 @@ Given('I move the Minute slider for the open date picker widget to {int}', (min)
  * @description Open the date picker widget
  */
 Given('I click on the date picker widget on the field labeled {string}', (label) => {
-    cy.get(`label:contains(${JSON.stringify(label)})`)
-        .invoke('attr', 'id')
-        .then(($id) => {
-            let id = $id.split('label-')[1]
-            cy.get(`input[aria-labelledby="${$id}"]`).parent().find('img.ui-datepicker-trigger').click()
-        })
+    throw new Error(`This step broke after REDCap core changes. The following syntax is recommended instead: I click on the icon labeled "Click to select a date" in the row labeled "xyz"`)
 })
 
 /**
