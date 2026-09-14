@@ -126,7 +126,7 @@ Given("I {enterType} {string} (in)(to)(is within) the( ){ordinal}( ){inputType} 
  * @param {string} label - the label of the field
  */
 Given("I verify {string} (in)(to)(is within) the( ){ordinal}( )textarea field( ){columnLabel} labeled {string}{iframeVisibility}", (text, ordinal, column, label, iframe) => {
-    enterTextIntoField('verify', text, ordinal, input_type, column, label, iframe)
+    enterTextIntoField('verify', text, ordinal, 'textarea', column, label, iframe)
 })
 
 /**
