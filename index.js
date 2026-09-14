@@ -1,4 +1,24 @@
-const rctf = require('./rctf.mjs').rctf
+// Define rctf everywhere on the browser side of things
+globalThis.rctf = require('./rctf.mjs').rctf
+
+if (
+    typeof Cypress !== 'undefined' // Don't load coverage if running get-step-usage.sh 
+    &&
+    Cypress.env('codeCoverage')
+) {
+    try{
+        require('@cypress/code-coverage/support')
+    }
+    catch(error){
+        /**
+         * The esbuild bundler will execute the above require call statically
+         * without actually evaluating the if statement to see if it needs to
+         * be loaded. So we catch the error when it is thrown.
+         * This occurs during redcap_cypress' "npx cypress run" command.
+         */
+        console.log('Skipping require of @cypress/code-coverage/support')
+    }
+}
 
 // Check to see if Given is defined. We may be calling get-step-usage.sh which uses an alternate definition.
 if(!globalThis.Given){
@@ -47,18 +67,6 @@ function intercept_vanderbilt_requests(){
     cy.intercept({ method: 'GET', url: '*/ControlCenter/report_site_stats.php'}, []).as('Control Center Stats')
     cy.intercept({ method: 'GET', url: '*/redcap_v' + Cypress.exposeRCTF('redcap_version') + '/**'}).as('interceptedRequest').then(() => {
         window.registeredAlias = true // this is useful to know whether we can actually call a cy.wait
-    })
-
-    let delay = 0
-    cy.intercept({ url: '*/DataQuality/execute_ajax.php*' }, (req) => {
-        req.continue((res) => {
-            /**
-             * This is an attempt to prevent C.4.18.0200. from failing because data quality rules
-             * finish out of order, making the log statement order not match what is expected.
-             */
-            res.setDelay(delay)
-            delay += 100
-        })
     })
 }
 
@@ -129,6 +137,17 @@ function rctf_initialize(env) {
     preprocessor = require('@badeball/cypress-cucumber-preprocessor')
 
     const { BeforeStep } = preprocessor
+
+    let hadAnyFailure = false
+    Cypress.on('fail', (error) => {
+        hadAnyFailure = true
+        throw error
+    })
+
+    let stepCount = 0
+    BeforeStep(() => {
+        stepCount++
+    })
 
     let lastFailingFeature
 
@@ -226,6 +245,11 @@ function rctf_initialize(env) {
             // Actions performed within the function must be very efficient, as they are called on every step.
             win.alert = rctfAlert
             win.confirm = rctfConfirm
+
+            // Prevent "Leave site?" dialogs since they cause tests to hang (especially important in the cloud).
+            win.onbeforeunload = (event) => {
+                event.stopImmediatePropagation()
+            }
         })
     }
 
@@ -284,6 +308,15 @@ function rctf_initialize(env) {
     afterEach(abortEarly);
 
     after(() => {
+        if(
+            stepCount === 0
+            &&
+            // If there is some other failure, let that message be displayed rather than overriding it
+            !hadAnyFailure
+        ){
+            throw new Error('No steps were executed! Did this feature accidentally get committed before it was completed? Or should it have "REDUNDANT" in the filename?')
+        }
+
         window.shouldShowAlerts = true
         registerEventListeners()
 
@@ -300,6 +333,7 @@ function rctf_initialize(env) {
                 url: url,
                 redcap_url_pre_survey: window.redcap_url_pre_survey,
                 original_spec_path: window.original_spec_path,
+                username: window.user_info.get_current_user(),
             }))
         })
 

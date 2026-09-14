@@ -106,6 +106,13 @@ Cypress.Commands.add('checkCookieAndLogin', (options) => {
 })
 
 Cypress.Commands.add('logout', () => {
+    /**
+     * We've seen infrequent race conditions after clicking the "View all projects" link
+     * on the PAG tests where the previous visit() call doesn't quite finish before
+     * cypress continues to the next step. Add a little buffer.
+     */
+    cy.wait(100)
+
     cy.url().then((url) => {
         url = window.adjustInvalidLoginUrls(url)
 

@@ -73,7 +73,7 @@ Given("I should see the radio labeled {string} with option {string} {select}", (
  * @deprecated
  */
 Given("I (should )see a dialog containing the following text: {string}", (text) => {
-    throw `This step has been removed in favor of newer steps like the following that are less brittle in relation to timing and page loads.  If a dialog is currently open, it will automatically be the search target: I should see "Some visible text"`
+    throw new Error(`This step has been removed in favor of newer steps like the following that are less brittle in relation to timing and page loads.  If a dialog is currently open, it will automatically be the search target: I should see "Some visible text"`)
 })
 
 /**
@@ -471,6 +471,10 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
         return columnMatches
     }
 
+    function isDataQualityRuleExecutionRow(row){
+        return row.at(-1).includes('Execute data quality rule')
+    }
+
     //If we are including the table header, we are also going to match specific columns
     if(header === "header and") {
         let columns = {}
@@ -694,7 +698,19 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                             let htmlRowIndex
                             for(let i in htmlRowIndices){
                                 i = parseInt(i)
-                                if(lastHtmlRowIndex === undefined || (i >= lastHtmlRowIndex)){
+                                if(
+                                    // First iteration
+                                    lastHtmlRowIndex === undefined
+                                    ||
+                                    /**
+                                     * Data quality rules are executed in parallel and may finish in random order,
+                                     * so don't enforce their order within a given batch (batches enforced by checking the previous row as well).
+                                     */
+                                    (isDataQualityRuleExecutionRow(expectedRow) && isDataQualityRuleExecutionRow(tabular_data[rowIndex-1]))
+                                    ||
+                                    // Make sure rows are in order
+                                    (i >= lastHtmlRowIndex)
+                                ){
                                     htmlRowIndex = i
                                     break
                                 }
