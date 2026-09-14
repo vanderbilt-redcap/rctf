@@ -197,7 +197,7 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
             } else if (enter_type === "verify"){
                 elm.eq(ord).scrollIntoView().invoke('val').should('include', text)
             } else {
-                throw new Error('The following enterType is not supported in this context' + enter_type)
+                throw new Error('The following enterType is not supported in this context: ' + enter_type)
             }
         })
 
@@ -209,7 +209,7 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
             } else if (enter_type === "clear field and enter") {
                 cy.wrap($td).find('input:visible').clear().type(text)
             } else {
-                throw new Error('The following enterType is not supported in this context' + enter_type)
+                throw new Error('The following enterType is not supported in this context: ' + enter_type)
             }
         })
 
@@ -253,7 +253,7 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
                 elm.invoke('val').should('include', text)
             }
         } else {
-            throw new Error('The following enterType is not supported in this context' + enter_type)
+            throw new Error('The following enterType is not supported in this context: ' + enter_type)
         }
     }
 }
@@ -332,7 +332,7 @@ Given ('DISABLED FOR TESTING I {enterType} {string} in(to) the( ){ordinal}( )tex
                         } else if(enter_type === "click on"){
                             elm.click()
                         } else {
-                            throw new Error('The following enterType is not supported in this context' + enter_type)
+                            throw new Error('The following enterType is not supported in this context: ' + enter_type)
                         }
                     }
 
@@ -368,7 +368,7 @@ Given ('DISABLED FOR TESTING I {enterType} {string} in(to) the( ){ordinal}( )tex
                         } else if(enter_type === "click on"){
                             cy.wrap($parent).parent().find(element).eq(ord).click()
                         } else {
-                            throw new Error('The following enterType is not supported in this context' + enter_type)
+                            throw new Error('The following enterType is not supported in this context: ' + enter_type)
                         }
                     }
                 }
@@ -788,7 +788,7 @@ Given("I {enterType} {string} into the field with the placeholder text of {strin
     const selector = 'input[placeholder="' + placeholder + '"]:visible,input[value="' + placeholder + '"]:visible'
 
     if (!['enter', 'clear field and enter'].includes(enter_type)) {
-        throw new Error('The following enterType is not supported in this context' + enter_type)
+        throw new Error('The following enterType is not supported in this context: ' + enter_type)
     }
 
     /**

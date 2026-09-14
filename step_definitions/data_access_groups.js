@@ -28,7 +28,7 @@ Given(/^I click on (?:a|the) table cell containing the text "(.*?)"(?: in)?(?: t
             } else if (enter_type === ""){
                 // Do nothing
             } else {
-                throw new Error('The following enterType is not supported in this context' + enter_type)
+                throw new Error('The following enterType is not supported in this context: ' + enter_type)
             }
         })
     })
