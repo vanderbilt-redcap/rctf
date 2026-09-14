@@ -1341,15 +1341,21 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
             })
         })
 
+        let escapedText = JSON.stringify(text) // Should probably add .replaceAll('\\n', '\n')
+        if(text === 'Log out+ Open survey'){
+            // Special case for B.3.15.0400 & C.3.30.0800
+            escapedText = 'Log out+\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tOpen survey'
+        }
+
         let selector = [
-            `input[placeholder=${JSON.stringify(text)}]:visible`,
+            `input[placeholder=${escapedText}]:visible`,
             // We don't specify ':visible' here like the others so that unselected select options are matched (e.g. C.3.30.0700.)
-            `:contains(${JSON.stringify(text)})`,
-            `[title*=${JSON.stringify(text)}]:visible`,
-            `[data-bs-original-title*=${JSON.stringify(text)}]:visible`,
-            `[data-tooltip*=${JSON.stringify(text)}]:visible`,
-            `input[type=button][value*=${JSON.stringify(text)}]:visible`,
-            `input[type=submit][value*=${JSON.stringify(text)}]:visible`,
+            `:contains(${escapedText})`,
+            `[title*=${escapedText}]:visible`,
+            `[data-bs-original-title*=${escapedText}]:visible`,
+            `[data-tooltip*=${escapedText}]:visible`,
+            `input[type=button][value*=${escapedText}]:visible`,
+            `input[type=submit][value*=${escapedText}]:visible`,
         ].join(', ')
 
         let next
