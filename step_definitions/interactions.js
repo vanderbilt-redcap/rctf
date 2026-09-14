@@ -937,6 +937,7 @@ Given('I move the Minute slider for the open date picker widget to {int}', (min)
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} label - the label of the field
  * @description Open the date picker widget
+ * @deprecated
  */
 Given('I click on the date picker widget on the field labeled {string}', (label) => {
     throw new Error(`This step broke after REDCap core changes. The following syntax is recommended instead: I click on the icon labeled "Click to select a date" in the row labeled "xyz"`)
