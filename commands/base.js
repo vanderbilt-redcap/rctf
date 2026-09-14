@@ -1343,7 +1343,12 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
 
         let escapedText = JSON.stringify(text) // Should probably add .replaceAll('\\n', '\n')
         if(text === 'Log out+ Open survey'){
-            // Special case for B.3.15.0400 & C.3.30.0800
+            /**
+             * Special case for B.3.15.0400 & C.3.30.0800.
+             * Mark first tried solving this generically by switching from the :contains() selector to $('*').filter()
+             * with a filter function based on innerText (:contains() is based on raw HTML via textContent).
+             * It was about 33% slower on B.3.15.0400 though, so he abandoned that approach (stashed it just in case).
+             */
             escapedText = 'Log out+\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tOpen survey'
         }
 
