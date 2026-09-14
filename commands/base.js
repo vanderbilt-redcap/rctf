@@ -1342,6 +1342,7 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
         })
 
         let escapedText = JSON.stringify(text) // Should probably add .replaceAll('\\n', '\n')
+        let containsText = escapedText
         if(text === 'Log out+ Open survey'){
             /**
              * Special case for B.3.15.0400 & C.3.30.0800.
@@ -1349,13 +1350,13 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
              * with a filter function based on innerText (:contains() is based on raw HTML via textContent).
              * It was about 33% slower on B.3.15.0400 though, so he abandoned that approach (stashed it just in case).
              */
-            escapedText = 'Log out+\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tOpen survey'
+            containsText = 'Log out+\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\tOpen survey'
         }
 
         let selector = [
             `input[placeholder=${escapedText}]:visible`,
             // We don't specify ':visible' here like the others so that unselected select options are matched (e.g. C.3.30.0700.)
-            `:contains(${escapedText})`,
+            `:contains(${containsText})`,
             `[title*=${escapedText}]:visible`,
             `[data-bs-original-title*=${escapedText}]:visible`,
             `[data-tooltip*=${escapedText}]:visible`,
