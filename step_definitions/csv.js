@@ -25,16 +25,17 @@ Given("the downloaded CSV with filename {string}( should have)( has) the( ){head
     cy.download_file(filename).then( ($text) => {
         cy.task('parseCsv', {csv_string: $text}).then((csv_rows) => {
             const headings = csv_rows[0]
+            const expected_headings = dataTable.rawTable[0]
             const table_rows = dataTable.hashes()
             let col_tables = {}
 
             for (let $i = 0; $i <= headings.length; $i++) {
-                for (let i = 0; i < dataTable.rawTable[0].length; i++) {
-                    if (dataTable.rawTable[0][i] !== undefined &&
-                        col_tables[dataTable.rawTable[0][i]] === undefined &&
-                        dataTable.rawTable[0][i] === headings[$i]) {
-                        expect(headings[$i]).to.equal(dataTable.rawTable[0][i])
-                        col_tables[dataTable.rawTable[0][i]] = {index: $i}
+                for (let i = 0; i < expected_headings.length; i++) {
+                    if (expected_headings[i] !== undefined &&
+                        col_tables[expected_headings[i]] === undefined &&
+                        expected_headings[i] === headings[$i]) {
+                        expect(headings[$i]).to.equal(expected_headings[i])
+                        col_tables[expected_headings[i]] = {index: $i}
                     }
                 }
             }
