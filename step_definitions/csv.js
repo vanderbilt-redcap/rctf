@@ -40,6 +40,10 @@ Given("the downloaded CSV with filename {string}( should have)( has) the( ){head
                 }
             }
 
+            expected_headings.forEach(heading => {
+                expect(col_tables[heading] !== undefined, 'Header not found: ' + heading).to.be.true
+            })
+
             if(header === "header and") {
                 for (let row = 0; row < table_rows.length; row++) {
                     let csv_line = csv_rows[row + 1]
