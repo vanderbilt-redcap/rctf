@@ -28,15 +28,13 @@ Given("the downloaded CSV with filename {string}( should have)( has) the( ){head
             const table_rows = dataTable.hashes()
             let col_tables = {}
 
-            if(header === "header and" || header === "header" ) {
-                for (let $i = 0; $i <= headings.length; $i++) {
-                    for (let i = 0; i < dataTable.rawTable[0].length; i++) {
-                        if (dataTable.rawTable[0][i] !== undefined &&
-                            col_tables[dataTable.rawTable[0][i]] === undefined &&
-                            dataTable.rawTable[0][i] === headings[$i]) {
-                            expect(headings[$i]).to.equal(dataTable.rawTable[0][i])
-                            col_tables[dataTable.rawTable[0][i]] = {index: $i}
-                        }
+            for (let $i = 0; $i <= headings.length; $i++) {
+                for (let i = 0; i < dataTable.rawTable[0].length; i++) {
+                    if (dataTable.rawTable[0][i] !== undefined &&
+                        col_tables[dataTable.rawTable[0][i]] === undefined &&
+                        dataTable.rawTable[0][i] === headings[$i]) {
+                        expect(headings[$i]).to.equal(dataTable.rawTable[0][i])
+                        col_tables[dataTable.rawTable[0][i]] = {index: $i}
                     }
                 }
             }
