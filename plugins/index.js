@@ -20,7 +20,7 @@ const shell = require('shelljs')
 const sed_lite = require('sed-lite').sed
 const fs = require('fs')
 const os = require('os')
-const csv = require('async-csv')
+const { parse: parseCsvString } = require('csv-parse/sync')
 const path = require('path')
 const pdf = require('pdf-parse')
 const {
@@ -428,7 +428,7 @@ module.exports = (cypressOn, config) => {
         },
 
         parseCsv({csv_string}) {
-            return csv.parse(csv_string, { relax_column_count: true })
+            return parseCsvString(csv_string, { relax_column_count: true })
         },
 
         createInitialDbSeedLock(){
