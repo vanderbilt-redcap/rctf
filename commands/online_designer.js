@@ -123,17 +123,9 @@ Cypress.Commands.add('select_radio_by_label', ($name, $value, $click = true, $se
                 }
 
                 const parent = Cypress.$($text).parent()
-                let radio = parent
-
-                if(!parent.find('input[type=radio]').length) {
-                    const prev = parent.prev(':has(input[type=radio])')
-                    const next = parent.next(':has(input[type=radio])')
-                    radio = next.length ? next : prev
-                }
-
-                if (radio.length) {
-                    cy.wrap(radio).find('input[type=radio]').then(action)
-                }
+                cy.wrap(parent).within(() => {
+                    cy.getLabeledElement('radio', $value).then(action)
+                })
             })
         }
     })
