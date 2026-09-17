@@ -1425,9 +1425,14 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                 match.scrollIntoView() // Matches must be in view for the ':visible' selector to work
                 
                 let current = match
+                let labelColumnCell = null
                 const childrenToIgnore = []
                 do {
                     console.log('getLabeledElement() current', current)
+
+                    if(current.cellIndex !== undefined){
+                        labelColumnCell = current
+                    }
 
                     if(
                         current.clientHeight > 500
@@ -1540,6 +1545,21 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                             }
                         }
                         else {
+                            if (labelColumnCell){
+                                const matchingChildren = children.filter(child => {
+                                    /**
+                                     * Is the child is the came column as the column where the label was found?
+                                     * If so, it's probably considered the label from the user's perspective.
+                                     * This was added for "eoc-dashboard/automated-tests/1.1.1_Katietest. - EOC Create Project XMLs and Add EM.feature"
+                                     */
+                                    return child.closest('th,td').cellIndex === labelColumnCell.cellIndex
+                                })
+
+                                if(matchingChildren.length === 1){
+                                    return matchingChildren[0]
+                                }
+                            }
+
                             /**
                              * We're likely matching an unrelated group of elements.
                              * They could be children or distant siblings of the desired match
