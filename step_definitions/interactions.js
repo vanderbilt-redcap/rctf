@@ -1114,12 +1114,12 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
         })
     }
     else if(columnLabel){
-        /**
-         * Currently this case cannot be reached because rowLabel is required and always set when columnLabel is set,
-         * hitting the above 'if' block instead of this one.
-         * Eventually we should make rowLabel optional as well and consolidate this with other generic {action} steps.
-         */
-        throw 'Support for "in the column labeled" syntax is not yet implemented.  Please ask if you need it!'
+        cy.get(`th:contains(${JSON.stringify(columnLabel)}),td:contains(${JSON.stringify(columnLabel)})`).first().then(a => {
+            const cellIndex = a[0].cellIndex
+            cy.get(`th:nth-child(${cellIndex}),td:nth-child(${cellIndex})`).then(target => {
+                performActionOnTarget(target)
+            })
+        })
     }
     else if(rowLabel){
         const escapedRowLabel = rowLabel.replaceAll('"', '\\"')
