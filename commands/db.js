@@ -22,6 +22,10 @@ Cypress.Commands.add('base_db_seed', () => {
             const prefix = moduleDirName.substr(0, i)
             const version = moduleDirName.substr(i+1)
 
+            if(i === -1 || version.length < 2 || version[0] !== 'v'){
+                throw new Error('The following module directory name is missing the version suffix: ' + moduleDirName)
+            }
+
             queries.push(`INSERT INTO redcap_external_modules(directory_prefix) VALUES ('${prefix}')`)
             queries.push(`INSERT INTO redcap_external_module_settings VALUES (LAST_INSERT_ID(), null, 'version', 'string', '${version}')`)
         }
