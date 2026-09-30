@@ -42,7 +42,7 @@ globalThis.rctf = require('../rctf.mjs').rctf
 const workspaceRoot = path.resolve(__dirname, '..')
 
 function isCodeCoverageEnabled(config) {
-    return config.env.codeCoverage === true
+    return config.expose.codeCoverage === true
 }
 
 function shouldInstrumentFile(filePath) {

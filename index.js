@@ -109,7 +109,7 @@ Object.assign(rctf, {
 if (
     typeof Cypress !== 'undefined' // Don't load coverage if running get-step-usage.sh 
     &&
-    Cypress.env('codeCoverage')
+    Cypress.expose('codeCoverage')
 ) {
     try{
         require('@cypress/code-coverage/support')

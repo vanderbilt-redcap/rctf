@@ -2,4 +2,4 @@
 
 set -e
 
-npx cypress open --e2e --browser chrome --env codeCoverage=true --config experimentalInteractiveRunEvents=true
+npx cypress open --e2e --browser chrome --expose codeCoverage=true --config experimentalInteractiveRunEvents=true
