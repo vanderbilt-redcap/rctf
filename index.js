@@ -1,4 +1,5 @@
-import { mimeWordsDecode } from 'emailjs-mime-codec'
+// We use require() syntax so that this script works with both cypress and get-step-usage.sh
+const { mimeWordsDecode } = require('emailjs-mime-codec')
 
 // Define rctf everywhere on the browser side of things
 globalThis.rctf = require('./rctf.mjs').rctf
