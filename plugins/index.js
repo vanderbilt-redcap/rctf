@@ -197,11 +197,6 @@ module.exports = (cypressOn, config) => {
     on("before:run", async (details) => {
         beforeRunHandler(config);
 
-        if (isCodeCoverageEnabled(config)) {
-            fs.rmSync(path.join(workspaceRoot, '.nyc_output'), { force: true, recursive: true })
-            fs.rmSync(path.join(workspaceRoot, 'coverage'), { force: true, recursive: true })
-        }
-
         // Your own `before:run` code goes here.
     })
 
@@ -217,8 +212,21 @@ module.exports = (cypressOn, config) => {
         return launchOptions
     })
 
+    let beforeAllHasRun = false
     on("before:spec", async (spec) => {
         beforeSpecHandler(config, spec);
+        
+        if(config.isInteractive || !beforeAllHasRun){
+            beforeAllHasRun = true
+
+            // Delete these regardless of whether coverage is enabled to avoid displaying stale coverage results.
+            ;['.nyc_output', 'coverage'].forEach(dir => {
+                const dirPath = path.join(workspaceRoot, dir)
+                if(fs.existsSync(dirPath)){
+                    fs.rmSync(dirPath, { force: true, recursive: true })
+                }
+            })
+        }
 
         if(process.env.UPLOAD_RESULTS === 'true'){
             const redcapVersion = config.env.redcap_version
