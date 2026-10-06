@@ -1020,8 +1020,13 @@ function filterCoveredElements(matches) {
     matches.forEach(element => {
         let current = element
         while(current = current.parentElement){
+            const topElementZIndex = parseInt(getZIndex(topElement))
+            const currentZIndex = parseInt(getZIndex(current))
             if (
-                getZIndex(topElement) < getZIndex(current)
+                topElementZIndex < currentZIndex
+                &&
+                // If they are only one apart, consider them part of the same layer (e.g. C.3.24.2200, C.3.24.2600, others)
+                topElementZIndex+1 !== currentZIndex
                 &&
                 /**
                  * Don't match bootstrap ".dropdown-menu" elements that aren't actually visible,
@@ -1029,17 +1034,11 @@ function filterCoveredElements(matches) {
                  */
                 Cypress.$(current).is(':visible') 
                 &&
-                // Never consider the footer to be a topElement
-                current.id !== 'south'
-                &&
                 // Do not consider tooltips to be top elements, since their zIndex is greater than dialogs (e.g. C.3.24.2200)
                 !current.classList.contains('tooltip') // Required for C.3.24.2200.
                 &&
                 // Do not consider the navbar to be a top element, since it can prevent other fields on the page from being matched (e.g. C.3.31.3300)
                 !current.classList.contains('navbar')
-                &&
-                // Do not consider the questiontable to be a top element, so that we can also match items in the left menu (e.g. C.3.24.2200)
-                current.id !== 'questiontable'
             ) {
                 topElement = current
             }
