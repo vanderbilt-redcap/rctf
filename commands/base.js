@@ -1039,7 +1039,7 @@ function filterCoveredElements(matches) {
                 !current.classList.contains('navbar')
                 &&
                 // Do not consider the questiontable to be a top element, so that we can also match items in the left menu (e.g. C.3.24.2200)
-                !current.id === 'questiontable'
+                current.id !== 'questiontable'
             ) {
                 topElement = current
             }
