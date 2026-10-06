@@ -1037,6 +1037,9 @@ function filterCoveredElements(matches) {
                 &&
                 // Do not consider the navbar to be a top element, since it can prevent other fields on the page from being matched (e.g. C.3.31.3300)
                 !current.classList.contains('navbar')
+                &&
+                // Do not consider the questiontable to be a top element, so that we can also match items in the left menu (e.g. C.3.24.2200)
+                !current.id === 'questiontable'
             ) {
                 topElement = current
             }
