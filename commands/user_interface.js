@@ -172,7 +172,7 @@ Cypress.Commands.add("table_cell_by_column_and_row_label", (column_label, row_la
                     // console.log(Cypress.$(th).text().trim().includes(orig_column_label))
                     // console.log(thi)
                     if (Cypress.$(thi).text().trim().includes(orig_column_label) && column_num === 0) {
-                        column_num = th
+                        column_num = Cypress.$(thi).index()
                         if(thi[0].closest('#dag-switcher-table-container')){
                             // Adjust for indicies being one off due to the rowspan
                             column_num++
