@@ -1026,8 +1026,8 @@ function filterCoveredElements(matches) {
                 topElementZIndex < currentZIndex
                 &&
                 (
-                    // If they are only one apart, consider them part of the same layer (e.g. C.3.24.2200, C.3.24.2600, others)
-                    topElementZIndex+1 !== currentZIndex
+                    // Consider these part of the same layer (e.g. C.3.24.2200, C.3.24.2600, others)
+                    !(topElementZIndex === 0 && currentZIndex === 1)
                     ||
                     // Unless it is a dialog
                     current.tagName === 'DIALOG' // C.3.31.2500.
