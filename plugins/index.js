@@ -22,7 +22,7 @@ const fs = require('fs')
 const os = require('os')
 const { parse: parseCsvString } = require('csv-parse/sync')
 const path = require('path')
-const pdf = require('pdf-parse')
+const { PDFParse } = require('pdf-parse')
 const {
     addCucumberPreprocessorPlugin,
     beforeRunHandler,
@@ -285,14 +285,17 @@ module.exports = (cypressOn, config) => {
             })
         },
 
-        readPdf({pdf_file}){
-            return new Promise((resolve) => {
-                const filePath = path.resolve(pdf_file)
-                const dataBuffer = fs.readFileSync(filePath)
-                pdf(dataBuffer).then(function (data){
-                    resolve(data)
-                })
-            })
+        async readPdf({pdf_file}){
+            const filePath = path.resolve(pdf_file)
+            const dataBuffer = fs.readFileSync(filePath)
+            const parser = new PDFParse({ data: dataBuffer })
+
+            try {
+                return await parser.getText()
+            }
+            finally {
+                await parser.destroy()
+            }
         },
 
         saveCurrentURL(urlData) {
