@@ -1139,6 +1139,8 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
                                  * We require row like proportions to ensure we don't look too far up the element stack (e.g. skip the body or full height divs)
                                 */
                                 rctf.hasRowProportions(result)
+                                // If we've already found a tr, don't match any non-tr row-like elements
+                                && (rows.length === 0 || rows.at(-1).tagName !== 'TR')
                                 // We can only match non-tr row-like elements if text is specified to help clarify what the containing "row" is from the user's perspective.
                                 && text
                                 // We can't use the text to clarify the non-tr row-like element if we're not supposed to find that text.
@@ -1151,6 +1153,14 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
                         // If multiple elements on a single row match, make sure we only consider that row once (e.g. C.3.30.1800)
                         result !== rows.at(-1)
                     ){
+                        if(result.tagName === 'TR' && rows.length > 0 && rows.at(-1).tagName !== 'TR'){
+                            /**
+                             * We found a tr, but had only previously found non-trs.
+                             * Clear the non-trs and favor actual trs.
+                             */
+                            rows.length = 0
+                        }
+
                         rows.push(result)
                         break
                     }
