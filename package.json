@@ -15,7 +15,8 @@
     "emailjs-mime-codec": "*",
     "pdf-parse": "^2",
     "prompt-sync": "*",
-    "sed-lite": "*"
+    "sed-lite": "*",
+    "shelljs": "*"
   },
   "devDependencies": {
     "@cypress/code-coverage": "^4.0.3",
