@@ -997,6 +997,8 @@ Given("I click on the {string} {labeledElement} within (a)(the) {tableTypes} tab
 Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labeled ){textType}( ){optionalQuotedString}( )(in the )(column labeled ){optionalQuotedString}( and the )(row labeled ){optionalQuotedString}( ){elementStatus}", (action, articleType, ordinal, labeledElement, textType, text, columnLabel, rowLabel, elementStatus) => {
     console.log('I {action}...', action, articleType, ordinal, labeledElement, textType, text, columnLabel, rowLabel, elementStatus)
     
+    const shouldNotSee = action === 'should NOT see'
+
     const performActionOnTarget = (target) =>{
         console.log('performActionOnTarget target', target)
 
@@ -1004,8 +1006,6 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
             const escapedText = text.replaceAll('"', '\\"')
             return cy.wrap(target).find(`:contains("${escapedText}")`).filterMatches(text)
         }
-        
-        const shouldNotSee = action === 'should NOT see'
 
         if(labeledElement){
             let resultFilter = () => { return true }
@@ -1124,35 +1124,43 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
     else if(rowLabel){
         const escapedRowLabel = rowLabel.replaceAll('"', '\\"')
 
-        let rowElement
-        if(
-            Cypress.$('#datamart-app').length > 0 // C.3.31.3300 on the Clinical Data Mart page
-            || Cypress.$('#datamart').length > 0  // C.3.31.3300 on the New Project page
-        ){
-            rowElement = '.node-container'
-        }
-        else{
-            rowElement = `tr`
-        }
-
-        const rowContainsSelector = `${rowElement} :contains("${escapedRowLabel}")`
-        cy.get(rowContainsSelector).filterMatches(rowLabel).then(results => {
+        cy.get(`:contains("${escapedRowLabel}")`).filterMatches(rowLabel).then(results => {
             cy.log("Row Results", results) // Added for troubleshooting intermittent cloud failures
             const rows = []
-            let lastRow
-            results.each((i, element) => {
-                const row = element.closest(rowElement)
+            results.each((i, result) => {
+                while(result !== null){
+                    if(
+                        (
+                            result.tagName === 'TR'
+                            ||
+                            (
+                                /**
+                                 * Fall back to any containing element with row like proportions.
+                                 * We require row like proportions to ensure we don't look too far up the element stack (e.g. skip the body or full height divs)
+                                */
+                                rctf.hasRowProportions(result)
+                                // We can only match non-tr row-like elements if text is specified to help clarify what the containing "row" is from the user's perspective.
+                                && text
+                                // We can't use the text to clarify the non-tr row-like element if we're not supposed to find that text.
+                                && !shouldNotSee
+                                // Make sure the non-tr row-like element actually contains the desired text
+                                && Cypress.$(result).find(rctf.getContainingTextSelector(text)).length > 0
+                            )
+                        )
+                        &&
+                        // If multiple elements on a single row match, make sure we only consider that row once (e.g. C.3.30.1800)
+                        result !== rows.at(-1)
+                    ){
+                        rows.push(result)
+                        break
+                    }
 
-                // If multiple elements on a single row match, make sure we only consider that row once (e.g. C.3.30.1800)
-                if(row !== lastRow){
-                    rows.push(row)
+                    result = result.parentElement
                 }
-
-                lastRow = row
             })
 
             if(rows.length === 0){
-                throw 'Row with given label not found'
+                throw 'Row not found containing both the label & text values specified'
             }
             else if(rows.length > 1){
                 console.log('elements found matching row label', rows)
@@ -1165,19 +1173,7 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
                 row = row.parentElement.closest('tr')
             }
 
-            let next
-            if(row.closest('table')?.closest('div').id.startsWith('setupChklist-')){
-                /**
-                 * We're on the Project Setup page.
-                 * What look like table rows here are just divs that require special handling. 
-                 */
-                next = cy.get(rowContainsSelector.replace('tr', 'div')).filterMatches(rowLabel).closest('div')
-            }
-            else{
-                next = cy.wrap(row);
-            }
-
-            next.then(row => {
+            cy.wrap(row).then(row => {
                 performActionOnTarget(row)
             })
         })

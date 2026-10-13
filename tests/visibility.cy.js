@@ -95,9 +95,6 @@ function executeStep(stepText, expectedFailureMessage) {
                 throw error
             }
          } catch (caughtError) {
-            if(Cypress.config('isInteractive')){
-                Cypress.stop()
-            }
             throw caughtError
         }
     }
@@ -111,9 +108,6 @@ function executeStep(stepText, expectedFailureMessage) {
         Cypress.off('fail', failHandler)
         
         if(expectedFailureMessage){
-            if(Cypress.config('isInteractive')){
-                Cypress.stop()
-            }
             throw new Error('Step succeeded when it was expected to fail')
         }
     })
@@ -143,8 +137,12 @@ function assertSuccess(stepText) {
 }
 
 function assertFailure(stepText, expectedFailureMessage) {
+    if(!expectedFailureMessage){
+        throw new Error('A failure message must be specified for assertFailure() calls.')
+    }
+
     it('Assert Failure: ' + stepText, () => {
-        executeStep(stepText, expectedFailureMessage ?? '')
+        return executeStep(stepText, expectedFailureMessage ?? '')
     })
 }
 
@@ -155,6 +153,58 @@ function assertFailure(stepText, expectedFailureMessage) {
  */
 Cypress.config('defaultCommandTimeout', 0)
 
+describe('Assert row selection', () => {
+    beforeEach(() => {
+        return setPageContent(`
+            <style>
+                body {
+                    max-width: 40px;
+                }
+            </style>
+
+            <table>
+                <tr>
+                    <td>A</td>
+                    <td>B</td>
+                </tr>
+                <tr>
+                    <td>C</td>
+                    <td>D</td>
+                </tr>
+                <tr>
+                    <td>C</td>
+                    <td>D</td>
+                </tr>
+            </table>
+            <div>
+                <div>
+                    <span>E</span>
+                    <span>F</span>
+                </div>
+                <div>
+                    <span>G</span>
+                    <span>H</span>
+                </div>
+            </div>
+        `)
+    })
+
+    const rowNotFoundError = 'Row not found containing both the label & text values specified'
+
+    assertSuccess('I should see "B" in the row labeled "A"')
+    assertFailure('I should see "D" in the row labeled "C"', 'Multiple rows found for the given label')
+    assertFailure('I should NOT see "B" in the row labeled "A"', 'Unexpected text was found: B')
+    assertSuccess('I should see "H" in the row labeled "G"')
+    assertFailure('I should NOT see "H" in the row labeled "G"', rowNotFoundError)
+
+    // These make sure hasRowProportions() prevents considering the whole table or containing div as a row.
+    assertFailure('I should see "C" in the row labeled "A"', 'Expected text was not found: C')
+    assertSuccess('I should NOT see "C" in the row labeled "A"')
+    assertFailure('I should see "E" in the row labeled "G"', rowNotFoundError)
+    assertFailure('I should NOT see "E" in the row labeled "G"', rowNotFoundError)
+    assertFailure('I should see "H" in the row labeled "A"', 'Expected text was not found: H')
+    assertSuccess('I should NOT see "H" in the row labeled "A"')
+})
 
 const forEachType = (types, groupNamePrefix, action) => {
     const htmlByType = {
