@@ -264,6 +264,7 @@ const getElementThatShouldDisappearAfterClick = ($el) => {
         $el.id === 'assignDagRoleBtn' // C.3.30.1800
         || $el.innerText === 'Save signature' // A.3.28.0600
         || ($el.getAttribute('onclick') ?? '').startsWith('window.location.href=') // C.3.31.3300
+        || ($el.getAttribute('onclick') ?? '').startsWith('surveyOpen(') // A.6.4.1600
         /**
          * It doesn't matter what we return for downloads as long as we return something
          * It might as well just be the element.
@@ -427,7 +428,11 @@ Cypress.Commands.overwrite(
                          */
                         let downloadDetected = false
                         return cy.task('fetchLatestDownload', {fileExtension: null, retry: false}).then(filePath => {
-                            if(filePath){
+                            /**
+                             * We explicitly check to see if filePath is a string,
+                             * because for unknown reasons cypress is returning the window object here. 
+                             */
+                            if(typeof filePath === 'string'){
                                 cy.getFileMTime(filePath).then(mtime => {
                                     if(mtime > timeBeforeClick){
                                         // The click triggered a download.  Stop waiting for a page reload that will never happen. 
