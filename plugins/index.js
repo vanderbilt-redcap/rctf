@@ -503,7 +503,7 @@ module.exports = (cypressOn, config) => {
 
                 //If no filtered files are found ...
                 if (files.length === 0) {
-                    return ''
+                    return null
                 } else {
                     const latestFile = files[0].file
                     return `${downloadsDir}${latestFile}`
@@ -526,7 +526,7 @@ module.exports = (cypressOn, config) => {
                 await sleep(100)
             }
 
-            return ''
+            return null
         },
         
         getFileMTime(filePath) {
