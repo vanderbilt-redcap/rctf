@@ -25,7 +25,11 @@ Object.assign(rctf, {
             return 'Did not find the expected "FRS ID - DESCRIPTION.feature" format.'
         }
 
-        const frsIdMatch = mainParts[0].match(/^[A-C]\.\d+\.\d+\.(\d+)\./);
+        /**
+         * A-C features use four-part IDs (e.g. "A.6.4.0500."). Institution-specific D
+         * features use three or four parts (e.g. CCTC's "D.107.0100." and "D.5.22.0300.").
+         */
+        const frsIdMatch = mainParts[0].match(/^(?:[A-C]\.\d+\.\d+|D\.\d+(?:\.\d+)?)\.(\d+)\./);
         if (!frsIdMatch) {
             console.log(2)
             return 'The FRS ID is not formatted correctly.'
