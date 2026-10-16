@@ -1,3 +1,5 @@
+import {rctf} from '../rctf.mjs'
+
 /**
  * @module Login
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
@@ -18,8 +20,7 @@ Given("I {loginTypes} the user {string}", (login_type, user) => {
         cy.get('input[id=esign_password]').invoke('attr', 'value', credentials.pass)
     } else {
         cy.logout()
-        cy.set_user_type(user)
-        cy.fetch_login()
+        rctf.login(user)
     }
 })
 

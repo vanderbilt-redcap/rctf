@@ -14,8 +14,11 @@ Given("I change the current Event Name from {string} to {string}", (current_name
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} currentName - the name of the event when this step is reached
  * @description Verifies the event name cannot be changed in production mode
+ * @deprecated
  */
 Given("I verify I cannot change the Event Name of {string} while in production", (current_name) => {
+   throw new Error(`This step has been removed because it is not used by RSVC, and can likely be replaced by other more general steps. If no one requests it be re-enabled, it will be removed at a future time.`)
+
    cy.change_event_name(current_name, current_name, true)
 })
 
@@ -29,7 +32,7 @@ Given("I verify I cannot change the Event Name of {string} while in production",
 Given("I add an event named {string} with offset of {int} day(s) into the currently selected arm", (event_name, days) => {
    cy.intercept({
       method: 'GET',
-      url: '/redcap_v' + Cypress.env('redcap_version') + "/Design/define_events_ajax.php?*"
+      url: '/redcap_v' + Cypress.exposeRCTF('redcap_version') + "/Design/define_events_ajax.php?*"
    }).as("add_event")
 
    // IMPORTANT NOTE: We are intentionally selecting one column to the left of what we want

@@ -23,7 +23,7 @@ function sorterCompare(col_name, element, selector = null, klass = false, title 
         cy.get('th').then((th) => {
 
             th.each((i, t) => {
-                if(t.textContent === col_name){
+                if(rctf.getNormalizedTextContent(t) === col_name){
                     current_index = t.cellIndex
                 }
             })
@@ -60,8 +60,8 @@ function sorterCompare(col_name, element, selector = null, klass = false, title 
                         first_expectation = expectation + '("title", "' + first_row_val + '")'
                         selector_thing = 'Cypress.$($e[current_index]).find(selector)[0]'
                     } else if (first_row !== undefined && last_row !== undefined) {
-                        last_row_val = last_row.textContent
-                        first_row_val = first_row.textContent
+                        last_row_val = rctf.getNormalizedTextContent(last_row)
+                        first_row_val = rctf.getNormalizedTextContent(first_row)
                         expectation = 'to.contain'
                         last_expectation = expectation + '(last_row_val)'
                         first_expectation = expectation + '(first_row_val)'

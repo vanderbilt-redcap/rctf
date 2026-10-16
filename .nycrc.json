@@ -1,0 +1,12 @@
+{
+  "exclude": [
+    "tests/**",
+    "docs/**",
+    "node_modules/**"
+  ],
+  "excludeAfterRemap": false,
+  "reporter": [
+    "lcov",
+    "text-summary"
+  ]
+}

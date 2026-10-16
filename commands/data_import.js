@@ -26,16 +26,19 @@ Cypress.Commands.add('create_cdisc_project', (project_name, project_type, cdisc_
 })
 
 Cypress.Commands.add('import_data_file', (fixture_file,pid) => {
-    let admin_user = Cypress.env('users')['admin']['user']
+    let admin_user
     let current_token = null;
+    cy.env(['users']).then(limitedEnv => {
+        admin_user = limitedEnv['users']['admin']['user']
 
-    let current_user_type = window.user_info.get_previous_user_type()
-    if(current_user_type !== 'admin'){
-        cy.set_user_type('admin')
-        cy.fetch_login()
-    }
+        let current_user_type = window.user_info.get_previous_user_type()
+        if(current_user_type !== 'admin'){
+            cy.set_user_type('admin')
+            cy.fetch_login()
+        }
 
-    cy.add_api_user_to_project(admin_user, pid).then(($response) => {
+        return cy.add_api_user_to_project(admin_user, pid)
+    }).then(($response) => {
 
         if($response.hasOwnProperty('token')){
 
@@ -69,7 +72,7 @@ Cypress.Commands.add('import_data_file', (fixture_file,pid) => {
         } else {
 
             cy.request({ url: '/redcap_v' +
-                    Cypress.env('redcap_version') +
+                    Cypress.exposeRCTF('redcap_version') +
                     '/ControlCenter/user_api_ajax.php?action=createToken&api_username=' +
                     admin_user +
                     '&api_pid=' +
@@ -80,7 +83,7 @@ Cypress.Commands.add('import_data_file', (fixture_file,pid) => {
                 expect($token.body).to.contain(admin_user)
 
                 cy.request({ url: '/redcap_v' +
-                        Cypress.env('redcap_version') +
+                        Cypress.exposeRCTF('redcap_version') +
                         '/ControlCenter/user_api_ajax.php?action=viewToken&api_username=' + admin_user + '&api_pid=' + pid}).then(($super_token) => {
 
                     current_token = Cypress.$($super_token.body).children('div')[0].innerText
@@ -128,10 +131,17 @@ Cypress.Commands.add('read_directory', (dir) => {
 })
 
 Cypress.Commands.add('upload_file', (fileName, fileType = ' ', selector = '', button_label = '', nearest_text = '') => {
-    let label_selector = `:has(${selector}):visible`
-    let upload_selector = 'input[type=file]:visible'
+    let label_selector = `:has(${selector})`
+    let upload_selector = 'input[type=file]'
     let upload_element = ''
     let submit_button_selector = `input[type=submit][value*="${button_label}"]:visible,:button:contains("${button_label}"):visible`
+
+    if(nearest_text === 'Choose File' && !Cypress.$('body')[0].innerText.includes(nearest_text)){
+        // We're looking for the default "Choose File" text rendered by the browser but not actually present in the DOM.         
+        nearest_text = ''
+        selector = 'input[type=file]'
+        label_selector = null
+    }
 
     if(nearest_text.length > 0) label_selector = `:contains("${nearest_text}"):has(${upload_selector}):visible`
 
@@ -151,12 +161,42 @@ Cypress.Commands.add('upload_file', (fileName, fileType = ' ', selector = '', bu
 
         return
     }
+    else if(
+        // Special cases for B.2.33.2800.
+        (
+            nearest_text === 'Upload ACGs (CSV)'
+            && Cypress.$('#ACG-import-export').length > 0
+        )
+        ||
+        (
+            nearest_text === 'Upload user assignments (CSV)'
+            && Cypress.$('#ACG-import-export-user-assn').length > 0
+        )
+    ){
+        cy.window().then((win) => {
+            const ACG = win.eval('ACG')
+            ACG.importCsv = eval('(' + ACG.importCsv.toString().replace('fileInput.click()', 'ACG.fileInput = fileInput') + ')')
+            cy.getLabeledElement('link', nearest_text).click()
+
+            /**
+             * There is a race condition where Cypress may move on to the next step
+             * before the click action finishes executing. To avoid intermittent failures,
+             * explicitly wait for ACG.fileInput to be set.
+             */
+            cy.wait(100).then(() => {
+                // This must be inside a "then" to ensure that "cy.wrap(ACG.fileInput)" is executed after it is set.
+                cy.wrap(ACG.fileInput).selectFile(filePath, {force: true})
+            })
+        })
+
+        return
+    }
 
     cy.top_layer(label_selector).within(() => {
         if(nearest_text.length > 0) {
-            upload_element = cy.get_labeled_element(upload_selector, nearest_text).first()
+            upload_element = cy.getLabeledElement('input', nearest_text)
         } else {
-            upload_element = cy.get(selector)
+            upload_element = cy.get(selector).filterMatches()
         }
 
         upload_element.selectFile(filePath)
@@ -174,7 +214,7 @@ Cypress.Commands.add('file_repo_upload', (fileNames, expectSuccess = true) => {
     for(let i = 0; i < count_of_files; i++){
         cy.intercept({
             method: 'POST',
-            url: '/redcap_v' + Cypress.env('redcap_version') + "/*FileRepositoryController:upload*"
+            url: '/redcap_v' + Cypress.exposeRCTF('redcap_version') + "/*FileRepositoryController:upload*"
         }).as(`file_repo_upload_${i}`)
     }
 

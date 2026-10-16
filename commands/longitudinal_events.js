@@ -43,7 +43,7 @@ Cypress.Commands.add('change_event_name', (current_name, proposed_name = '', pro
     if(!production && current_name === proposed_name){
         cy.intercept({
             method: 'GET',
-            url: '/redcap_v' + Cypress.env('redcap_version') + "/Design/define_events_ajax.php?*"
+            url: '/redcap_v' + Cypress.exposeRCTF('redcap_version') + "/Design/define_events_ajax.php?*"
         }).as('define_ajax_events')
     }
 
@@ -61,7 +61,7 @@ Cypress.Commands.add('change_event_name', (current_name, proposed_name = '', pro
         if(current_name === proposed_name) {
             cy.get('div.menubox').contains('Project status:').then(($element) => {
                 // Extract the text content of the entire div
-                const textContent = $element.text()
+                const textContent = rctf.getNormalizedTextContent($element[0])
 
                 // Use a regular expression to extract the project status value
                 const match = textContent.match(/Project status:\s*(\w+)/);
@@ -77,7 +77,7 @@ Cypress.Commands.add('change_event_name', (current_name, proposed_name = '', pro
         if(save) {
             cy.intercept({
                 method: 'POST',
-                url: '/redcap_v' + Cypress.env('redcap_version') + "/Design/define_events_ajax.php"
+                url: '/redcap_v' + Cypress.exposeRCTF('redcap_version') + "/Design/define_events_ajax.php"
             }).as('save_events')
         }
 
@@ -98,7 +98,7 @@ Cypress.Commands.add('change_event_name', (current_name, proposed_name = '', pro
 Cypress.Commands.add('delete_event_name', (event_name) => {
     cy.intercept({
         method: 'GET',
-        url: '/redcap_v' + Cypress.env('redcap_version') + "/Design/define_events_ajax.php?*"
+        url: '/redcap_v' + Cypress.exposeRCTF('redcap_version') + "/Design/define_events_ajax.php?*"
     }).as('delete_ajax_events')
 
     cy.get('td').

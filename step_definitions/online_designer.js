@@ -4,18 +4,13 @@
  * @param {string} enterType
  * @param {string} choices - the choices in string format
  * @param {string} addEditField
+ * @deprecated
  */
 Given('I {enterType} Choice(s) of {string} in(to) the open "{addEditField}" dialog box', (enter_type, choices, add_edit_field) => {
-    let field_choices = cy.select_field_choices()
-    if(enter_type === "clear field and enter") {
-        field_choices.clear()
-        field_choices.type(`{enter}${choices}`)
-    } else if (enter_type === "verify") {
-        console.log(field_choices.value)
-        console.log(field_choices)
-        field_choices.should('contain.value', choices)
+    if (enter_type === "verify") { //
+        throw new Error('This step has been removed in favor of steps like the following: And I verify "1, One" is within the textarea field labeled "Choices"')
     } else {
-        field_choices.type(`{enter}${choices}`)
+        throw new Error('This step has been removed in favor of steps like the following: And I enter "1, One{enter}2, Two" in the textarea field labeled "Choices"')
     }
 })
 
@@ -190,12 +185,12 @@ Given("I delete the field named {string}", (field_name) => {
 
     cy.intercept({
         method: 'GET',
-        url: '/redcap_v' + Cypress.env('redcap_version') + "/Design/delete_field.php?*"
+        url: '/redcap_v' + Cypress.exposeRCTF('redcap_version') + "/Design/delete_field.php?*"
     }).as('delete_field')
 
     cy.intercept({
         method: 'GET',
-        url: '/redcap_v' + Cypress.env('redcap_version') + "/Design/online_designer_render_fields.php?*"
+        url: '/redcap_v' + Cypress.exposeRCTF('redcap_version') + "/Design/online_designer_render_fields.php?*"
     }).as('render_fields')
 
     cy.get('button').contains('Delete').click()
@@ -222,7 +217,7 @@ Given("I move the field named {string} after the field named {string}", (field_n
 
     cy.intercept({
         method: 'POST',
-        url: '/redcap_v' + Cypress.env('redcap_version') + "/Design/move_field.php?*"
+        url: '/redcap_v' + Cypress.exposeRCTF('redcap_version') + "/Design/move_field.php?*"
     }).as('move_field')
 
     cy.get('button').contains('Move field').click()
@@ -372,7 +367,7 @@ Given('I click the "reset" link for the field labeled {string}', (label) => {
  */
 Given("I (should )see {string} within the field with variable name {string}", (text, variable_name) => {
     cy.not_loading()
-    
+
     const legacy_selector = `table[id*=design-]:contains(${JSON.stringify(`Variable: ${variable_name}`)})`
     const current_selector = `table[id*=design-]:contains(${JSON.stringify(`Field Name: ${variable_name}`)})`
 
