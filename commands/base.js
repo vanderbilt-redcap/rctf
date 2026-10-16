@@ -467,6 +467,12 @@ Cypress.Commands.overwrite(
                 cy.wrap($el).then(() => {
                     originalFn($el, options)
                 })
+
+                if(innerText.includes("Open public survey") && openInSameTab){
+                    cy.visit_survey_opened_in_same_tab()
+                    // Keep yielding the clicked element for the reload/disappearance checks below.
+                    cy.wrap($el, { log: false })
+                }
             })
             .then($el => {
                 if(isTwoFactorCodeSubmission){
