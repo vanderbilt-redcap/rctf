@@ -20,7 +20,14 @@ function performAction(action, element, elementStatus){
         element.should('be.visible')
 
         if (elementStatus === "that is disabled") {
-            element.should('be.disabled')
+            element.then(element => {
+                const type = element[0].tagName
+                if(['A', 'I', 'IMG'].includes(type)){
+                    throw new Error('The "that is disabled" suffix it not supported for this element')
+                }
+                
+                cy.wrap(element).should('be.disabled')
+            })
         }
         else if (elementStatus === "that is checked") {
             element.should("be.checked")
@@ -39,6 +46,7 @@ function performAction(action, element, elementStatus){
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} instrumentSaveOptions
  * @description Clicks a specific submit option to save a record on a Data Collection Instrument
+ * @deprecated Deprecated in favor the generic step definition 'I click on the button labeled "Whatever"'  
  */
  Given("I select the submit option labeled \"{instrumentSaveOptions}\" on the Data Collection Instrument", (text) => {
 
@@ -119,17 +127,25 @@ Given("I click on the button labeled {string} for the row labeled {string}", (te
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} enterType
  * @param {string} label - the label of the field
- * @param {string} baseElement
  */
-Given("I {enterType} {string} (into)(is within) the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}", enterTextIntoField)
+Given("I {enterType} {string} (in)(to)(is within) the( ){ordinal}( ){inputType} field( ){columnLabel} labeled {string}{iframeVisibility}", enterTextIntoField)
+
+/**
+ * @module Interactions
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @param {string} enterType
+ * @param {string} label - the label of the field
+ */
+Given("I verify {string} (in)(to)(is within) the( ){ordinal}( )textarea field( ){columnLabel} labeled {string}{iframeVisibility}", (text, ordinal, column, label, iframe) => {
+    enterTextIntoField('verify', text, ordinal, 'textarea', column, label, iframe)
+})
 
 /**
  * @module Interactions
  * @author Mark McEver <mark.mcever@vumc.org>
  * @param {string} label - the label of the field
- * @param {string} baseElement
  */
-Given("I enter the current user's Super API Token into the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}", (...args) => {
+Given("I enter the current user's Super API Token into the( ){ordinal}( ){inputType} field( ){columnLabel} labeled {string}{iframeVisibility}", (...args) => {
     cy.get('#username-reference').then(element => {
         const username = element.text()
         const query = `SELECT api_token FROM redcap_user_information WHERE username = '${username}'`
@@ -150,63 +166,28 @@ Given("I enter the current user's Super API Token into the( ){ordinal}( ){inputT
  * @module Interactions
  * @author Mark McEver <mark.mcever@vumc.org>
  * @param {string} label - the label of the field
- * @param {string} baseElement
  */
-Given('I enter the code that was emailed to the current user into the( ){ordinal}( ){inputType} field( ){columnLabel}( ){labeledExactly} {string}{baseElement}{iframeVisibility}', (...args) => {
-    const getCodeFromEmail = () => {
-        return cy.request('http://localhost:8025/api/v1/messages').then(response => {
-            // Make null the default return value & override any previous subject
-            cy.wrap(null)
-
-            const messages = response.body 
-            if(messages.length === 0){
-                // Maybe it hasn't come through yet.  Return to retry.
-                return
-            }
-
-            const lastMessage = messages[0].Content
-
-            const timeSinceSent = Date.now() - new Date(lastMessage.Headers.Date)
-            if(timeSinceSent > 10000){
-                // Ignore any old emails
-                return
-            }
-            
-            let code = null
-            lastMessage.Body.split('\r').forEach(line => {
-                if(code === null && line.includes('verification code is')){
-                    code = line.split(' ').at(-1)
-                }
-            })
-
-            cy.wrap(code)
-        })
-    }
-
-    let triesLeft = 10
-    const getSentEmails = () => {
-        getCodeFromEmail().then(code => {
-            if(!code){
-                if(triesLeft-- > 0){
-                    cy.wait(1000)
-                    getSentEmails()
-                }
-                else{
-                    throw 'Could not find a recent message containing an authentication code: ' + lastMessage
-                }
-            }
-            else{
-                args.unshift(code)
-                args.unshift('enter')
-                enterTextIntoField(...args)
+Given('I enter the code that was emailed to the current user into the( ){ordinal}( ){inputType} field( ){columnLabel} labeled {string}{iframeVisibility}', (...args) => {
+    return rctf.getLatestEmail().then(email => {
+        let code = null
+        email.Body.split('\r').forEach(line => {
+            if(code === null && line.includes('verification code is')){
+                code = line.split(' ').at(-1)
             }
         })
-    }
 
-    getSentEmails()
+        if(!code){
+            throw 'Could not find a recent message containing an authentication code'
+        }
+        else{
+            args.unshift(code)
+            args.unshift('enter')
+            enterTextIntoField(...args)
+        }
+    })
 })
 
-function enterTextIntoField(enter_type, text, ordinal, input_type, column, labeled_exactly, label, base_element, iframe){
+function enterTextIntoField(enter_type, text, ordinal, input_type, column, label, iframe){
     let select = 'input[type=text]:visible,input[type=password]:visible'
 
     // Also look for inputs that omit a "type", like "Name of trigger"
@@ -231,11 +212,13 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
             let elm = cy.getLabeledElement('input', label)
 
             if(enter_type === "enter"){
-                elm.eq(ord).scrollIntoView().type(text)
+                elm.eq(ord).scrollIntoView().clear().type(text)
             } else if (enter_type === "clear field and enter") {
                 elm.eq(ord).scrollIntoView().clear().type(text)
             } else if (enter_type === "verify"){
                 elm.eq(ord).scrollIntoView().invoke('val').should('include', text)
+            } else {
+                throw new Error('The following enterType is not supported in this context: ' + enter_type)
             }
         })
 
@@ -243,13 +226,23 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
 
         cy.table_cell_by_column_and_row_label(label, '', 'table', 'td', 'td', ord, 'table.addFieldMatrixRowParent', true).then(($td) => {
             if(enter_type === "enter"){
-                cy.wrap($td).find('input:visible').type(text)
+                cy.wrap($td).find('input:visible').clear().type(text)
             } else if (enter_type === "clear field and enter") {
                 cy.wrap($td).find('input:visible').clear().type(text)
+            } else {
+                throw new Error('The following enterType is not supported in this context: ' + enter_type)
             }
         })
 
     } else {
+        let type
+        if(input_type === 'textarea'){
+            type = 'textarea'
+        }
+        else{
+            type = 'input'
+        }
+
         if (enter_type === "enter" || enter_type === "clear field and enter") {
             /**
              * Type the value, then confirm it actually stuck. A survey form that
@@ -265,7 +258,7 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
              * not a prefix of the text we typed.
              */
             const fill = (attemptsLeft) => {
-                const elm = cy.getLabeledElement('input', label, ordinal)
+                const elm = cy.getLabeledElement(type, label, ordinal)
                 // Focus first: cypress can otherwise hang on clear() while scrolling.
                 elm.focus()
                 // Clearing replaces what is there, and supports "text === ''".
@@ -280,7 +273,7 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
                      */
                     elm.blur()
                 })
-                cy.getLabeledElement('input', label, ordinal).then(($el) => {
+                cy.getLabeledElement(type, label, ordinal).then(($el) => {
                     const val = $el.val()
                     // Retry on an interrupted type: empty, or a strict prefix of `text`
                     // (e.g. "" or "Firs" when we meant "FirstName"). A normalised value
@@ -293,12 +286,14 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
             }
             fill(3)
         } else if (enter_type === "verify"){
-            const elm = cy.getLabeledElement('input', label, ordinal)
+            const elm = cy.getLabeledElement(type, label, ordinal)
             if(window.dateFormats.hasOwnProperty(text)){
-                //elm.invoke('val').should('match', window.dateFormats[text])
+                elm.invoke('val').should('match', window.dateFormats[text])
             } else {
                 elm.invoke('val').should('include', text)
             }
+        } else {
+            throw new Error('The following enterType is not supported in this context: ' + enter_type)
         }
     }
 }
@@ -313,7 +308,7 @@ function enterTextIntoField(enter_type, text, ordinal, input_type, column, label
  * @description Enters a specific text string into a field identified by a label.  (NOTE: The field is not automatically cleared.)
  */
 
-Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledExactly} {string}{baseElement}', (enter_type, text, ordinal, labeled_exactly, label, base_element) => {
+Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field labeled {string}{baseElement}', (enter_type, text, ordinal, label, base_element) => {
     let sel = `:contains(${JSON.stringify(label)}):visible`
 
     let ord = 0
@@ -345,7 +340,15 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
                 if($parent.find(element).eq(ord).length){
 
                     //If the textarea has a TinyMCE editor applied to it
-                    if(elementReference.hasClass('mceEditor') && elementReference[0].style.display === 'none'){
+                    if(
+                        elementReference[0].style.display === 'none'
+                        &&
+                        (
+                            elementReference.hasClass('mceEditor')
+                            ||
+                            elementReference.next().hasClass('tox-tinymce') // A.2.33.1700.
+                        )
+                    ){
                        cy.customSetTinyMceContent($parent.find(element).eq(ord).attr('id'), text)
 
                         //All other cases
@@ -353,15 +356,23 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
                         elm = cy.wrap($parent).find(element).eq(ord)
 
                         if(enter_type === "enter"){
+                            elm.clear({force: true})
+
                             /**
                              * Force is true because of what seems like a cypress bug preventing
                              * C.3.31.0900 from scrolling a textarea into view before typing.
                              */
                             elm.type(text, {force: true})
                         } else if (enter_type === "clear field and enter") {
-                            elm.clear().type(text)
+                            elm.clear()
+
+                            if(text.length > 0){
+                                elm.type(text)
+                            }
                         } else if(enter_type === "click on"){
                             elm.click()
+                        } else {
+                            throw new Error('The following enterType is not supported in this context: ' + enter_type)
                         }
                     }
 
@@ -375,7 +386,7 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
                     //All other cases
                     } else {
                         if(enter_type === "enter"){
-                            cy.wrap($parent).parent().find(element).eq(ord).type(text)
+                            cy.wrap($parent).parent().find(element).eq(ord).clear().type(text)
                         } else if (enter_type === "clear field and enter") {
 
                             //Logic editor does not use an actual textarea; we need to invoke the text instead!
@@ -404,6 +415,8 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field {labeledE
 
                         } else if(enter_type === "click on"){
                             cy.wrap($parent).parent().find(element).eq(ord).click()
+                        } else {
+                            throw new Error('The following enterType is not supported in this context: ' + enter_type)
                         }
                     }
                 }
@@ -473,6 +486,7 @@ Given('I {enterType} {string} (is within)(into) the data entry form field labele
                     cy.get('[name="' + $id.split('label-')[1] + '"]')
                 })
                 .click()
+                .clear()
                 .type(text)
                 .blur() //Remove focus after we are done so alerts pop up
         }
@@ -603,9 +617,10 @@ Given('I enter {string} into the field identified by {string} labeled {string}',
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} value - text that is inside the element
  * @description Clicks the element that contains the text specified
+ * @deprecated
  */
 Given('I click the element containing the following text: {string}', (value) => {
-    cy.get(':contains("' + value + '"):visible:last').click()
+    throw new Error(`This step has been removed in favor of newer steps like the following that are less brittle in relation to timing and page loads: I click on "Some clickable text"`)
 })
 
 /**
@@ -660,9 +675,12 @@ Given('I select {string} (in)(on) the{ordinal} {dropdownType} (field labeled)(of
     let label_selector = `:contains(${JSON.stringify(label)}):visible`
     if(type === "dropdown" || type === "multiselect"){
         const action = ($select) => {
-                cy.wrap($select).scrollIntoView().
-                should('be.visible').
-                should('be.enabled').then(($t) => {
+                if(!$select.hasClass('select2-hidden-accessible')){
+                    cy.wrap($select).scrollIntoView().
+                    should('be.visible')
+                }
+
+                cy.wrap($select).should('be.enabled').then(($t) => {
 
                     if(type === "dropdown") {
                         cy.wait(500)
@@ -698,7 +716,7 @@ Given('I select {string} (in)(on) the{ordinal} {dropdownType} (field labeled)(of
                      * so use to value of the <option> element returned instead 
                      * Using '.trim()' is required as cy.select() seems to trim all options when looking for a match.
                      */
-                    option = optionElement[0].textContent.trim()
+                    option = optionElement[0].textContent.trim() // Ignore this line when verifying textContext usage
                     action(optionElement.closest('select'))
                 })
             }
@@ -748,7 +766,7 @@ Given("I wait for (another ){int} {timeType}", (time, unit) => {
  * @description Does not actually wait for hours, but instead simulates the specified number of hours passing by modifying the database as if all past events has occurred the specified number of hours ago.
  */
 Given("I wait for {int} hour(s)", (hours) => {
-    const mysql = Cypress.env("mysql")
+    const mysql = Cypress.exposeRCTF("mysql")
     
     // Update all tables with datetime/timestamp columns
     cy.mysql_query(`
@@ -818,6 +836,10 @@ Given("I wait for {int} hour(s)", (hours) => {
 Given("I {enterType} {string} into the field with the placeholder text of {string}", (enter_type, text, placeholder) => {
     const selector = 'input[placeholder="' + placeholder + '"]:visible,input[value="' + placeholder + '"]:visible'
 
+    if (!['enter', 'clear field and enter'].includes(enter_type)) {
+        throw new Error('The following enterType is not supported in this context: ' + enter_type)
+    }
+
     /**
      * We used to skip the clear() call and append text based on the enterType param,
      * but that caused hard to predict intermittent failures in some case.
@@ -838,7 +860,9 @@ Given("I {enterType} {string} into the field with the placeholder text of {strin
  */
 Given("I close the iframe window", () => {
     cy.frameLoaded()
+    const body = Cypress.$('body')
     cy.get('div.trim-close-btn').click()
+    cy.wrap(body).should('not.exist')
 })
 
 /**
@@ -952,14 +976,10 @@ Given('I move the Minute slider for the open date picker widget to {int}', (min)
  * @author Adam De Fouw <aldefouw@medicine.wisc.edu>
  * @param {string} label - the label of the field
  * @description Open the date picker widget
+ * @deprecated
  */
 Given('I click on the date picker widget on the field labeled {string}', (label) => {
-    cy.get(`label:contains(${JSON.stringify(label)})`)
-        .invoke('attr', 'id')
-        .then(($id) => {
-            let id = $id.split('label-')[1]
-            cy.get(`input[aria-labelledby="${$id}"]`).parent().find('img.ui-datepicker-trigger').click()
-        })
+    throw new Error(`This step broke after REDCap core changes. The following syntax is recommended instead: I click on the icon labeled "Click to select a date" in the row labeled "xyz"`)
 })
 
 /**
@@ -1066,6 +1086,9 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
                 else if(labeledElement === 'radio'){
                     selector = 'input[type="radio"]'
                 }
+                else if(labeledElement === 'link'){
+                    selector = 'a'
+                }
                 else{
                     throw 'Unexpected labeledElement and text combo'
                 }
@@ -1130,12 +1153,12 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
         })
     }
     else if(columnLabel){
-        /**
-         * Currently this case cannot be reached because rowLabel is required and always set when columnLabel is set,
-         * hitting the above 'if' block instead of this one.
-         * Eventually we should make rowLabel optional as well and consolidate this with other generic {action} steps.
-         */
-        throw 'Support for "in the column labeled" syntax is not yet implemented.  Please ask if you need it!'
+        cy.get(`th:contains(${JSON.stringify(columnLabel)}),td:contains(${JSON.stringify(columnLabel)})`).first().then(a => {
+            const cellIndex = a[0].cellIndex
+            cy.get(`th:nth-child(${cellIndex}),td:nth-child(${cellIndex})`).then(target => {
+                performActionOnTarget(target)
+            })
+        })
     }
     else if(rowLabel){
         const escapedRowLabel = rowLabel.replaceAll('"', '\\"')
@@ -1153,6 +1176,7 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
 
         const rowContainsSelector = `${rowElement} :contains("${escapedRowLabel}")`
         cy.get(rowContainsSelector).filterMatches(rowLabel).then(results => {
+            cy.log("Row Results", results) // Added for troubleshooting intermittent cloud failures
             const rows = []
             let lastRow
             results.each((i, element) => {
@@ -1211,4 +1235,79 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
  */
 Given("I remember to click cancel on the confirmation dialog that appears after the following step", () => {
    window.rctfCancelNextConfirm = true
+})
+
+/**
+ * @module Interactions
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @description Pulls the REDCap+ subscription key from either the REDCAP_PLUS_SUBSCRIPTION_KEY system environment variable, or the 'redcap_plus_subscription_key' value in cypress.env.json, and enters it into the 'Enter a REDCap+ subscription key' field. If REDCap+ tests should not be run on this system, set 'skip_redcap_plus_tests' to true in cypress.env.json to skip tests when they encounter this line.
+ */
+Given("I enter a REDCap+ subscription key into the textarea field labeled {string}", (label) => {
+    const expectedLabel = 'Enter a REDCap+ subscription key'
+    if(label !== expectedLabel){
+        throw new Error(`Invalid label given. The only label supported for this step is '${expectedLabel}'.`)
+    }
+
+    if(Cypress.exposeRCTF('skip_redcap_plus_tests')){
+        cy.state('runnable').ctx.skip()
+        return
+    }
+    
+    let key
+    cy.task('getREDCapPlusSubscriptionKeyEnv').then((keyFromSystemEnv) => {
+        if(keyFromSystemEnv){
+            key = keyFromSystemEnv
+        }
+    }).then(() => {
+        if(key){
+            // The key was set from the system env, which should override the cypress env.
+            return
+        }
+
+        const envParamName = 'redcap_plus_subscription_key'
+        cy.env([envParamName]).then(limitedEnv => {
+            const keyFromCypressEnv = limitedEnv[envParamName]
+            if(keyFromCypressEnv){
+                key = keyFromCypressEnv
+            }
+        })
+    }).then(() => {
+        if(!key){
+            throw new Error(`A REDCap+ subscription key could not be found. To disable REDCap+ tests, add/set 'skip_redcap_plus_tests' to true in cypress.env.json. To enable REDCap+ tests, either add/set 'redcap_plus_subscription_key' in cypress.env.json, or set the 'REDCAP_PLUS_SUBSCRIPTION_KEY' system environment variable.`)
+        }
+
+        cy.get('#plusKey').type(key)
+    })
+})
+
+/**
+ * @module Interactions
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @description Pressed the specified key. Supported values are listed here: https://docs.cypress.io/api/commands/press#Supported-Keys
+ */
+Given("I press the {string} key", (key) => {
+    if(key === Cypress.Keyboard.Keys.TAB){
+        /**
+         * It seems like bug in cypress that this is required (e.g. C.3.31.2500),
+         * since the tab key should cause the blur event.
+         */
+        cy.focused().blur()
+    }
+     
+    cy.press(key)
+})
+
+/**
+ * @module Interactions
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @param {string} email_address - The expected email to address
+ * @param {string} subject - All or part of the expected email subject
+ * @param {string} body - All or part of the expected email body
+ */
+Given('I verify that an email was sent to {string} with a subject containing {string} and content containing {string}', (email_address, subject, body) => {
+    rctf.getLatestEmail().then(email => {
+        expect(email.Headers.To[0]).to.equal(email_address)
+        expect(email.Headers.Subject[0]).to.contain(subject)
+        expect(email.Body).to.contain(body)
+    })
 })

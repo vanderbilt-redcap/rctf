@@ -7,5 +7,5 @@ export const rctf = {
         'Amazon S3 bucket': false,
         'Google Cloud Storage bucket': '../redcap_docker/external_storage/gcs',
         'WebDAV server': '../redcap_docker/external_storage/webdav',
-    }
+    },
 }

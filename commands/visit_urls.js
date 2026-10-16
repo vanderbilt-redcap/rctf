@@ -8,7 +8,7 @@ Cypress.Commands.add('visit_base', (options) => {
 })
 
 Cypress.Commands.add('visit_version', (options) => {
-    let version = Cypress.env('redcap_version')
+    let version = Cypress.exposeRCTF('redcap_version')
     let url = ''
 
     if('params' in options){

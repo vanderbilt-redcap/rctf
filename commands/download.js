@@ -41,6 +41,12 @@ Cypress.Commands.add('fetch_timestamped_file', (filename) => {
     const first_file = `cypress/downloads/${replaceFilename(filename, setLocalTimestamp(current_time))}`
     const second_file = `cypress/downloads/${replaceFilename(filename, setLocalTimestamp(minute_ago))}`
 
+    /**
+     * The following call was added solely to make sure cypress waits for the most recently
+     * initiated file download to complete before moving on to the next step (e.g. B.2.33.2700.)
+     */
+    cy.task('fetchLatestDownload', { fileExtension: false })
+
     cy.fileExists(first_file).then((fileExists) => {
         if (fileExists) path = first_file
     }).then(() => {

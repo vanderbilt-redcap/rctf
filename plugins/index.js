@@ -20,10 +20,9 @@ const shell = require('shelljs')
 const sed_lite = require('sed-lite').sed
 const fs = require('fs')
 const os = require('os')
-const csv = require('async-csv')
+const { parse: parseCsvString } = require('csv-parse/sync')
 const path = require('path')
-const pdf = require('pdf-parse')
-const createBundler = require("@bahmutov/cypress-esbuild-preprocessor")
+const { PDFParse } = require('pdf-parse')
 const {
     addCucumberPreprocessorPlugin,
     beforeRunHandler,
@@ -34,14 +33,87 @@ const {
 } = require("@badeball/cypress-cucumber-preprocessor")
 const {createEsbuildPlugin}  = require("@badeball/cypress-cucumber-preprocessor/esbuild")
 const glob = require('glob')
+const { execSync, spawnSync } = require('child_process');
+const { ResultsUploader } = require('./ResultsUploader.js')
+
+// Define rctf everywhere on the node side of things
+globalThis.rctf = require('../rctf.mjs').rctf
+
+const workspaceRoot = path.resolve(__dirname, '..')
+
+function isCodeCoverageEnabled(config) {
+    return config.expose.codeCoverage === true
+}
+
+function shouldInstrumentFile(filePath) {
+    return !filePath.includes('node_modules')
+}
+
+function createCoverageInstrumentationPlugin(config) {
+    return {
+        name: 'rctf-coverage-instrumentation',
+        setup(build) {
+            if (!isCodeCoverageEnabled(config)) {
+                return
+            }
+
+            const instrumenter = require('istanbul-lib-instrument').createInstrumenter({
+                compact: false,
+                coverageVariable: '__coverage__',
+                esModules: true,
+                produceSourceMap: true,
+            })
+
+            build.onLoad({ filter: /\.[cm]?js$/ }, async (args) => {
+                if (!shouldInstrumentFile(args.path)) {
+                    return null
+                }
+
+                const sourceCode = await fs.promises.readFile(args.path, 'utf8')
+                const instrumentedSourceCode = instrumenter.instrumentSync(sourceCode, args.path)
+
+                return {
+                    contents: instrumentedSourceCode,
+                    loader: 'js',
+                }
+            })
+        },
+    }
+}
+
+function writeCoverageReport() {
+    const nycCliPath = require.resolve('nyc/bin/nyc.js')
+    const nycResult = spawnSync(
+        process.execPath,
+        [nycCliPath, 'report', '--reporter=lcov', '--reporter=text-summary'],
+        {
+            cwd: workspaceRoot,
+            encoding: 'utf8',
+        },
+    )
+
+    if (nycResult.status !== 0) {
+        throw new Error(`Failed to generate coverage report:\n${nycResult.stderr || nycResult.stdout}`)
+    }
+
+    if (nycResult.stdout.trim()) {
+        console.log(nycResult.stdout.trim())
+    }
+
+    const lcovInfoPath = path.join(workspaceRoot, 'coverage', 'lcov.info')
+
+    if (fs.existsSync(lcovInfoPath)) {
+        const lcovContents = fs.readFileSync(lcovInfoPath, 'utf8')
+        const normalizedLcovContents = lcovContents.replace(/^SF:(.+)$/gm, (fullMatch, filePath) => {
+            return `SF:${filePath.replaceAll('\\', '/')}`
+        })
+
+        fs.writeFileSync(lcovInfoPath, normalizedLcovContents)
+    }
+}
 
 module.exports = (cypressOn, config) => {
     const on = require('cypress-on-fix')(cypressOn)
-
-    const getRCTF = async () =>{
-        const imported = await import('../rctf.mjs') 
-        return imported.rctf
-    }
 
     addCucumberPreprocessorPlugin(on, config, {
         omitBeforeRunHandler: true,
@@ -51,14 +123,75 @@ module.exports = (cypressOn, config) => {
         omitAfterScreenshotHandler: true,
     })
 
-    const bundler = createBundler({
-        plugins: [createEsbuildPlugin(config)],
-    })
+    if (isCodeCoverageEnabled(config)) {
+        require('@cypress/code-coverage/task')(on, config)
+    }
 
-    on('file:preprocessor', async (file) => {
+    // Own the esbuild watch loop (instead of createBundler) so a rebuild failure
+    // yields a spec that throws at runtime rather than a rejected bundle promise --
+    // the latter makes Cypress relaunch the browser to show its compile-error screen.
+    const esbuild = require('esbuild')
+    const bundles = {} // filePath => Promise<outputPath>
+
+    const bundle = (file) => {
+        const { filePath, outputPath, shouldWatch } = file
+        const options = {
+            plugins: [createEsbuildPlugin(config)],
+            entryPoints: [filePath],
+            outfile: outputPath,
+            bundle: true,
+        }
+
+        if (isCodeCoverageEnabled(config)) {
+            options.plugins.push(createCoverageInstrumentationPlugin(config))
+        }
+
+        // In `cypress run` a compile failure must be fatal, so bundle once and let it reject.
+        if (!shouldWatch) return esbuild.build(options).then(() => outputPath)
+
+        if (!bundles[filePath]) {
+            let resolveFirstBuild
+            bundles[filePath] = new Promise((resolve) => {
+                resolveFirstBuild = resolve
+            })
+
+            const recover = {
+                name: 'rctf-build-error-recovery',
+                setup: (build) => build.onEnd(async ({ errors }) => {
+                    if (errors.length > 0) {
+                        const message = (await esbuild.formatMessages(errors, { kind: 'error', color: false })).join('\n')
+                        const title = JSON.stringify('Failed to compile ' + filePath)
+                        fs.writeFileSync(outputPath, `it(${title}, () => { throw new Error(${JSON.stringify(message)}) })`)
+                    }
+
+                    // outputPath now holds a runnable spec either way.
+                    if (resolveFirstBuild) {
+                        resolveFirstBuild(outputPath)
+                        resolveFirstBuild = null
+                    } else {
+                        bundles[filePath] = Promise.resolve(outputPath)
+                        file.emit('rerun')
+                    }
+                }),
+            }
+
+            esbuild.context({ ...options, plugins: [...options.plugins, recover] })
+                .then(async (watcher) => {
+                    await watcher.watch()
+                    file.on('close', () => {
+                        delete bundles[filePath]
+                        watcher.dispose()
+                    })
+                })
+        }
+
+        return bundles[filePath]
+    }
+
+    on('file:preprocessor', (file) => {
         //Attempt to watch files locally if we're in `npx cypress open` mode
         file.shouldWatch = !config.isTextTerminal
-        return await bundler(file)
+        return bundle(file)
     })
 
     on("before:run", async (details) => {
@@ -72,17 +205,68 @@ module.exports = (cypressOn, config) => {
 
         // Your own `after:run` code goes here.
     })
+    
+    let browser = null
+    on('before:browser:launch', (browserArg, launchOptions) => {
+        browser = browserArg
+        return launchOptions
+    })
 
+    let beforeAllHasRun = false
     on("before:spec", async (spec) => {
         beforeSpecHandler(config, spec);
+        
+        if(config.isInteractive || !beforeAllHasRun){
+            beforeAllHasRun = true
 
-        // Your own `before:spec` code goes here.
+            // Delete these regardless of whether coverage is enabled to avoid displaying stale coverage results.
+            ;['.nyc_output', 'coverage'].forEach(dir => {
+                const dirPath = path.join(workspaceRoot, dir)
+                if(fs.existsSync(dirPath)){
+                    fs.rmSync(dirPath, { force: true, recursive: true })
+                }
+            })
+        }
+
+        if(process.env.UPLOAD_RESULTS === 'true'){
+            const redcapVersion = config.env.redcap_version
+            const frsId = ResultsUploader.getFRSId(spec)
+            if(await ResultsUploader.doesRecordExist(redcapVersion, frsId)){
+                throw new Error(`Failing build to prevent incorrect result upload because results have already been uploaded for REDCap version ${redcapVersion} and frs_id ${frsId} `)
+            }
+
+            const actualCypressBranch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8' }).trim()
+            if(actualCypressBranch === 'run-only-specified-features'){
+                // Allow uploads to run on this branch for testing
+            }
+            else{
+                const expectedCypressBranch = 'v' + redcapVersion
+                if(expectedCypressBranch !== actualCypressBranch){
+                    throw new Error(`Failing build to prevent incorrect result upload because expected cypress branch (${expectedCypressBranch}) did not match the actual cypress branch (${actualCypressBranch}).`)
+                }
+    
+                const tagName = execSync(`git --git-dir=../redcap_source/redcap_v${redcapVersion}/.git describe --tags --exact-match`, { encoding: 'utf-8' }).trim()
+                if(tagName !== redcapVersion){
+                    throw new Error(`Failing build to prevent incorrect result upload because the checked out tag name (${tagName}) did not match the REDCap version (${redcapVersion}).`)
+                }
+            }
+        }
     })
 
     on("after:spec", async (spec, results) => {
         afterSpecHandler(config, spec, results);
 
-        // Your own `after:spec` code goes here.
+        if (isCodeCoverageEnabled(config)) {
+            // Write after npx cypress open
+            writeCoverageReport()
+        }
+
+        results.cypressVersion = config.version
+        results.browser = browser
+
+        if(process.env.UPLOAD_RESULTS === 'true' && results.stats.failures === 0){
+            await ResultsUploader.uploadResults(config.env.redcap_version, results)
+        }
     })
 
     on("after:screenshot", async (details) => {
@@ -91,6 +275,7 @@ module.exports = (cypressOn, config) => {
         // Your own `after:screenshot` code goes here.
     })
 
+    let phpTimeZone
     on('task', {
         readTextFile({textFilePath}){
             return new Promise((resolve) => {
@@ -100,14 +285,17 @@ module.exports = (cypressOn, config) => {
             })
         },
 
-        readPdf({pdf_file}){
-            return new Promise((resolve) => {
-                const filePath = path.resolve(pdf_file)
-                const dataBuffer = fs.readFileSync(filePath)
-                pdf(dataBuffer).then(function (data){
-                    resolve(data)
-                })
-            })
+        async readPdf({pdf_file}){
+            const filePath = path.resolve(pdf_file)
+            const dataBuffer = fs.readFileSync(filePath)
+            const parser = new PDFParse({ data: dataBuffer })
+
+            try {
+                return await parser.getText()
+            }
+            finally {
+                await parser.destroy()
+            }
         },
 
         saveCurrentURL(urlData) {
@@ -129,12 +317,12 @@ module.exports = (cypressOn, config) => {
             return fs.existsSync(snapshot_file)
         },
 
-        async populateStructureAndData({redcap_version, advanced_user_info, source_location}) {
+        async populateStructureAndData({redcap_version, advanced_user_info, source_location, additional_queries}) {
             /**
              * We're clearing the DB.  We should clear the filesystem at the same time,
              * to ensure each test starts with a clean slate.
              */
-            for (const [name, directory] of Object.entries((await getRCTF()).STORAGE_DIRECTORY_LOCATIONS)) {
+            for (const [name, directory] of Object.entries(rctf.STORAGE_DIRECTORY_LOCATIONS)) {
                 if(directory === false){
                     continue
                 }
@@ -175,7 +363,7 @@ module.exports = (cypressOn, config) => {
             var structure_and_data_file = test_seeds_location + '/structure_and_data.sql';
 
             //REMOVE EXISTING STRUCTURE AND DATA FILE
-            shell.rm(structure_and_data_file);
+            shell.rm('-f', structure_and_data_file);
 
             //CREATE NEW STRUCTURE AND DATA FILE FROM REDCAP SOURCE
             shell.cat(db_prefix_sql).to(structure_and_data_file);
@@ -194,6 +382,8 @@ module.exports = (cypressOn, config) => {
             //shell.cat(rights_sql).toEnd(structure_and_data_file);
 
             shell.cat(config_sql).sed('REDCAP_VERSION_MAGIC_STRING', redcap_version).toEnd(structure_and_data_file);
+
+            shell.ShellString(`\n${additional_queries};`).toEnd(structure_and_data_file);
 
             shell.ShellString('\nCOMMIT;').toEnd(structure_and_data_file);
 
@@ -249,7 +439,7 @@ module.exports = (cypressOn, config) => {
         },
 
         parseCsv({csv_string}) {
-            return csv.parse(csv_string, { relax_column_count: true })
+            return parseCsvString(csv_string, { relax_column_count: true })
         },
 
         createInitialDbSeedLock(){
@@ -277,7 +467,11 @@ module.exports = (cypressOn, config) => {
         },
 
         phpTimeZone(php_path){
-            return `${php_path} -r "echo date_default_timezone_get();"`
+            if(!phpTimeZone){
+                phpTimeZone = execSync(`${php_path} -r "echo date_default_timezone_get();"`, { encoding: 'utf-8' })
+            }
+            
+            return phpTimeZone
         },
 
         async fetchLatestDownload({fileExtension, retry = true}){
@@ -378,13 +572,17 @@ module.exports = (cypressOn, config) => {
         },
 
         async getStorageDirectoryLocations() {
-            return (await getRCTF()).STORAGE_DIRECTORY_LOCATIONS
+            return rctf.STORAGE_DIRECTORY_LOCATIONS
         },
 
         createTempFile({filename, content}){
             const path = os.tmpdir() + '/' + filename
             fs.writeFileSync(path, content, 'binary')
             return path
+        },
+
+        getREDCapPlusSubscriptionKeyEnv(){
+            return process.env['REDCAP_PLUS_SUBSCRIPTION_KEY'] ?? null
         }
     })
 

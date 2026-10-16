@@ -136,7 +136,7 @@ Cypress.Commands.add('get_record_status_dashboard', (event, instrument, record_i
     }).then(() => {
         cy.intercept({
             method: 'POST',
-            url: '/redcap_v' + Cypress.env('redcap_version') + '/index.php?*'
+            url: '/redcap_v' + Cypress.exposeRCTF('redcap_version') + '/index.php?*'
         }).as('instance_table')
 
         if(click){

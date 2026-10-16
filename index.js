@@ -1,7 +1,161 @@
+// We use require() syntax so that this script works with both cypress and get-step-usage.sh
+const { mimeWordsDecode } = require('emailjs-mime-codec')
+
+// Define rctf everywhere on the browser side of things
+globalThis.rctf = require('./rctf.mjs').rctf
+Object.assign(rctf, {
+    /**
+     * We defined browser-side rctf functions here rather than inside rctf.mjs
+     * because rctf.mjs must also work in the Gherkin Step Builder (a very different context).
+     */
+
+    validateCurrentSpecFilename: () => {
+        const path = Cypress.spec.absolute
+        if(path.includes('/redcap_rsvc/')){
+            const filename = path.split('/').at(-1)
+            const error = rctf.getSpecFilenameError(filename)
+            if(error){
+                throw new Error('Unexpected feature filename format: ' + error)
+            }
+        }
+    },
+    getSpecFilenameError: (filename) => {
+        const mainParts = filename.split(' - ')
+        if(mainParts.length < 2){
+            return 'Did not find the expected "FRS ID - DESCRIPTION.feature" format.'
+        }
+
+        const frsIdMatch = mainParts[0].match(/^[A-C]\.\d+\.\d+\.(\d+)\./);
+        if (!frsIdMatch) {
+            console.log(2)
+            return 'The FRS ID is not formatted correctly.'
+        }
+
+        if(mainParts[1].split('.')[0].length === 0){
+            console.log(3)
+            return 'The description is missing after " - ".'
+        }
+
+        const lastFrsIdPart = frsIdMatch[1]
+        const lastFrsIdPartWithExpectedPadding = String(parseInt(lastFrsIdPart)).padStart(4, '0')
+        if(lastFrsIdPart !== lastFrsIdPartWithExpectedPadding){
+            console.log(4, lastFrsIdPart, lastFrsIdPartWithExpectedPadding)
+            return 'The last portion of the FRS ID is not zero padded as expected.'
+        }
+
+        return null
+    },
+    login: (username) => {
+        return cy.set_user_type(username).then(() => {
+            /**
+             * We used to use cy.fetch_login() here, but it started failing on some CDIS tests (e.g. C.3.31.2200)
+             * because that command somehow corrupts the session causes it to invalidate when "Standalone Launch" is clicked.
+             * The test began working fine after we changed this to simply interact like actual users would.
+             */
+            cy.getLabeledElement('input', 'Username').type(window.user_info.get_current_user())
+            cy.getLabeledElement('input', 'Password').type(window.user_info.get_current_pass())
+            cy.getLabeledElement('button', 'Log In').click()
+        })
+    },
+    normalizeString: (s) => {
+        if(s === undefined){
+            return undefined
+        }
+
+        // Replace '&nbsp;' so that normal spaces in steps will match that character
+        return s.trim().replaceAll('\u00a0', ' ')
+    },
+    getNormalizedTextContent: (node) => {
+        let text
+        if(node.constructor.name === 'Text'){
+            // This is a text node, as opposed to an actual HTML element
+            text = node.textContent // Ignore this line when verifying textContext usage
+        }
+        else{
+            text = node.innerText
+        }
+
+        return rctf.normalizeString(text)
+    },
+    getLatestEmail: () => {
+        return cy.retryUntilTimeout(() => {
+            return cy.request('http://localhost:8025/api/v1/messages').then(response => {
+                // Make null the default return value & override any previous subject
+                cy.wrap(null)
+
+                const messages = response.body 
+                if(messages.length === 0){
+                    // Maybe it hasn't come through yet.  Return to retry.
+                    return
+                }
+    
+                const lastMessage = messages[0].Content
+    
+                // It seems like mailhog's API would decode the subject for us, but it doesn't.
+                lastMessage.Headers.Subject[0] = mimeWordsDecode(lastMessage.Headers.Subject[0])
+    
+                const timeSinceSent = Date.now() - new Date(lastMessage.Headers.Date)
+                if(timeSinceSent > 10000){
+                    // Ignore any old emails
+                    return
+                }
+    
+                cy.wrap(lastMessage)
+            })
+        })
+    },
+})
+
+if (
+    typeof Cypress !== 'undefined' // Don't load coverage if running get-step-usage.sh 
+    &&
+    Cypress.expose('codeCoverage')
+) {
+    try{
+        require('@cypress/code-coverage/support')
+    }
+    catch(error){
+        /**
+         * The esbuild bundler will execute the above require call statically
+         * without actually evaluating the if statement to see if it needs to
+         * be loaded. So we catch the error when it is thrown.
+         * This occurs during redcap_cypress' "npx cypress run" command.
+         */
+        console.log('Skipping require of @cypress/code-coverage/support')
+    }
+}
+
 // Check to see if Given is defined. We may be calling get-step-usage.sh which uses an alternate definition.
 if(!globalThis.Given){
     const { Given, defineParameterType } = require('@badeball/cypress-cucumber-preprocessor')
-    globalThis.Given = Given
+
+    globalThis.Given = (pattern, action) => {
+        Given(pattern, function (...args) {
+            const lastParam = action
+                .toString()
+                .split('{')[0]
+                .split('(')[1]
+                .split(')')[0]
+                .split(',').at(-1)
+                .trim()
+
+            if (
+                args.at(-1)?.constructor.name === '_DataTable'
+                &&
+                lastParam !== 'dataTable'
+            ){
+                /**
+                 * We throw an error here because this table will be ignored if we don't.
+                 * When this happens, there's a good chance the gherkin writer forgot the following line above the table:
+                 *  I should see a table header and rows containing the following values in a table:
+                 */
+                throw new Error(`A table of data was specified for a step that does not support it.`)
+            }
+
+            action(...args)
+        })
+    }
+
     globalThis.defineParameterType = defineParameterType
     
     globalThis.compareVersions = require('compare-versions')
@@ -16,7 +170,7 @@ function intercept_vanderbilt_requests(){
     cy.intercept({ method: 'GET', url: '*/consortium/collect_stats.php?*'}, []).as('Stats')
     cy.intercept({ method: 'GET', url: '*/ControlCenter/check_server_ping.php'}, []).as('Ping')
     cy.intercept({ method: 'GET', url: '*/ControlCenter/report_site_stats.php'}, []).as('Control Center Stats')
-    cy.intercept({ method: 'GET', url: '*/redcap_v' + Cypress.env('redcap_version') + '/**'}).as('interceptedRequest').then(() => {
+    cy.intercept({ method: 'GET', url: '*/redcap_v' + Cypress.exposeRCTF('redcap_version') + '/**'}).as('interceptedRequest').then(() => {
         window.registeredAlias = true // this is useful to know whether we can actually call a cy.wait
     })
 }
@@ -56,7 +210,9 @@ function check_feature_filename_format(){
 }
 
 function set_user_info(){
-    cy.set_user_info(Cypress.env('users'))
+    cy.env(['users']).then(limitedEnv => {
+        cy.set_user_info(limitedEnv.users)
+    })
 }
 
 function reset_database(){
@@ -80,10 +236,23 @@ function load_support_files(){
 }
 
 
-function rctf_initialize() {
+function rctf_initialize(env) {
+    rctf.validateCurrentSpecFilename()
+
     preprocessor = require('@badeball/cypress-cucumber-preprocessor')
 
     const { BeforeStep } = preprocessor
+
+    let hadAnyFailure = false
+    Cypress.on('fail', (error) => {
+        hadAnyFailure = true
+        throw error
+    })
+
+    let stepCount = 0
+    BeforeStep(() => {
+        stepCount++
+    })
 
     let lastFailingFeature
 
@@ -93,6 +262,17 @@ function rctf_initialize() {
 
     //This is where we initialize the stuff we need in a basic install
     before(() => {
+        /**
+         * The cypress.env.json file is uncommitted in redcap_cypress.
+         * This adds complication for transitioning existing developers to Cypress's new cy.env() & Cypress.expose()
+         * features that replace Cypress.env().  We create our own expose method as a compromise
+         * that is a step closer to Cypress' new syntax, without requiring us to transition all existing developers
+         * and their configuration files.
+         */
+        Cypress.exposeRCTF = (key) => {
+            return env[key]
+        }
+
         check_feature_filename_format()
         load_support_files()
         set_user_info()
@@ -170,11 +350,33 @@ function rctf_initialize() {
             // Actions performed within the function must be very efficient, as they are called on every step.
             win.alert = rctfAlert
             win.confirm = rctfConfirm
+
+            // Prevent "Leave site?" dialogs since they cause tests to hang (especially important in the cloud).
+            win.onbeforeunload = (event) => {
+                event.stopImmediatePropagation()
+            }
         })
     }
 
     BeforeStep((options) => {
         registerEventListeners()    
+
+        cy.window().then(win => {
+            if(win.oldOpen){
+                // We've already stubbed it
+                return
+            }
+
+            win.oldOpen = win.open
+            cy.stub(win, 'open').callsFake((url, target, windowFeatures) => {
+                /**
+                 * Cypress only supports operating within a single browser tab.
+                 * Modify any link targets to make sure they open within the existing tab.
+                 */
+                target = '_self'
+                win.oldOpen(url, target, windowFeatures)
+            })
+        })
     })
 
     beforeEach(() => {
@@ -211,6 +413,15 @@ function rctf_initialize() {
     afterEach(abortEarly);
 
     after(() => {
+        if(
+            stepCount === 0
+            &&
+            // If there is some other failure, let that message be displayed rather than overriding it
+            !hadAnyFailure
+        ){
+            throw new Error('No steps were executed! Did this feature accidentally get committed before it was completed? Or should it have "REDUNDANT" in the filename?')
+        }
+
         window.shouldShowAlerts = true
         registerEventListeners()
 
@@ -227,6 +438,7 @@ function rctf_initialize() {
                 url: url,
                 redcap_url_pre_survey: window.redcap_url_pre_survey,
                 original_spec_path: window.original_spec_path,
+                username: window.user_info.get_current_user(),
             }))
         })
 

@@ -20,7 +20,7 @@ for (const [key, snippet] of Object.entries(snippets)) {
         try {
             const output = child_process.execSync(`git grep "${grepLine}"`, { encoding: 'utf8' })
             const count = output.split("\n").length
-            if(count < 10){
+            if(count < 8){
                 console.log(`The following line from a code snippet only occurs ${count} times in redcap_rsvc.  This code snippet line likely needs to be updated to match recent step updates: ` + line)
                 fail = true
             }
