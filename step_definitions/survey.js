@@ -24,7 +24,8 @@ Given("I click on the survey option label containing {string} label{optionalStri
     // click closes the just-opened menu and the option <li> disappears.
     cy.get(`ul:visible li:visible`).contains(survey_option_label).then(($li) => {
         const logout = (survey_option_label === 'Log out+ Open survey')
-        cy.open_survey_in_same_tab($li, (optionalStr !== " and will leave the tab open when I return to the REDCap project"), logout)
+        const sameTab = (optionalStr !== " and will leave the tab open when I return to the REDCap project")
+        cy.open_survey_in_same_tab($li, sameTab, logout)
         if(!logout){
             // The survey-options menu item can sit outside the viewport when a tall
             // PDF.js consent preview is on the page, so scroll it in before clicking.
@@ -34,6 +35,9 @@ Given("I click on the survey option label containing {string} label{optionalStri
             // onclick, so a forced click would fire the handler even when something is
             // genuinely covering the item, turning a layout regression into a silent pass.
             cy.wrap($li).scrollIntoView().click()
+            if(sameTab){
+                cy.visit_survey_opened_in_same_tab()
+            }
         }
     })
 })

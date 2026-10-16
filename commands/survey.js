@@ -22,9 +22,16 @@ Cypress.Commands.add('open_survey_in_same_tab', (element, same_tab = true, logou
     cy.window().then((win) => {
 
         if(same_tab){
+            /**
+             * Only record the URL here. Calling cy.visit() inside the stub queued the visit
+             * whenever REDCap's click handler happened to fire, which could land in the
+             * middle of the NEXT step's command chain (e.g. a following `.clear()` then
+             * received `<window>` as its subject). Callers visit it in order via
+             * visit_survey_opened_in_same_tab() once the click has been made.
+             */
+            window.survey_url = undefined
             cy.stub(win, 'surveyOpen').callsFake((url, target) => {
                 window.survey_url = url
-                cy.visit(url)
             })
         } else {
             //This allows us to simulate behavior of a survey being opened in a new tab
@@ -66,5 +73,20 @@ Cypress.Commands.add('open_survey_in_same_tab', (element, same_tab = true, logou
         //This will log us out instead
         cy.clearCookies()
 
+        if(same_tab){
+            cy.visit_survey_opened_in_same_tab()
+        }
     }
+})
+
+/**
+ * Visit the survey URL captured by open_survey_in_same_tab() once REDCap's click
+ * handler has passed it to surveyOpen(). Waiting for the URL inside our own command
+ * keeps the visit in sequence, so the next step always starts on the loaded survey.
+ */
+Cypress.Commands.add('visit_survey_opened_in_same_tab', () => {
+    cy.wrap(null, { log: false, timeout: 30000 }).should(() => {
+        expect(window.survey_url, 'survey URL passed to surveyOpen()').to.be.a('string')
+    })
+    cy.then(() => cy.visit(window.survey_url))
 })
