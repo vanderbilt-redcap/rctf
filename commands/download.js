@@ -73,3 +73,7 @@ Cypress.Commands.add("fileExists", (filePath) => {
 Cypress.Commands.add("getFileMTime", (filePath) => {
     return cy.task('getFileMTime', filePath)
 })
+
+Cypress.Commands.add("fetchLatestDownload", () => {
+    return cy.task('fetchLatestDownload', {fileExtension: null, retry: false})
+})

@@ -427,7 +427,7 @@ Cypress.Commands.overwrite(
                          * We piggy back off of disappearing element detection to also wait for expected file downloads.
                          */
                         let downloadDetected = false
-                        return cy.task('fetchLatestDownload', {fileExtension: null, retry: false}).then(filePath => {
+                        return cy.fetchLatestDownload().then(filePath => {
                             if(filePath){
                                 cy.getFileMTime(filePath).then(mtime => {
                                     if(mtime > timeBeforeClick){
