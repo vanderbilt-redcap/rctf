@@ -428,11 +428,7 @@ Cypress.Commands.overwrite(
                          */
                         let downloadDetected = false
                         return cy.task('fetchLatestDownload', {fileExtension: null, retry: false}).then(filePath => {
-                            /**
-                             * We explicitly check to see if filePath is a string,
-                             * because for unknown reasons cypress is returning the window object here. 
-                             */
-                            if(typeof filePath === 'string'){
+                            if(filePath){
                                 cy.getFileMTime(filePath).then(mtime => {
                                     if(mtime > timeBeforeClick){
                                         // The click triggered a download.  Stop waiting for a page reload that will never happen. 
