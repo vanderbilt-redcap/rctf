@@ -529,7 +529,7 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                 let filter_selector = []
                 dataTable.hashes().forEach((row, row_index) => {
                     for (const [gherkin_column_index, key] of Object.keys(row).entries()) {
-                        let value = row[key].replaceAll(' ', ' ')
+                        let value = row[key].replace(/\s+/g, ' ')
                         let column = columns[key].col
                         if (isNaN(column)) {
                             console.log('columns', columns)
@@ -638,11 +638,13 @@ Given('I (should )see (a )table( ){headerOrNot}( row)(s) containing the followin
                                         /**
                                          * jQuery normalizes newlines to spaces when :contains() is used.
                                          * We follow similar logic here so that behavior is consistent and matching works as expected.
+                                         * Any run of whitespace (newlines, tabs between nested table cells, no-break spaces,
+                                         * repeated spaces) is collapsed to a single space, as is the expected value.
                                          * Yes, this means we can't distinguish a space from new line when matching,
                                          * but that is an acceptable compromise. We mainly want to verify that the data is present,
                                          * not that is is formatted perfectly.
                                          */
-                                        const normalizedCellText = $cell[0].innerText.trim().replaceAll('\n', ' ').replaceAll('\u00a0', ' ')
+                                        const normalizedCellText = $cell[0].innerText.trim().replace(/\s+/g, ' ')
                                         if (item.html_elm) {
                                             cy.wrap($cell).find(html_elements[item.value].selector).should(html_elements[item.value].condition).then(() => {
                                                 markCellAsFound()
