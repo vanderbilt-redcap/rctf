@@ -1626,7 +1626,8 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
                                      * If so, it's probably considered the label from the user's perspective.
                                      * This was added for "eoc-dashboard/automated-tests/1.1.1_Katietest. - EOC Create Project XMLs and Add EM.feature"
                                      */
-                                    return child.closest('th,td').cellIndex === labelColumnCell.cellIndex
+                                    // A child outside any table cell (e.g. a dialog button) is never in the label's column.
+                                    return child.closest('th,td')?.cellIndex === labelColumnCell.cellIndex
                                 })
 
                                 if(matchingChildren.length === 1){
