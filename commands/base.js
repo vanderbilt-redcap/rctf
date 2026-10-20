@@ -523,6 +523,35 @@ Cypress.Commands.overwrite(
                 }
             })
             .window().then((win) => {
+                let waitAfterAjax = 0
+                cy.retryUntilTimeout(() => {
+                    /**
+                     * Wait until any pending jQuery requests complete before continuing.
+                     * This serves a similar purpose to cy.intercept(), but in a simpler & more generic way,
+                     * since cy.intercept() is asyncronous and can't cause cypress to wait to execute the next step
+                     * without an explicit cy.wait(@someAlias) call.  Using jQuery's request count is much simpler
+                     * than explicitly supportly every page load & ajax request in REDCap.
+                    */
+                    const returnValue = 
+                        win.jQuery === undefined
+                        ||
+                        win.jQuery.active === 0
+                        ||
+                        innerText.includes('Request delete project') // Work around exception in REDCap
+                    
+                    if(!returnValue){
+                        /**
+                         * Add a slight delay to give any actions resulting from the ajax call time to take action (like re-render parts of the page).
+                         */
+                        waitAfterAjax = 100
+                    }
+
+                    return cy.wrap(returnValue)
+                }, 'The jQuery request count never fell to zero!')
+                .then(() => {
+                    cy.wait(waitAfterAjax)
+                })
+
                 if(
                     win.location.href.includes('ProjectSetup/index')
                     &&
