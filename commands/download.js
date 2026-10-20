@@ -75,5 +75,16 @@ Cypress.Commands.add("getFileMTime", (filePath) => {
 })
 
 Cypress.Commands.add("fetchLatestDownload", () => {
-    return cy.task('fetchLatestDownload', {fileExtension: null, retry: false})
+    return cy.task('fetchLatestDownload', {fileExtension: null, retry: false}).then((result) => {
+        if(result.cookieStore){
+            /**
+             * This is the window js object. We don't know why returning null from a task causes
+             * the window object to be returned here, but we don't want it to be.
+             */
+            return null
+        }
+        else{
+            return result
+        }
+    })
 })
