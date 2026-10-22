@@ -275,7 +275,7 @@ const getElementThatShouldDisappearAfterClick = ($el) => {
     }
 
     // Use $el.href here since it will return absolute urls even when relative urls are specified
-    const href = $el.href ?? ''
+    const href = $el.href ?? $el.closest('a')?.href ?? ''
 
     if(
         $el.id === 'login_btn'
@@ -362,6 +362,7 @@ Cypress.Commands.overwrite(
         const innerText = subject[0].innerText
 
         if(subject[0].nodeName === "A" ||
+            subject[0].closest('a') ||
             subject[0].nodeName === "BUTTON" ||
             (subject[0].nodeName === "INPUT" && ["button", "submit"].includes(subject[0].type))
         ){
