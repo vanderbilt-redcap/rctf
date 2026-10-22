@@ -32,7 +32,7 @@ Given("I verify I cannot change the Event Name of {string} while in production",
  */
 Given("I add an event named {string} with offset of {int} day(s) into the currently selected arm", (event_name, days) => {
    throw new Error(`
-      This step was removed because it broke after REDCap core changes. It should be replaced by generic steps like the following:
+      This step was removed because it broke after REDCap updates. It should be replaced by generic steps like the following:
          Given I enter "4" into the input field labeled "Days"
          And I enter "Event 4" into the input field labeled "Descriptive name for this event"
          Then I click on the button labeled "Add new event"
@@ -45,13 +45,10 @@ Given("I add an event named {string} with offset of {int} day(s) into the curren
  * @param {string} editEvent
  * @param {string} eventName - name of the Event targeted
  * @description Clicks on the image link of the action you want to perform on a event
+ * @deprecated
  */
 Given("I click on the {editEvent} image for the event named {string}", (type, event_name) => {
-   if(type === "Edit"){
-      cy.change_event_name(event_name, event_name, false, false)
-   } else if (type === "Delete"){
-      cy.delete_event_name(event_name)
-   }
+   throw new Error(`This step was removed because it broke after REDCap updates. It should be replaced with steps like the following: And I click on the icon labeled "Delete" in the row labeled "Event 1"`)
 })
 
 /**
