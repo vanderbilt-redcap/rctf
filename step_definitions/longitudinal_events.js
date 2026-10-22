@@ -28,43 +28,15 @@ Given("I verify I cannot change the Event Name of {string} while in production",
  * @param {string} eventName - the name of the event
  * @param {int} days - number of days offset
  * @description Adds an event via the "Define My Events" page for a Longitudinal Project
+ * @deprecated
  */
 Given("I add an event named {string} with offset of {int} day(s) into the currently selected arm", (event_name, days) => {
-   cy.intercept({
-      method: 'GET',
-      url: '/redcap_v' + Cypress.exposeRCTF('redcap_version') + "/Design/define_events_ajax.php?*"
-   }).as("add_event")
-
-   // IMPORTANT NOTE: We are intentionally selecting one column to the left of what we want
-   // The "Add new event" button spans across two cells!
-   //Setting the Event name
-   cy.table_cell_by_column_and_row_label("Offset Range", "Descriptive name for this event", 'table#event_table', 'td').then(($td) => {
-      cy.wrap($td).find('input').type(event_name)
-   })
-
-   // Setting the number of days.  Same column offset as noted above applies!
-   cy.table_cell_by_column_and_row_label("Event #", "Descriptive name for this event", 'table#event_table', 'td').then(($td) => {
-      cy.wrap($td).find('input').type(days)
-   })
-
-   //Tried doing this with the Cypress recommended way but it failed because behvaior is inconsistent!
-   //See example: https://glebbahmutov.com/blog/detect-page-reload/
-   //cy.window().then(w => w.beforeReload = true)
-   //cy.window().should('have.prop', 'beforeReload', true)
-
-   cy.get("#addbutton").click()
-
-   cy.wait("@add_event")
-   cy.get('#progress').should('not.be', 'visible')
-   cy.get('div#working').should('not.be', 'visible')
-
-   // The behavior is not consistent from one load to the next ...
-   // So we get stuck with fixed wait rather than doing something in Cypress recommended fashion.
-   // The code with cy.window() worked intermittently, so I guess we are better off waiting
-   cy.wait(3000)
-
-   //Make sure that we've reloaded (we will know if the variable is no longer there!)
-   //cy.window().should('not.have.prop', 'beforeReload')
+   throw new Error(`
+      This step was removed because it broke after REDCap core changes. It should be replaced by generic steps like the following:
+         Given I enter "4" into the input field labeled "Days"
+         And I enter "Event 4" into the input field labeled "Descriptive name for this event"
+         Then I click on the button labeled "Add new event"
+   `)
 })
 
 /**
