@@ -16,3 +16,59 @@ Given("I {shouldOrShouldNot} see a file on the External Storage server whose nam
         expect(actual).to.equal(expected)
     })
 })
+
+/**
+ * @module Misc
+ * @author Mark McEver <mark.mcever@vumc.org>
+ * @param {string} expectedPrintContent - The content that should appear when printing instead of the normal page content.
+ * @description Verify that the content is replaced with the specified content when the page is printed
+ */
+Given("I verify that when I print the current page the content is replaced with {string}", (expectedPrintContent) => {
+    expectedPrintContent = `"${expectedPrintContent.trim()}"`
+
+    const setEmulatedMedia = (media) => {
+        Cypress.automation('remote:debugger:protocol', {
+            command: 'Emulation.setEmulatedMedia',
+            params: { media },
+        })
+    }
+
+    const getCenterBeforeContent = () => {
+        return cy.get('#center').then(html => {
+            return window.getComputedStyle(html[0], '::before')
+                .getPropertyValue('content')
+                .replaceAll('\\"', '"')
+                .trim()
+        })
+    }
+
+    const assertPrintContentNotDisplayed = () => {
+        cy.get('html')
+            .invoke('prop', 'innerText')
+            .should('have.length.gt', 1000)
+
+        return getCenterBeforeContent().then(content => {
+            expect(content).to.equal('none')
+        })
+    }
+
+    const assertPrintContentDisplayed = () => {
+        cy.get('html')
+            .invoke('prop', 'innerText')
+            .should('be.empty')
+
+        return getCenterBeforeContent().then(content => {
+            expect(content).to.equal(expectedPrintContent)
+        })
+    }
+
+    assertPrintContentNotDisplayed().then(() => {
+        setEmulatedMedia('print')
+    })
+
+    assertPrintContentDisplayed().then(() => {
+        setEmulatedMedia('screen')
+    })
+    
+    assertPrintContentNotDisplayed()
+})

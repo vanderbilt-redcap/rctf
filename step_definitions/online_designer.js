@@ -8,9 +8,9 @@
  */
 Given('I {enterType} Choice(s) of {string} in(to) the open "{addEditField}" dialog box', (enter_type, choices, add_edit_field) => {
     if (enter_type === "verify") { //
-        throw new Error('This step has been removed in favor of steps like the following: And I verify "1, One" is within the textarea field labeled "Choices"')
+        throw new Error('This step was removed in favor of steps like the following: And I verify "1, One" is within the textarea field labeled "Choices"')
     } else {
-        throw new Error('This step has been removed in favor of steps like the following: And I enter "1, One{enter}2, Two" in the textarea field labeled "Choices"')
+        throw new Error('This step was removed in favor of steps like the following: And I enter "1, One{enter}2, Two" in the textarea field labeled "Choices"')
     }
 })
 
