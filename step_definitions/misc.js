@@ -21,7 +21,7 @@ Given("I {shouldOrShouldNot} see a file on the External Storage server whose nam
  * @module Misc
  * @author Mark McEver <mark.mcever@vumc.org>
  * @param {string} expectedPrintContent - The content that should appear when printing instead of the normal page content.
- * @description Verifies whether a file exists on the External Storage server 
+ * @description Verify that the content is replaced with the specified content when the page is printed
  */
 Given("I verify that when I print the current page the content is replaced with {string}", (expectedPrintContent) => {
     expectedPrintContent = `"${expectedPrintContent.trim()}"`
