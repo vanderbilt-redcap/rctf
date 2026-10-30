@@ -541,6 +541,26 @@ module.exports = (cypressOn, config) => {
             return fs.readdirSync(dirPath).filter(filename => filename.includes(partialFilename)).length > 0
         },
 
+        /**
+         * Returns the existing file matching filePath, or '' if there is none.
+         * A '*' in the filename (not the directories) matches any characters, e.g. the
+         * edoc id REDCap 17.5.7 appends to files in "ZIP file of all uploaded documents" exports.
+         */
+        resolveWildcardFile(filePath) {
+            if (!filePath.includes('*')) {
+                return fs.existsSync(filePath) ? filePath : ''
+            }
+
+            const dirPath = path.dirname(filePath)
+            if (!fs.existsSync(dirPath)) {
+                return ''
+            }
+
+            const pattern = new RegExp('^' + path.basename(filePath).split('*').map(part => part.replace(/[.+?^${}()|[\]\\]/g, '\\$&')).join('.*') + '$')
+            const match = fs.readdirSync(dirPath).sort().find(filename => pattern.test(filename))
+            return match ? path.join(dirPath, match) : ''
+        },
+
         findMostRecentFile({dirPath}) {
             let mostRecent
             glob.sync(dirPath + '/**').forEach(current => {
