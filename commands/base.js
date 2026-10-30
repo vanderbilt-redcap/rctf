@@ -1435,6 +1435,15 @@ Cypress.Commands.add("getLabeledElement", {prevSubject: 'optional'}, function (s
 
                     let childSelectors = []
                     if (type === 'icon') {
+                        if(current === match && ['I', 'IMG'].includes(current.tagName)){
+                            /**
+                             * The label matched the icon itself (e.g. its title attribute).
+                             * Its parent may hold other icons and no table cell to tell them apart
+                             * (e.g. the branching logic "eye" icon REDCap appends directly to a data entry field's tr).
+                             */
+                            return current
+                        }
+
                         childSelectors = ['i', 'img']
                     }
                     else if (['checkbox', 'radio'].includes(type)) {
