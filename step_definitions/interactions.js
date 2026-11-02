@@ -337,7 +337,7 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field labeled {
                             elm.clear()
 
                             if(text.length > 0){
-                                elm.type(text)
+                                elm.type(text).should('have.value', text);
                             }
                         } else if(enter_type === "click on"){
                             elm.click()
