@@ -337,7 +337,7 @@ Given ('I {enterType} {string} in(to) the( ){ordinal}( )textarea field labeled {
                             elm.clear()
 
                             if(text.length > 0){
-                                elm.type(text)
+                                elm.type(text).should('have.value', text);
                             }
                         } else if(enter_type === "click on"){
                             elm.click()
@@ -1124,8 +1124,11 @@ Given("I {action} {articleType}( ){ordinal}( ){optionalLabeledElement}( )(labele
     else if(rowLabel){
         const escapedRowLabel = rowLabel.replaceAll('"', '\\"')
 
-        cy.get(`:contains("${escapedRowLabel}")`).filterMatches(rowLabel).then(results => {
-            cy.log("Row Results", results) // Added for troubleshooting intermittent cloud failures
+        cy.retryUntilTimeout(() => {
+            return cy.get(`:contains("${escapedRowLabel}")`).filterMatches(rowLabel).then(results => {
+                return cy.wrap(results.length ? results : null)
+            })
+        }).then((results) => {
             const rows = []
             results.each((i, result) => {
                 while(result !== null){

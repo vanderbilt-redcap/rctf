@@ -35,6 +35,7 @@ const {createEsbuildPlugin}  = require("@badeball/cypress-cucumber-preprocessor/
 const glob = require('glob')
 const { execSync, spawnSync } = require('child_process');
 const { ResultsUploader } = require('./ResultsUploader.js')
+const chokidar = require('chokidar')
 
 // Define rctf everywhere on the node side of things
 globalThis.rctf = require('../rctf.mjs').rctf
@@ -111,6 +112,30 @@ function writeCoverageReport() {
         fs.writeFileSync(lcovInfoPath, normalizedLcovContents)
     }
 }
+
+/**
+ * Cypress does not look in parent directories for new features.
+ * Causing it to miss features added to External Modules.
+ * We work around this by adding our own listener that writes the following
+ * file within the redcap_cypress directory whenever External Modules
+ * file changes are detected, causing Cypress to reload all files,
+ * including External Modules features.
+ */
+(() => {
+    const modulesPath = path.resolve(module.parent.filename, '../../redcap_source/modules')
+    const watcher = chokidar.watch(modulesPath, {
+        ignoreInitial: true,
+    })
+
+    const reload = async (path) => {
+        console.log('Reloaded after External Module file change detected:', path)
+        fs.writeFileSync('test_db/force-cypress-change-detection', '')
+    }
+
+    watcher.on('add', reload)
+    watcher.on('change', reload)
+    watcher.on('unlink', reload)
+})()
 
 module.exports = (cypressOn, config) => {
     const on = require('cypress-on-fix')(cypressOn)

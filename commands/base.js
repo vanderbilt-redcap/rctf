@@ -304,6 +304,10 @@ const getElementThatShouldDisappearAfterClick = ($el) => {
             &&
             $el.closest('.ui-dialog')?.innerText?.includes('page will now reload')
         )
+        ||
+        $el.innerText === 'Save changes and leave'
+        ||
+        $el.innerText === 'Leave without saving changes'
     ){
         // The whole page should be reloaded after any of these actions
         return Cypress.$('body')[0]
