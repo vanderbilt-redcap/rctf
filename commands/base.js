@@ -1333,7 +1333,7 @@ function findMatchingChildren(text, selectOption, originalMatch, searchParent, c
 /**
  * This logic is meant to eventually replace get_labeled_element() and other label matching logic duplicated in multiple places.
  * Is it specifically designed to help us evolve toward normalizing & simplify association of labels with their clickable elements.
- * The main differences is that it does not require the tagName to be determined up front,
+ * The main difference is that it does not require the tagName to be determined up front,
  * allowing for significant logic simplification (incrementally over time).
  * We may want to introduce bahmutov/cypress-if at some point as well,
  * as the root of some of our existing duplicate logic is the lack of built-in "if" support.
