@@ -47,12 +47,13 @@ Cypress.Commands.add('fetch_timestamped_file', (filename) => {
      */
     cy.task('fetchLatestDownload', { fileExtension: false })
 
-    cy.fileExists(first_file).then((fileExists) => {
-        if (fileExists) path = first_file
+    // A '*' in the filename matches any characters (see the resolveWildcardFile task)
+    cy.task('resolveWildcardFile', first_file).then((file) => {
+        if (file) path = file
     }).then(() => {
         if(path === '') {
-            cy.fileExists(second_file).then((fileExists) => {
-                if (fileExists) path = second_file
+            cy.task('resolveWildcardFile', second_file).then((file) => {
+                if (file) path = file
             })
         }
     }).then(() =>{
