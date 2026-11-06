@@ -415,13 +415,16 @@ function rctf_initialize(env) {
     })
 
     function abortEarly() {
-        const currentFeature = this.currentTest.invocationDetails.originalFile
+        const invocationDetails = this.currentTest.invocationDetails
+        if(invocationDetails === undefined){
+            cy.log('Skipping abortEarly() logic because invocationDetails is undefined, likely because Cypress is retrying a failed test.')
+            return
+        }
+
+        const currentFeature = invocationDetails.originalFile
         if (currentFeature === lastFailingFeature) {
             /**
-             * One of the scenarios on this feature has already failed.  Skip the rest
-             * 
-             * This is important because our current workflow allows features to be added to redcap_rsvc
-             * that have passed manual testing, but are not intended for automated testing yet.
+             * One of the scenarios on this feature has already failed.  Skip the rest.
              * We want those to fail fast so that cloud build times are not unnecessarily inflated
              * (by as much as one timeout window for each failing scenario).
              * 
