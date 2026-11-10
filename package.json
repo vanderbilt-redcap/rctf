@@ -4,7 +4,7 @@
   "main": "index.js",
   "dependencies": {
     "@4tw/cypress-drag-drop": "*",
-    "@badeball/cypress-cucumber-preprocessor": "26.0.0",
+    "@badeball/cypress-cucumber-preprocessor": "28.0.1",
     "@bahmutov/cypress-esbuild-preprocessor": "*",
     "@foreachbe/cypress-tinymce": "*",
     "compare-versions": "*",
