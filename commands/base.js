@@ -1139,6 +1139,19 @@ Cypress.Commands.add("filterMatches", {prevSubject: true}, function (matches, te
     if(visibleMatches.length > 0){
         // Favor visible matches
         matches = visibleMatches
+
+        const topMostMatch = matches.at(-1)
+        const rect = topMostMatch.getBoundingClientRect()
+        const elementFromPoint = topMostMatch.ownerDocument.elementFromPoint(rect.x + (rect.width / 2), rect.y + (rect.height / 2))
+        if(elementFromPoint?.id === 'fade'){
+            /**
+             * The showProgress(true) overlay is displayed.
+             * The page may be in the process of reloading, in which case any matches here will be invalid.
+             * Return zero matches, so that we can fall back to the closest retryUntilTimeout() call.
+             * If a retryUntilTimeout() is not being used, consider adding one.
+             */
+            matches = []
+        }
     }
 
     console.log('filterMatches after', matches)
