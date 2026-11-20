@@ -191,6 +191,18 @@ Cypress.Commands.add('upload_file', (fileName, fileType = ' ', selector = '', bu
 
         return
     }
+    else if(nearest_text === 'Choose and upload CSV file'){
+        /**
+         * Special case for the Online Designer "Upload ... (CSV)" dialogs (e.g. Survey Settings).
+         * The dialog button builds a hidden upload form via createUploadForm() (opacity 0,
+         * pointer-events none) and submits it as soon as a file is selected, so the
+         * file input must be targeted directly with {force: true}.
+         */
+        cy.contains('button:visible', nearest_text).click()
+        cy.get('form[enctype="multipart/form-data"] input[type=file][name=files]').last().selectFile(filePath, {force: true})
+
+        return
+    }
 
     cy.top_layer(label_selector).within(() => {
         if(nearest_text.length > 0) {
