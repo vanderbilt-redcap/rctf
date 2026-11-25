@@ -18,6 +18,16 @@ Object.assign(rctf, {
                 throw new Error('Unexpected feature filename format: ' + error)
             }
         }
+        
+        const partsAfterModulesDir = Cypress.spec.absolute.split('/redcap_source/modules/')
+        if(partsAfterModulesDir.length > 1){
+            const parts = partsAfterModulesDir[1].split('/')
+            parts.shift() // Ignore the EM dir name
+            const automatedTestsDirName = parts.shift()
+            if(automatedTestsDirName === 'automated-tests'){
+                throw new Error('Please rename your "automated-tests" directory to "automated_tests" (with an underscore instead of a dash). We changed this naming convention to be match Cypress conventions like the "step_definitions" directory.')
+            }
+        }
     },
     getSpecFilenameError: (filename) => {
         const mainParts = filename.split(' - ')
